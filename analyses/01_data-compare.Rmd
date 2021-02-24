@@ -1,0 +1,133 @@
+---
+title: "Excess mortality: data preparation"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(knitr, rmdformats, 
+       tidyverse, scales, readxl, haven, janitor,
+       kableExtra)
+
+options(max.print = "75")
+opts_chunk$set(cache = FALSE,
+               prompt = FALSE,
+               tidy = FALSE,
+               comment = NA,
+               message = FALSE,
+               warning = FALSE)
+opts_knit$set(width = 75)
+
+mu = Hmisc::markupSpecs$html
+`%nin%` = Negate(`%in%`)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# BfS 1
+
+Data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html)
+
+```{r message=FALSE, warning=FALSE}
+bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
+                         skip = 2, na = "...") %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  rename(year = x1) %>% 
+  filter(!is.na(todesfalle_total)) %>% 
+  select(year:todesfalle_im_dezember)
+
+bfs_web_deaths_yearly <- bfs_web_raw %>% 
+  select(year, todesfalle_total) %>% 
+  rename(deaths_total = todesfalle_total) 
+
+p1 <- bfs_web_deaths_yearly %>% 
+  uncount(12) %>% 
+  group_by(year) %>% 
+  mutate(month_num = row_number()) %>% 
+  ungroup() 
+
+p2 <- bfs_web_raw %>% 
+  select(-todesfalle_total) %>% 
+  filter(!is.na(todesfalle_im_januar)) %>%
+  pivot_longer(!year, names_to = "month", values_to = "deaths_month") %>% 
+  mutate(month = str_replace(month, fixed("todesfalle_im_"), "")) %>% 
+  group_by(year) %>% 
+  mutate(month_num = row_number()) %>% 
+  ungroup() %>% 
+  select(-month) 
+
+bfs_web_deaths_monthly <- p1 %>% 
+  left_join(p2) %>% 
+  mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
+  relocate(year, month_num, date) %>% 
+  mutate(type = if_else(is.na(deaths_month), "yearly", "monthly"))
+```
+
+Yearly deaths for period `r min(bfs_web_deaths_yearly$year)` to  `r max(bfs_web_deaths_yearly$year)`; monthly deaths for period 1901 to `r max(p2$year)`, with special addition of period `r min(p2$year)` to 1885.
+
+```{r}
+ggplot(data = filter(bfs_web_deaths_monthly, 
+                     type == "yearly" &
+                     year < 1877), 
+       aes(x = date)) +
+  geom_line(aes(y = deaths_total)) +
+    geom_line(data = filter(bfs_web_deaths_monthly, 
+                     type == "yearly" &
+                     year > 1885), 
+       aes(y = deaths_total)) +
+  geom_line(data = filter(bfs_web_deaths_monthly, 
+                           type == "monthly" & 
+                  year >= 1877 & year <= 1885), 
+            aes(y = deaths_month)) +
+   geom_line(data = filter(bfs_web_deaths_monthly, 
+                           type == "monthly" & 
+                  year >= 1901), 
+            aes(y = deaths_month)) +
+  facet_grid(vars(type)) +
+  theme_bw() +
+  xlab("") + ylab("Monthly/yearly number of deaths")
+```
+
+
+```{r}
+inconsistent <- bfs_web_deaths_monthly %>% 
+  filter(!is.na(deaths_month)) %>% 
+  group_by(year) %>% 
+  mutate(deaths_summed = sum(deaths_month)) %>% 
+  ungroup() %>% 
+  filter(deaths_total != deaths_summed)
+```
+
+There are three years where summed monthly data differ from 'official' yearly sums.
+
+```{r}
+inconsistent %>% 
+  filter(month_num == 1) %>% 
+  select(year, deaths_total, deaths_summed) %>% 
+  mutate(difference = deaths_total - deaths_summed) %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
