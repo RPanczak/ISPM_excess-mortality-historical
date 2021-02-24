@@ -98,11 +98,12 @@ ggplot(data = filter(bfs_web_deaths_monthly,
                            type == "monthly" & 
                   year >= 1901), 
             aes(y = deaths_month)) +
-  facet_grid(vars(type)) +
+  facet_grid(vars(type), scales = "free_y") +
   theme_bw() +
   xlab("") + ylab("Monthly/yearly number of deaths")
 ```
 
+Note different `y` scales! 
 
 ```{r}
 inconsistent <- bfs_web_deaths_monthly %>% 
