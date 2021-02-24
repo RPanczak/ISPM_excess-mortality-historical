@@ -70,7 +70,8 @@ hmd_ch_deaths <- hmd_ch_deaths_raw %>%
   select(Year, Total) %>% 
   rename(year = Year) %>% 
   group_by(year) %>% 
-  summarise(deaths_year = sum(Total))
+  summarise(deaths_year = sum(Total)) %>% 
+  as_tibble()
 
 write_rds(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.Rds")
 write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
@@ -97,7 +98,8 @@ bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx"
   clean_names() %>% 
   rename(year = x1) %>% 
   filter(!is.na(todesfalle_total)) %>% 
-  select(year:todesfalle_im_dezember)
+  select(year:todesfalle_im_dezember) %>% 
+  mutate(year = as.numeric(year))
 
 bfs_web_deaths_yearly <- bfs_web_raw %>% 
   select(year, todesfalle_total) %>% 
@@ -177,6 +179,36 @@ inconsistent %>%
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE)
 ```
+
+<!-- ----------------------------------------------------- -->
+
+# Comparison
+
+```{r}
+compare <- left_join(
+  bfs_web_deaths_yearly %>% 
+    rename(deaths_year_bfs = deaths_year), 
+  hmd_ch_deaths %>% 
+    rename(deaths_year_hmd = deaths_year)
+) %>% 
+  mutate(diff = deaths_year_bfs - deaths_year_hmd)
+```
+
+Summary of differences between BfS figures and HMD
+
+```{r}
+summary(compare$diff)
+```
+
+Timeline of differences between BfS figures and HMD
+
+```{r}
+ggplot(compare, aes(x = year, y = diff)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in number of deaths")
+```
+
 
 <!-- ----------------------------------------------------- -->
 
