@@ -25,3 +25,6 @@ secrets/
 
 # R Environment Variables
 .Renviron
+
+# project specific
+misc/
