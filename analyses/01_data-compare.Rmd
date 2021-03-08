@@ -41,13 +41,14 @@ mu <- Hmisc::markupSpecs$html
 
 [The Human Mortality Database](https://www.mortality.org/) data. 
 
-```{r}
+```{r eval=FALSE}
 password <- readr::read_file("secrets/HMD.txt")
 
 # pop
 hmd_ch_pop_raw <- readHMDweb(CNTRY = "CHE", item ="Population" , 
                              username = "r.panczak@gmail.com", password = password,
-                             fixup = FALSE)
+                             fixup = FALSE) %>% 
+  as_tibble()
 
 write_rds(hmd_ch_pop_raw, "data-raw/mortality_org/hmd_ch_pop_raw.Rds")
 write_dta(hmd_ch_pop_raw, "data-raw/mortality_org/hmd_ch_pop_raw.dta")
@@ -55,17 +56,12 @@ write_dta(hmd_ch_pop_raw, "data-raw/mortality_org/hmd_ch_pop_raw.dta")
 # deaths
 hmd_ch_deaths_raw <- readHMDweb(CNTRY = "CHE", item = "Deaths_1x1",
                                 username = "r.panczak@gmail.com", password = password,
-                                fixup = FALSE)
+                                fixup = FALSE) %>% 
+  as_tibble()
 
 write_rds(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 write_dta(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.dta")
-```
 
-Available only yearly but for one year age bands & separate by sex. Time from `r min(hmd_ch_deaths_raw$Year)` to  `r max(hmd_ch_deaths_raw$Year)`.
-
-Data is aggregated by year to match other sources. 
-
-```{r}
 hmd_ch_deaths <- hmd_ch_deaths_raw %>% 
   select(Year, Total) %>% 
   rename(year = Year) %>% 
@@ -77,6 +73,15 @@ write_rds(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.Rds")
 write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
 ```
 
+```{r include=FALSE}
+hmd_ch_deaths_raw <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
+hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
+```
+
+Available only yearly but for one year age bands & separate by sex. Time from `r min(hmd_ch_deaths_raw$Year)` to `r max(hmd_ch_deaths_raw$Year)`.
+
+Data is aggregated by year to match other sources. 
+
 ```{r}
 ggplot(hmd_ch_deaths, aes(x = year)) +
   geom_line(aes(y = deaths_year)) +
@@ -84,6 +89,22 @@ ggplot(hmd_ch_deaths, aes(x = year)) +
   xlab("") + ylab("Yearly number of deaths")
 ```
 
+<!-- ----------------------------------------------------- -->
+
+# Russian Flu
+
+```{r message=FALSE, warning=FALSE}
+extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  rename(year = x1) %>% 
+  pivot_longer(-year, values_to = "deaths_month") %>% 
+  mutate(month_num = rep(1:12, length(unique(year))),
+         type = "monthly",
+         date = anytime::anydate(paste0(year, "-", month_num))) 
+```
+
+Extra monthly dataset covering 'Russian Flu' between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
 
 <!-- ----------------------------------------------------- -->
 
@@ -151,6 +172,8 @@ ggplot(data = filter(bfs_web_deaths_monthly,
                           type == "monthly" & 
                             year >= 1901), 
             aes(y = deaths_month)) +
+  geom_line(data = extra_1889, 
+            aes(y = deaths_month), col = "darkred") +
   facet_grid(vars(type), scales = "free_y") +
   theme_bw() +
   xlab("") + ylab("Monthly/yearly number of deaths")
