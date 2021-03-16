@@ -20,7 +20,8 @@ set.seed(12345)
 
 library(pacman)
 p_load(knitr, rmdformats, 
-       tidyverse, scales, readxl, haven, janitor, kableExtra)
+       tidyverse, scales, readxl, haven, janitor, kableExtra,
+       HMDHFDplus)
 
 options(max.print = "75")
 opts_chunk$set(cache = FALSE,
@@ -41,27 +42,29 @@ mu <- Hmisc::markupSpecs$html
 [The Human Mortality Database](https://www.mortality.org/) data. 
 
 ```{r eval=FALSE}
-p_load(HMDHFDplus)
-
 password <- readr::read_file("secrets/HMD.txt")
 
 # pop
 hmd_ch_pop_raw <- readHMDweb(CNTRY = "CHE", item ="Population" , 
-                             username = "r.panczak@gmail.com", password = password,
-                             fixup = FALSE) %>% 
+                             username = "r.panczak@gmail.com", 
+                             password = password,
+                             fixup = FALSE)  %>% 
   as_tibble()
-
-write_rds(hmd_ch_pop_raw, "data-raw/mortality_org/hmd_ch_pop_raw.Rds")
-write_dta(hmd_ch_pop_raw, "data-raw/mortality_org/hmd_ch_pop_raw.dta")
 
 # deaths
 hmd_ch_deaths_raw <- readHMDweb(CNTRY = "CHE", item = "Deaths_1x1",
-                                username = "r.panczak@gmail.com", password = password,
-                                fixup = FALSE) %>% 
+                                username = "r.panczak@gmail.com", 
+                                password = password,
+                                fixup = FALSE)  %>% 
   as_tibble()
 
 write_rds(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 write_dta(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.dta")
+```
+
+```{r include=FALSE}
+hmd_ch_deaths_raw <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
+hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
 
 hmd_ch_deaths <- hmd_ch_deaths_raw %>% 
   select(Year, Total) %>% 
@@ -69,22 +72,13 @@ hmd_ch_deaths <- hmd_ch_deaths_raw %>%
   group_by(year) %>% 
   summarise(deaths_year = sum(Total)) %>% 
   as_tibble()
-
-write_rds(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.Rds")
-write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
-p_unload(HMDHFDplus)
-```
-
-```{r include=FALSE}
-hmd_ch_deaths_raw <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
-hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
 ```
 
 Available only yearly but for one year age bands & separate by sex. Time from `r min(hmd_ch_deaths_raw$Year)` to `r max(hmd_ch_deaths_raw$Year)`.
 
-Data is in yearly resolution. 
+Data is aggregated by year to match other sources. 
 
-```{r}
+```{r echo=FALSE}
 ggplot(hmd_ch_deaths, aes(x = year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
@@ -95,9 +89,7 @@ ggplot(hmd_ch_deaths, aes(x = year)) +
 
 # BfS 1
 
-Data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
-
-With update from @Kaspar covering missing months between 1886 and 1900.
+Data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html)
 
 ```{r message=FALSE, warning=FALSE}
 bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
@@ -113,47 +105,51 @@ bfs_web_deaths_yearly <- bfs_web_raw %>%
   select(year, todesfalle_total) %>% 
   rename(deaths_year = todesfalle_total) 
 
-p1 <- bfs_web_raw %>% 
-  select(year, todesfalle_total) %>% 
-  rename(deaths_year = todesfalle_total) %>% 
-  filter(year < 1877) %>% 
+p1 <- bfs_web_deaths_yearly %>% 
   uncount(12) %>% 
   group_by(year) %>% 
   mutate(month_num = row_number()) %>% 
+  ungroup() 
+
+p2 <- bfs_web_raw %>% 
+  select(-todesfalle_total) %>% 
+  filter(!is.na(todesfalle_im_januar)) %>%
+  pivot_longer(!year, names_to = "month", values_to = "deaths_month") %>% 
+  mutate(month = str_replace(month, fixed("todesfalle_im_"), "")) %>% 
+  group_by(year) %>% 
+  mutate(month_num = row_number()) %>% 
   ungroup() %>% 
-  mutate(deaths_month = NA,
-         type = "yearly")
-
-bfs_2_web_raw <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx") %>% 
-  remove_empty() %>% 
-  clean_names() %>% 
-  rename(year = jahr) 
-
-p2 <- bfs_2_web_raw %>% 
-  pivot_longer(!year, names_to = "month_num", values_to = "deaths_month") %>% 
-  mutate(month_num = as.numeric(str_replace(month_num, fixed("m"), "")))  %>% 
-  mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
-  relocate(year, month_num, date) %>% 
-  mutate(type = "monthly")
+  select(-month) 
 
 bfs_web_deaths_monthly <- p1 %>% 
-  bind_rows(p2) %>% 
+  left_join(p2) %>% 
   mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
-  relocate(year, month_num, date) 
+  relocate(year, month_num, date) %>% 
+  mutate(type = if_else(is.na(deaths_month), "yearly", "monthly"))
 
 write_rds(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.Rds")
 write_dta(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.dta")
 ```
 
-Yearly deaths for period 1803 to 1876; monthly deaths thereafter.
+Yearly deaths for period `r min(bfs_web_deaths_yearly$year)` to  `r max(bfs_web_deaths_yearly$year)`; monthly deaths for period 1901 to `r max(p2$year)`, with special addition of period `r min(p2$year)` to 1885.
 
-```{r}
+```{r echo=FALSE}
 ggplot(data = filter(bfs_web_deaths_monthly, 
+                     type == "yearly" &
                        year < 1877), 
        aes(x = date)) +
   geom_line(aes(y = deaths_year)) +
   geom_line(data = filter(bfs_web_deaths_monthly, 
-                            year >= 1877), 
+                          type == "yearly" &
+                            year > 1885), 
+            aes(y = deaths_year)) +
+  geom_line(data = filter(bfs_web_deaths_monthly, 
+                          type == "monthly" & 
+                            year >= 1877 & year <= 1885), 
+            aes(y = deaths_month)) +
+  geom_line(data = filter(bfs_web_deaths_monthly, 
+                          type == "monthly" & 
+                            year >= 1901), 
             aes(y = deaths_month)) +
   facet_grid(vars(type), scales = "free_y") +
   theme_bw() +
@@ -162,84 +158,39 @@ ggplot(data = filter(bfs_web_deaths_monthly,
 
 Note different `y` scales! 
 
-<!-- ----------------------------------------------------- -->
-
-# Russian Flu
-
-```{r message=FALSE, warning=FALSE}
-extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>% 
-  remove_empty() %>% 
-  clean_names() %>% 
-  rename(year = x1) %>% 
-  pivot_longer(-year, values_to = "deaths_month") %>% 
-  mutate(month_num = rep(1:12, length(unique(year))),
-         type = "monthly",
-         date = anytime::anydate(paste0(year, "-", month_num))) 
+```{r}
+inconsistent <- bfs_web_deaths_monthly %>% 
+  filter(!is.na(deaths_month)) %>% 
+  group_by(year) %>% 
+  mutate(deaths_summed = sum(deaths_month)) %>% 
+  ungroup() %>% 
+  filter(deaths_year != deaths_summed)
 ```
 
-Extra monthly dataset covering 'Russian Flu' between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
+There are three years where summed monthly data differ from 'official' yearly sums.
 
-```{r}
-ggplot(extra_1889) +
-  geom_line(aes(x = date, y = deaths_month)) +
-  theme_bw() +
-  xlab("") + ylab("Monthly number of deaths")
+```{r echo=FALSE}
+inconsistent %>% 
+  filter(month_num == 1) %>% 
+  select(year, deaths_year, deaths_summed) %>% 
+  mutate(difference = deaths_year - deaths_summed) %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
 ```
 
 <!-- ----------------------------------------------------- -->
 
 # Comparison
 
-## Yearly vs. monthly figures
-
-```{r}
-bfs_web_deaths_monthly %>% 
-  filter(!is.na(deaths_month)) %>% 
-  group_by(year) %>% 
-  summarize(deaths_summed = sum(deaths_month)) %>% 
-  ungroup() %>% 
-  left_join(bfs_web_deaths_yearly) %>% 
-  filter(deaths_year != deaths_summed) %>% 
-  nrow()
-```
-
-There are no years where summed monthly data differ from 'official' yearly sums.
-
-## Russian Flu vs BfS
-
-```{r}
-compare <- extra_1889 %>% 
-  select(date, deaths_month) %>% 
-  rename(deaths_month_russian = deaths_month) %>% 
-  left_join(bfs_web_deaths_monthly %>% 
-              select(date, deaths_month) %>% 
-              rename(deaths_month_bfs = deaths_month)) %>% 
-  mutate(diff = deaths_month_bfs - deaths_month_russian)
-```
-
-Summary of differences between BfS figures and HMD
-
-```{r}
-summary(compare$diff)
-```
-
-Timeline of differences between BfS figures and HMD
-
-```{r}
-ggplot(compare, aes(x = date, y = diff)) +
-  geom_line() +
-  theme_bw() +
-  xlab("") + ylab("Yearly difference in number of deaths")
-```
-
-## BfS vs HMD
-
 ```{r}
 compare <- left_join(
   bfs_web_deaths_yearly %>% 
     rename(deaths_year_bfs = deaths_year), 
   hmd_ch_deaths %>% 
-    rename(deaths_year_hmd = deaths_year)) %>% 
+    rename(deaths_year_hmd = deaths_year)
+) %>% 
   mutate(diff = deaths_year_bfs - deaths_year_hmd)
 ```
 
@@ -251,12 +202,13 @@ summary(compare$diff)
 
 Timeline of differences between BfS figures and HMD
 
-```{r}
+```{r echo=FALSE}
 ggplot(compare, aes(x = year, y = diff)) +
   geom_line() +
   theme_bw() +
   xlab("") + ylab("Yearly difference in number of deaths")
 ```
+
 
 <!-- ----------------------------------------------------- -->
 

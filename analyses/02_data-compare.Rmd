@@ -84,7 +84,7 @@ Available only yearly but for one year age bands & separate by sex. Time from `r
 
 Data is in yearly resolution. 
 
-```{r}
+```{r echo=FALSE}
 ggplot(hmd_ch_deaths, aes(x = year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
@@ -147,7 +147,7 @@ write_dta(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.dta")
 
 Yearly deaths for period 1803 to 1876; monthly deaths thereafter.
 
-```{r}
+```{r echo=FALSE}
 ggplot(data = filter(bfs_web_deaths_monthly, 
                        year < 1877), 
        aes(x = date)) +
@@ -179,7 +179,7 @@ extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>%
 
 Extra monthly dataset covering 'Russian Flu' between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
 
-```{r}
+```{r echo=FALSE}
 ggplot(extra_1889) +
   geom_line(aes(x = date, y = deaths_month)) +
   theme_bw() +
@@ -225,7 +225,7 @@ summary(compare$diff)
 
 Timeline of differences between BfS figures and HMD
 
-```{r}
+```{r echo=FALSE}
 ggplot(compare, aes(x = date, y = diff)) +
   geom_line() +
   theme_bw() +
@@ -251,7 +251,7 @@ summary(compare$diff)
 
 Timeline of differences between BfS figures and HMD
 
-```{r}
+```{r echo=FALSE}
 ggplot(compare, aes(x = year, y = diff)) +
   geom_line() +
   theme_bw() +
