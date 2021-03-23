@@ -1,0 +1,124 @@
+---
+title: "Excess mortality: weekly BAG data"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(knitr, rmdformats, 
+       tidyverse, scales, readxl, haven, janitor, kableExtra)
+
+options(max.print = "75")
+opts_chunk$set(cache = FALSE,
+               prompt = FALSE,
+               tidy = FALSE,
+               comment = NA,
+               message = FALSE,
+               warning = FALSE)
+opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Weekly data
+
+[Overview of data](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.html)
+
+## Weekly number of deaths, 2010-2019
+
+```{r eval=FALSE}
+download.file(url = 'https://www.bfs.admin.ch/bfsstatic/dam/assets/12607335/master',
+              destfile = 'data-raw/BfS/weekly_2010-2019.csv',
+              method = 'curl')
+
+weekly_2010_2019 <- read_delim("data-raw/BfS/weekly_2010-2019.csv", ";", escape_double = FALSE, 
+                               col_types = cols(CY = col_integer(), 
+                                                Week = col_integer(), 
+                                                Ending = col_date(format = "%d.%m.%Y"), 
+                                                NumberOfDeaths = col_integer(), 
+                                                Expected = col_integer(), 
+                                                lowerB = col_integer(), upperB = col_integer(), 
+                                                Excess = col_integer()), 
+                               trim_ws = TRUE) %>% 
+  rename(Year = CY) %>% 
+  filter(!is.na(Year))
+
+write_rds(weekly_2010_2019, "data/BfS/weekly_2010-2019.Rds")
+```
+
+```{r include=FALSE}
+weekly_2010_2019 <- read_rds("data/BfS/weekly_2010-2019.Rds") 
+```
+
+Last five years
+
+```{r include=FALSE}
+weekly_2010_2019 %>% 
+  filter(Year >= 2015) %>% 
+  ggplot(aes(x = Ending)) +
+  geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
+  geom_line(aes(y = Expected, group = Age), colour = "gray60") + 
+  geom_line(aes(y = NumberOfDeaths, colour = Age)) + 
+  theme_minimal()
+```
+
+## Weekly number of deaths, 2020-2021
+
+```{r eval=FALSE}
+download.file(url = 'https://www.bfs.admin.ch/bfsstatic/dam/assets/16584731/master',
+              destfile = 'data-raw/BfS/weekly_2020-2021.csv',
+              method = 'curl')
+
+weekly_2020_2021 <- read_delim("data-raw/BfS/weekly_2020-2021.csv", 
+                               ";", escape_double = FALSE, 
+                               col_types = cols(Year = col_integer(), 
+                                                Week = col_integer(), 
+                                                Ending = col_date(format = "%d.%m.%Y"), 
+                                                NoDeaths_EP = col_integer(), 
+                                                Expected = col_integer(), 
+                                                LowerB = col_integer(), UpperB = col_integer(), 
+                                                Diff = col_integer()), 
+                               trim_ws = TRUE) %>% 
+  rename(NumberOfDeaths = NoDeaths_EP,
+         lowerB = LowerB, upperB = UpperB,
+         Excess = Diff) %>% 
+  filter(!is.na(Year))
+
+write_rds(weekly_2020_2021, "data/BfS/weekly_2020-2021.Rds")
+```
+
+```{r include=FALSE}
+weekly_2020_2021 <- read_rds("data/BfS/weekly_2020-2021.Rds")
+```
+
+```{r include=FALSE}
+weekly_2020_2021 %>% 
+  filter(Ending < Sys.Date()) %>% 
+  ggplot(aes(x = Ending)) +
+  geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
+  geom_line(aes(y = Expected, group = Age), colour = "gray60") + 
+  geom_line(aes(y = NumberOfDeaths, colour = Age)) + 
+  theme_minimal()
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
