@@ -19,17 +19,16 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(knitr, rmdformats, 
-       tidyverse, scales, readxl, haven, janitor, kableExtra)
+p_load(tidyverse, scales, janitor, kableExtra)
 
 options(max.print = "75")
-opts_chunk$set(cache = FALSE,
-               prompt = FALSE,
-               tidy = FALSE,
-               comment = NA,
-               message = FALSE,
-               warning = FALSE)
-opts_knit$set(width = 75)
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
 ```
@@ -68,7 +67,7 @@ weekly_2010_2019 <- read_rds("data/BfS/weekly_2010-2019.Rds")
 
 Last five years
 
-```{r include=FALSE}
+```{r echo=FALSE}
 weekly_2010_2019 %>% 
   filter(Year >= 2015) %>% 
   ggplot(aes(x = Ending)) +
@@ -107,7 +106,7 @@ write_rds(weekly_2020_2021, "data/BfS/weekly_2020-2021.Rds")
 weekly_2020_2021 <- read_rds("data/BfS/weekly_2020-2021.Rds")
 ```
 
-```{r include=FALSE}
+```{r echo=FALSE}
 weekly_2020_2021 %>% 
   filter(Ending < Sys.Date()) %>% 
   ggplot(aes(x = Ending)) +
