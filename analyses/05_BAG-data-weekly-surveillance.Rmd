@@ -67,13 +67,19 @@ Package works with `srs` - *surveillance time series* objects. Creating one for 
 
 ```{r}
 deaths_65 <- weekly_2010_2021 %>% 
-                     filter(Age == "65+") %>% 
+  filter(Age == "65+") %>% 
   select(-Age)
 
 deaths_65_sts <- sts(deaths_65$NumberOfDeaths, 
-                   start = c(2010, 1), 
-                   epoch = deaths_65$Ending,
-                   frequency = 52)
+                     start = c(2010, 1), 
+                     epoch = deaths_65$Ending,
+                     frequency = 52)
+```
+
+Also selecting indices of observations in the pandemic
+
+```{r}
+in2020 <- which(deaths_65$Ending >= as.Date("2020-02-01"))
 ```
 
 # Three methods 
@@ -87,7 +93,6 @@ With three sub methods
 EARS C1-MILD method 
 
 ```{r}
-in2020 <- which(deaths_65$Ending >= as.Date("2020-02-01"))
 control <- list(range = in2020, method = "C1", alpha = 0.05)
 surv <- earsC(deaths_65_sts, control = control)
 plot(surv)
@@ -98,7 +103,6 @@ plot(surv)
 EARS C2-MEDIUM method
 
 ```{r}
-in2020 <- which(isoWeekYear(deaths_65$Ending)$ISOYear == 2020)
 control <- list(range = in2020, method = "C2", alpha = 0.05)
 surv <- earsC(deaths_65_sts, control = control)
 plot(surv)
@@ -109,12 +113,33 @@ plot(surv)
 EARS C3-HIGH method
 
 ```{r}
-in2020 <- which(isoWeekYear(deaths_65$Ending)$ISOYear == 2020)
 control <- list(range = in2020, method = "C3", alpha = 0.05)
 surv <- earsC(deaths_65_sts, control = control)
 plot(surv)
 ```
 
+# `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in2020, noPeriods = 1, b = 4, w = 3,
+                 weightsThreshold = 1, pastWeeksNotIncluded = 3,
+                 pThresholdTrend = 0.05, thresholdMethod = "delta")
+
+farrington <- farringtonFlexible(deaths_65_sts, control1)
+
+plot(farrington)
+```
+
+# `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = in2020, noPeriods = 10, b = 4, w = 3,
+                 weightsThreshold = 2.58, pastWeeksNotIncluded = 26,
+                 pThresholdTrend = 1, thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(deaths_65_sts, control2)
+plot(noufaily)
+```
 
 <!-- ----------------------------------------------------- -->
 
