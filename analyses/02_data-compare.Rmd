@@ -99,7 +99,7 @@ Data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.a
 
 With update from @Kaspar covering missing months between 1886 and 1900.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
                          skip = 2, na = "...") %>% 
   remove_empty() %>% 
@@ -142,7 +142,13 @@ bfs_web_deaths_monthly <- p1 %>%
   relocate(year, month_num, date) 
 
 write_rds(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.Rds")
+write_rds(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.Rds")
 write_dta(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.dta")
+write_dta(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.dta")
+```
+
+```{r include=FALSE}
+bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds")
 ```
 
 Yearly deaths for period 1803 to 1876; monthly deaths thereafter.
