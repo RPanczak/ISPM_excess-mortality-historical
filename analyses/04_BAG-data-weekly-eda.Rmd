@@ -52,7 +52,7 @@ Last sixish years
 
 ```{r echo=FALSE}
 weekly_2010_2021 %>% 
-  # filter(Year >= 2015) %>% 
+  filter(Year >= 2015) %>%
   filter(Ending < Sys.Date()) %>% 
   ggplot(aes(x = Ending)) +
   geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
@@ -65,6 +65,8 @@ weekly_2010_2021 %>%
 ```
 
 # Seasonal plots
+
+Only 65+ deaths!
 
 ```{r}
 weekly <- weekly_2010_2021 %>% 
