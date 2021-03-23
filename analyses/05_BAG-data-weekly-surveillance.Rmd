@@ -47,7 +47,7 @@ weekly_2010_2021 <- weekly_2010_2019 %>%
   filter(!is.na(NumberOfDeaths))
 ```
 
-Last sixish years
+Last decade(ish)
 
 ```{r echo=FALSE}
 weekly_2010_2021 %>% 
@@ -72,8 +72,12 @@ deaths_65 <- weekly_2010_2021 %>%
 
 deaths_65_sts <- sts(deaths_65$NumberOfDeaths, 
                      start = c(2010, 1), 
-                     epoch = deaths_65$Ending,
                      frequency = 52)
+
+# deaths_65_sts <- new("sts", 
+#                      epoch = as.numeric(deaths_65$Ending),
+#                      observed = deaths_65$NumberOfDeaths, 
+#                      epochAsDate = TRUE)
 ```
 
 Also selecting indices of observations in the pandemic
@@ -95,6 +99,9 @@ EARS C1-MILD method
 ```{r}
 control <- list(range = in2020, method = "C1", alpha = 0.05)
 surv <- earsC(deaths_65_sts, control = control)
+```
+
+```{r echo=FALSE}
 plot(surv)
 ```
 
@@ -105,6 +112,9 @@ EARS C2-MEDIUM method
 ```{r}
 control <- list(range = in2020, method = "C2", alpha = 0.05)
 surv <- earsC(deaths_65_sts, control = control)
+```
+
+```{r echo=FALSE}
 plot(surv)
 ```
 
@@ -115,29 +125,43 @@ EARS C3-HIGH method
 ```{r}
 control <- list(range = in2020, method = "C3", alpha = 0.05)
 surv <- earsC(deaths_65_sts, control = control)
+```
+
+```{r echo=FALSE}
 plot(surv)
 ```
 
 # `farringtonFlexible` original method
 
 ```{r}
-control1 <- list(range = in2020, noPeriods = 1, b = 4, w = 3,
-                 weightsThreshold = 1, pastWeeksNotIncluded = 3,
-                 pThresholdTrend = 0.05, thresholdMethod = "delta")
+control1 <- list(range = in2020, 
+                 noPeriods = 1, b = 4, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 3,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "delta")
 
 farrington <- farringtonFlexible(deaths_65_sts, control1)
+```
 
+```{r echo=FALSE}
 plot(farrington)
 ```
 
 # `farringtonFlexible` improved method
 
 ```{r}
-control2 <- list(range = in2020, noPeriods = 10, b = 4, w = 3,
-                 weightsThreshold = 2.58, pastWeeksNotIncluded = 26,
-                 pThresholdTrend = 1, thresholdMethod = "nbPlugin")
+control2 <- list(range = in2020, 
+                 noPeriods = 10, b = 4, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 26,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
 
 noufaily <- farringtonFlexible(deaths_65_sts, control2)
+```
+
+```{r echo=FALSE}
 plot(noufaily)
 ```
 
