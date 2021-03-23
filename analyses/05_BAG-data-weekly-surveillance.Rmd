@@ -1,0 +1,123 @@
+---
+title: "Excess mortality: weekly data & `surveillance` package"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(tidyverse, scales, kableExtra, surveillance)
+
+options(max.print = "75")
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Weekly number of deaths, 2010-2019
+
+```{r include=FALSE}
+weekly_2010_2019 <- read_rds("data/BfS/weekly_2010-2019.Rds") %>% 
+  mutate(pandemic = 0)
+weekly_2020_2021 <- read_rds("data/BfS/weekly_2020-2021.Rds") %>% 
+  mutate(pandemic = 1)
+weekly_2010_2021 <- weekly_2010_2019 %>% 
+  bind_rows(weekly_2020_2021) %>% 
+  filter(!is.na(NumberOfDeaths))
+```
+
+Last sixish years
+
+```{r echo=FALSE}
+weekly_2010_2021 %>% 
+  # filter(Year >= 2015) %>% 
+  ggplot(aes(x = Ending)) +
+  geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
+  geom_line(aes(y = Expected, group = Age), colour = "gray60") + 
+  geom_line(aes(y = NumberOfDeaths, colour = Age)) + 
+  theme_minimal() + 
+  scale_y_continuous(labels = comma) +
+  ylab("") + xlab("Number of deaths")
+```
+
+# Data structure
+
+Package works with `srs` - *surveillance time series* objects. Creating one for 65 and older
+
+```{r}
+deaths_65 <- weekly_2010_2021 %>% 
+                     filter(Age == "65+") %>% 
+  select(-Age)
+
+deaths_65_sts <- sts(deaths_65$NumberOfDeaths, 
+                   start = c(2010, 1), 
+                   epoch = deaths_65$Ending,
+                   frequency = 52)
+```
+
+# Three methods 
+
+##  EARS method {.tabset}
+
+With three sub methods
+
+### C1
+
+EARS C1-MILD method 
+
+```{r}
+in2020 <- which(deaths_65$Ending >= as.Date("2020-02-01"))
+control <- list(range = in2020, method = "C1", alpha = 0.05)
+surv <- earsC(deaths_65_sts, control = control)
+plot(surv)
+```
+
+### C2
+
+EARS C2-MEDIUM method
+
+```{r}
+in2020 <- which(isoWeekYear(deaths_65$Ending)$ISOYear == 2020)
+control <- list(range = in2020, method = "C2", alpha = 0.05)
+surv <- earsC(deaths_65_sts, control = control)
+plot(surv)
+```
+
+### C3
+
+EARS C3-HIGH method
+
+```{r}
+in2020 <- which(isoWeekYear(deaths_65$Ending)$ISOYear == 2020)
+control <- list(range = in2020, method = "C3", alpha = 0.05)
+surv <- earsC(deaths_65_sts, control = control)
+plot(surv)
+```
+
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
