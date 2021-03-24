@@ -148,9 +148,9 @@ hmd_ch_pop_raw %>%
 
 ## Deaths 
 
-Data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
+Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
-With update from @Kaspar covering missing months between 1886 and 1900.
+With update from @Kaspar covering missing months between 1886 and 1900!
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
 bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
@@ -195,8 +195,9 @@ bfs_web_deaths_monthly <- p1 %>%
   relocate(year, month_num, date) 
 
 write_rds(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.Rds")
-write_rds(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.Rds")
 write_dta(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.dta")
+
+write_rds(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.Rds")
 write_dta(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.dta")
 ```
 
@@ -254,72 +255,6 @@ ggplot(bfs_web_pop_yearly, aes(x = year)) +
 
 <!-- ----------------------------------------------------- -->
 
-# BfS 2
-
-## Deaths per week by 5-year age group, sex and canton
-
-```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584733/master",
-              destfile = "data-raw/BfS/weekly_canton_age5_2020-2021.csv", 
-              method = "curl")
-```
-
-Docs in `ts-q-01.04.02.01.30-2020-2021-APPENDIX.xlsx` 
-
-```{r}
-weekly_canton_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), 
-                                           trim_ws = TRUE)
-```
-
-
-## Deaths per week by 5-year age group, sex and major region
-
-```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584751/master",
-              destfile = "data-raw/BfS/weekly_gros_age5_2020-2021.csv", 
-              method = "curl")
-```
-
-Docs in `ts-q-01.04.02.01.31-2020-2021-APPENDIX.xlsx`
-
-```{r}
-weekly_gros_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_gros_age5_2020-2021.csv", 
-    ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), 
-    trim_ws = TRUE)
-```
-
-<!-- ----------------------------------------------------- -->
-
-# MOMO
-
-BfS [Mortality monitoring (MOMO)](https://www.experimental.bfs.admin.ch/expstat/en/home/innovative-methods/momo.html) 
-
-## Deaths in NUTS2-regions, age group 0 - 64 years, 2020-2021
-
-```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584743/master",
-              destfile = "data-raw/BfS/momo_nuts_0-64_2020-2021.csv", 
-              method = "curl")
-```
-
-## Deaths in NUTS2-regions, age group 65 years and older, 2020-2021
-
-```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584737/master",
-              destfile = "data-raw/BfS/momo_nuts_65_2020-2021.csv", 
-              method = "curl")
-```
-
-## Weekly deaths 2020-2021 for 26 cantons and 2 age groups
-
-```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584735/master",
-              destfile = "data-raw/BfS/momo_canton_age-bin_2020-2021.csv", 
-              method = "curl")
-```
-
-<!-- ----------------------------------------------------- -->
-
 # Russian Flu
 
 ```{r message=FALSE, warning=FALSE}
@@ -340,90 +275,6 @@ ggplot(extra_1889) +
   geom_line(aes(x = date, y = deaths_month)) +
   theme_bw() +
   xlab("") + ylab("Monthly number of deaths")
-```
-
-<!-- ----------------------------------------------------- -->
-
-# BAG 1
-
-BAG [Coronavirus: Situation in Switzerland](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html#-1680104524) 
-
-## Deaths
-
-```{r eval=FALSE}
-download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/aktuelle-ausbrueche-pandemien/2019-nCoV/covid-19-basisdaten-fallzahlen.csv.download.csv/Data%20on%20laboratory%20findings%20and%20deaths.csv",
-              destfile = "data-raw/BAG/Data on laboratory findings and deaths.csv", 
-              method = "curl")
-
-deaths_cases <- read_delim("data-raw/BAG/Data on laboratory findings and deaths.csv", 
-                           delim = ";",
-                           col_names = TRUE, 
-                           col_types = cols_only(
-                             fall_dt = col_date(),
-                             ktn = col_character(),
-                             akl = col_character(),
-                             sex = col_integer(),
-                             fallklasse_3 = col_integer(),
-                             pttoddat = col_date(),
-                             pttod_1 = col_integer())) %>% 
-  mutate(sex = factor(sex, labels = c("Men", "Women", "Unknown"))) %>% 
-  mutate(akl = factor(akl)) %>% 
-  rename(canton = ktn,
-         age_group = akl,
-         deaths = pttod_1, 
-         cases = fallklasse_3) 
-
-# write_rds(deaths_cases, "data/BAG/deaths_cases.rds")
-
-deaths <- deaths_cases %>% 
-  filter(!is.na(pttoddat)) %>% 
-  select(-fall_dt, -cases) %>% 
-  arrange(pttoddat, canton, sex, age_group) %>% 
-  mutate(weekend = chron::is.weekend(pttoddat))
-
-write_rds(deaths, "data/BAG/deaths.rds")
-```
-
-## Pops
-
-```{r}
-download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/aktuelle-ausbrueche-pandemien/2019-nCoV/covid-19-basisdaten-bevoelkerungszahlen.xlsx.download.xlsx/Population_Size_BFS.xlsx",
-              destfile = "data-raw/BAG/Population_Size_BFS.xlsx", 
-              method = "curl")
-
-population <- read_excel("data-raw/BAG/Population_Size_BFS.xlsx") %>% 
-  rename(canton = Kanton,
-         age_group = Alterklasse,
-         sex = Geschlecht) 
-
-write_rds(population, "data/BAG/population.rds")
-```
-
-# BAG 2 
-
-[COVID-⁠19 Switzerland](https://www.covid19.admin.ch/en/epidemiologic/death)
-
-```{r eval=FALSE}
-download.file(url = "https://www.covid19.admin.ch/api/data/20210324-lu7j46iy/downloads/sources-csv.zip",
-              destfile = "data-raw/BAG/bag-covid-pack.zip",
-              method = "curl")
-
-exdir = paste0("./data-raw/BAG/", Sys.Date())
-dir.create(exdir)
-
-unzip("data-raw/BAG/bag-covid-pack.zip", exdir = exdir) 
-
-unlink("./data-raw/BAG/bag-covid-pack.zip")
-```
-
-```{r}
-Death_geoRegion <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion.csv"))
-
-Death_geoRegion_AKL10_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_AKL10_w.csv"))
-
-Death_geoRegion_sex_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_sex_w.csv"))
-
-Death_geoRegion_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_w.csv"))
 ```
 
 <!-- ----------------------------------------------------- -->

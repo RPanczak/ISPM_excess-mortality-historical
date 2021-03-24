@@ -43,10 +43,10 @@ mu <- Hmisc::markupSpecs$html
 
 ```{r eval=FALSE}
 download.file(url = 'https://www.bfs.admin.ch/bfsstatic/dam/assets/12607335/master',
-              destfile = 'data-raw/BfS/weekly_2010-2019.csv',
+              destfile = 'data-raw/BfS/weekly_CH_2010-2019.csv',
               method = 'curl')
 
-weekly_2010_2019 <- read_delim("data-raw/BfS/weekly_2010-2019.csv", ";", escape_double = FALSE, 
+weekly_2010_2019 <- read_delim("data-raw/BfS/weekly_CH_2010-2019.csv", ";", escape_double = FALSE, 
                                col_types = cols(CY = col_integer(), 
                                                 Week = col_integer(), 
                                                 Ending = col_date(format = "%d.%m.%Y"), 
@@ -58,11 +58,11 @@ weekly_2010_2019 <- read_delim("data-raw/BfS/weekly_2010-2019.csv", ";", escape_
   rename(Year = CY) %>% 
   filter(!is.na(Year))
 
-write_rds(weekly_2010_2019, "data/BfS/weekly_2010-2019.Rds")
+write_rds(weekly_2010_2019, "data/BfS/weekly_CH_2010-2019.Rds")
 ```
 
 ```{r include=FALSE}
-weekly_2010_2019 <- read_rds("data/BfS/weekly_2010-2019.Rds") 
+weekly_2010_2019 <- read_rds("data/BfS/weekly_CH_2010-2019.Rds") 
 ```
 
 Last five years
@@ -82,10 +82,10 @@ weekly_2010_2019 %>%
 
 ```{r eval=FALSE}
 download.file(url = 'https://www.bfs.admin.ch/bfsstatic/dam/assets/16584731/master',
-              destfile = 'data-raw/BfS/weekly_2020-2021.csv',
+              destfile = 'data-raw/BfS/weekly_CH_2020-2021.csv',
               method = 'curl')
 
-weekly_2020_2021 <- read_delim("data-raw/BfS/weekly_2020-2021.csv", 
+weekly_2020_2021 <- read_delim("data-raw/BfS/weekly_CH_2020-2021.csv", 
                                ";", escape_double = FALSE, 
                                col_types = cols(Year = col_integer(), 
                                                 Week = col_integer(), 
@@ -100,11 +100,11 @@ weekly_2020_2021 <- read_delim("data-raw/BfS/weekly_2020-2021.csv",
          Excess = Diff) %>% 
   filter(!is.na(Year))
 
-write_rds(weekly_2020_2021, "data/BfS/weekly_2020-2021.Rds")
+write_rds(weekly_2020_2021, "data/BfS/weekly_CH_2020-2021.Rds")
 ```
 
 ```{r include=FALSE}
-weekly_2020_2021 <- read_rds("data/BfS/weekly_2020-2021.Rds")
+weekly_2020_2021 <- read_rds("data/BfS/weekly_CH_2020-2021.Rds")
 ```
 
 ```{r echo=FALSE}
@@ -116,6 +116,67 @@ weekly_2020_2021 %>%
   geom_line(aes(y = Expected, group = Age), colour = "gray60") + 
   geom_line(aes(y = NumberOfDeaths, colour = Age)) + 
   theme_minimal()
+```
+
+## Deaths per week by 5-year age group, sex and canton
+
+```{r eval=FALSE}
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584733/master",
+              destfile = "data-raw/BfS/weekly_canton_age5_2020-2021.csv", 
+              method = "curl")
+```
+
+Docs in `ts-q-01.04.02.01.30-2020-2021-APPENDIX.xlsx` 
+
+```{r}
+weekly_canton_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), 
+                                           trim_ws = TRUE)
+```
+
+## Deaths per week by 5-year age group, sex and major region
+
+```{r eval=FALSE}
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584751/master",
+              destfile = "data-raw/BfS/weekly_gros_age5_2020-2021.csv", 
+              method = "curl")
+```
+
+Docs in `ts-q-01.04.02.01.31-2020-2021-APPENDIX.xlsx`
+
+```{r}
+weekly_gros_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_gros_age5_2020-2021.csv", 
+    ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), 
+    trim_ws = TRUE)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# MOMO
+
+BfS [Mortality monitoring (MOMO)](https://www.experimental.bfs.admin.ch/expstat/en/home/innovative-methods/momo.html) 
+
+## Deaths in NUTS2-regions, age group 0 - 64 years, 2020-2021
+
+```{r eval=FALSE}
+download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584743/master",
+              destfile = "data-raw/BfS/momo_nuts_0-64_2020-2021.csv", 
+              method = "curl")
+```
+
+## Deaths in NUTS2-regions, age group 65 years and older, 2020-2021
+
+```{r eval=FALSE}
+download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584737/master",
+              destfile = "data-raw/BfS/momo_nuts_65_2020-2021.csv", 
+              method = "curl")
+```
+
+## Weekly deaths 2020-2021 for 26 cantons and 2 age groups
+
+```{r eval=FALSE}
+download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584735/master",
+              destfile = "data-raw/BfS/momo_canton_age-bin_2020-2021.csv", 
+              method = "curl")
 ```
 
 <!-- ----------------------------------------------------- -->
