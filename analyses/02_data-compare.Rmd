@@ -91,9 +91,57 @@ ggplot(hmd_ch_deaths, aes(x = year)) +
   xlab("") + ylab("Yearly number of deaths")
 ```
 
+
+Similarly, population data is aggregated by year. 
+
+```{r include=FALSE}
+hmd_ch_pop_raw <- read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds")
+
+hmd_ch_pop_year <- hmd_ch_pop_raw %>% 
+  select(Year, Total) %>% 
+  rename(year = Year) %>% 
+  group_by(year) %>% 
+  summarise(pop_year = sum(Total)) %>% 
+  as_tibble()
+```
+
+```{r echo=FALSE}
+ggplot(hmd_ch_pop_year, aes(x = year)) +
+  geom_line(aes(y = pop_year/1000000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly population [million]") +
+  scale_y_continuous(labels = comma)
+```
+
+Advantage of data is availability of age bands (1 year!)
+
+```{r echo=FALSE}
+hmd_ch_pop_raw %>% 
+  filter(Year == 1876 | Year == 2019) %>% 
+  select(Year, Age, Female, Male) %>% 
+  rename(year = Year, age = Age) %>% 
+  pivot_longer(c("Female", "Male"), names_to = "sex") %>% 
+  mutate(age = if_else(age == "110+", "110", age)) %>% 
+  mutate(age = as.numeric(age)) %>% 
+  mutate(age_cat = cut(age, seq(0, 110, 5), include.lowest = TRUE)) %>% 
+  group_by(year, sex, age_cat) %>% 
+  summarise(pop = sum(value)) %>% 
+  ungroup() %>% 
+  ggplot(mapping = aes(x = ifelse(test = sex == "Male", yes = -pop, no = pop), 
+                       y = age_cat, fill = sex)) +
+  geom_col(width = 1) +
+  lemon::scale_x_symmetric(labels = abs) +
+  labs(x = "Population", y = "Age") +
+  facet_grid(vars(year)) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Set1")
+```
+
 <!-- ----------------------------------------------------- -->
 
 # BfS 1
+
+## Deaths 
 
 Data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
@@ -148,6 +196,7 @@ write_dta(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.dta")
 ```
 
 ```{r include=FALSE}
+bfs_web_deaths_yearly <- read_rds("data/BfS/bfs_web_deaths_yearly.Rds")
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds")
 ```
 
@@ -155,11 +204,11 @@ Yearly deaths for period 1803 to 1876; monthly deaths thereafter.
 
 ```{r echo=FALSE}
 ggplot(data = filter(bfs_web_deaths_monthly, 
-                       year < 1877), 
+                     year < 1877), 
        aes(x = date)) +
   geom_line(aes(y = deaths_year)) +
   geom_line(data = filter(bfs_web_deaths_monthly, 
-                            year >= 1877), 
+                          year >= 1877), 
             aes(y = deaths_month)) +
   facet_grid(vars(type), scales = "free_y") +
   theme_bw() +
@@ -167,6 +216,34 @@ ggplot(data = filter(bfs_web_deaths_monthly,
 ```
 
 Note different `y` scales! 
+
+
+## Pops 
+
+[Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html)
+
+```{r}
+bfs_web_pop_yearly <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx", 
+                                na = "...", skip = 1) %>% 
+  remove_empty(c("rows", "cols")) %>%
+  clean_names() %>% 
+  rename(year = x1, pop_jan = population_on_2, pop_dec = population_on_11) %>% 
+  filter(!is.na(year)) %>% 
+  filter(!is.na(pop_jan)) %>% 
+  mutate(year = if_else(year == "2010 7", "2010", year),
+         year = as.numeric(year), 
+         pop_jan = as.numeric(pop_jan),
+         pop_dec = as.numeric(pop_dec)) %>% 
+  select(year, starts_with("pop_"))
+```
+
+```{r echo=FALSE}
+ggplot(bfs_web_pop_yearly, aes(x = year)) +
+  geom_line(aes(y = pop_dec/1000000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly population [million]") +
+  scale_y_continuous(labels = comma)
+```
 
 <!-- ----------------------------------------------------- -->
 
@@ -194,7 +271,58 @@ ggplot(extra_1889) +
 
 <!-- ----------------------------------------------------- -->
 
-# Comparison
+# Comparison - pops
+
+```{r}
+compare <- left_join(
+  bfs_web_pop_yearly, 
+  hmd_ch_pop_year) %>% 
+  mutate(diff1 = pop_jan - pop_year) %>% 
+  mutate(diff2 = pop_dec - pop_year)
+```
+
+Summary of differences between BfS figures (both Jan and Dec) and HMD
+
+```{r}
+summary(compare$diff1)
+summary(compare$diff2)
+```
+
+Timeline of differences between BfS figures and HMD
+
+```{r echo=FALSE}
+compare %>% 
+  rename(bfs_pop_jan = pop_jan, 
+         bfs_pop_dec = pop_dec, 
+         hmd_pop_year = pop_year) %>% 
+  pivot_longer(bfs_pop_jan:hmd_pop_year) %>% 
+  ggplot(aes(x = year, y = value/1000000, color = name)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Yearly population [million]")
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = year, y = pop_jan - pop_year)) +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in population estimates")
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = year, y = pop_dec - pop_year)) +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in population estimates")
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Comparison - deaths
 
 ## Yearly vs. monthly figures
 
