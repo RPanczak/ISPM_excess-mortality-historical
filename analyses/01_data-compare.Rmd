@@ -64,7 +64,6 @@ write_dta(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.dta")
 
 ```{r include=FALSE}
 hmd_ch_deaths_raw <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
-hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
 
 hmd_ch_deaths <- hmd_ch_deaths_raw %>% 
   select(Year, Total) %>% 
@@ -83,6 +82,48 @@ ggplot(hmd_ch_deaths, aes(x = year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
+```
+
+```{r include=FALSE}
+hmd_ch_pop_raw <- read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds")
+
+hmd_ch_pop_year <- hmd_ch_pop_raw %>% 
+  select(Year, Total) %>% 
+  rename(year = Year) %>% 
+  group_by(year) %>% 
+  summarise(pop_year = sum(Total)) %>% 
+  as_tibble()
+```
+
+Similarly, population data is aggregated by year. 
+
+```{r echo=FALSE}
+ggplot(hmd_ch_pop_year, aes(x = year)) +
+  geom_line(aes(y = pop_year/1000000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly population [million]") +
+  scale_y_continuous(labels = comma)
+```
+
+```{r}
+hmd_ch_pop_raw %>% 
+  filter(Year == 1876 | Year == 2019) %>% 
+  select(Year, Age, Female, Male) %>% 
+  rename(year = Year, age = Age) %>% 
+  pivot_longer(c("Female", "Male"), names_to = "sex") %>% 
+  mutate(age = if_else(age == "110+", "110", age)) %>% 
+  mutate(age = as.numeric(age)) %>% 
+  mutate(age_cat = cut(age, seq(0, 110, 5), include.lowest = TRUE)) %>% 
+  group_by(year, sex, age_cat) %>% 
+  summarise(pop = sum(value)) %>% 
+  ungroup() %>% 
+  ggplot(mapping = aes(x = ifelse(test = sex == "Male", yes = -pop, no = pop), 
+                       y = age_cat, fill = sex)) +
+  geom_col(width = 1) +
+  lemon::scale_x_symmetric(labels = abs) +
+  labs(x = "Population", y = "Age") +
+  facet_grid(vars(year)) +
+  scale_fill_brewer(palette = "Set1")
 ```
 
 <!-- ----------------------------------------------------- -->
