@@ -1,0 +1,186 @@
+---
+title: "Excess mortality: monthly data & `surveillance` package"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(tidyverse, scales, kableExtra, surveillance)
+
+options(max.print = "75")
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Monthly number of deaths, 1877 onwards
+
+```{r include=FALSE}
+bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") %>% 
+  filter(year >= 1877)
+
+bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
+  filter(year >= 1877) %>% 
+  select(-deaths_year) %>% 
+  left_join(bfs_web_pop_yearly)
+
+rm(bfs_web_pop_yearly)
+```
+
+Deaths per 100k
+
+```{r echo=FALSE}
+bfs_web_deaths_monthly %>% 
+  # filter(Year >= 2015) %>% 
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = (deaths_month/pop_dec) * 100000)) + 
+  theme_minimal() + 
+  scale_y_continuous(labels = comma) +
+  ylab("") + xlab("Deaths per 100k")
+```
+
+# Data structure
+
+Package works with `srs` - *surveillance time series* objects. Creating one for 65 and older
+
+```{r}
+deaths_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
+                  epoch = as.numeric(bfs_web_deaths_monthly$date),
+                  start = c(1877, 1), 
+                  frequency = 12,
+                  population = as.matrix(bfs_web_deaths_monthly$pop_dec),
+                  epochAsDate = TRUE,
+                  multinomialTS = TRUE)
+```
+
+Also selecting indices of observations in the pandemic
+
+```{r}
+in1890 <- which(bfs_web_deaths_monthly$date >= as.Date("1890-01-01") & 
+                  bfs_web_deaths_monthly$date <= as.Date("1891-01-01"))
+```
+
+# Three methods 
+
+##  EARS method {.tabset}
+
+With three sub methods
+
+### C1
+
+EARS C1-MILD method 
+
+```{r}
+control <- list(range = in1890, method = "C1", alpha = 0.05)
+surv <- earsC(deaths_sts, control = control)
+```
+
+```{r echo=FALSE}
+plot(surv)
+```
+
+### C2
+
+EARS C2-MEDIUM method
+
+```{r}
+control <- list(range = in1890, method = "C2", alpha = 0.05)
+surv <- earsC(deaths_sts, control = control)
+```
+
+```{r echo=FALSE}
+plot(surv)
+```
+
+### C3
+
+EARS C3-HIGH method
+
+```{r}
+control <- list(range = in1890, method = "C3", alpha = 0.05)
+surv <- earsC(deaths_sts, control = control)
+```
+
+```{r echo=FALSE}
+plot(surv)
+```
+
+# `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in1890, 
+                 noPeriods = 1, b = 9, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(deaths_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington)
+```
+
+# `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = in1890, 
+                 noPeriods = 10, b = 9, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(deaths_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+noufaily@epoch
+noufaily@freq
+noufaily@start
+noufaily@state
+noufaily@alarm
+noufaily@observed
+noufaily@upperbound
+
+noufaily@observed - noufaily@upperbound
+
+noufaily@control$score
+noufaily@control$pvalue
+noufaily@control$expected
+noufaily@control$score
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
