@@ -75,6 +75,8 @@ write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
 p_unload(HMDHFDplus)
 ```
 
+## Deaths 
+
 ```{r include=FALSE}
 hmd_ch_deaths_raw <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
@@ -91,6 +93,7 @@ ggplot(hmd_ch_deaths, aes(x = year)) +
   xlab("") + ylab("Yearly number of deaths")
 ```
 
+## Pops 
 
 Similarly, population data is aggregated by year. 
 
@@ -103,6 +106,8 @@ hmd_ch_pop_year <- hmd_ch_pop_raw %>%
   group_by(year) %>% 
   summarise(pop_year = sum(Total)) %>% 
   as_tibble()
+
+write_rds(hmd_ch_pop_year, "data/mortality_org/hmd_ch_pop_year.Rds")
 ```
 
 ```{r echo=FALSE}
@@ -217,7 +222,6 @@ ggplot(data = filter(bfs_web_deaths_monthly,
 
 Note different `y` scales! 
 
-
 ## Pops 
 
 [Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html)
@@ -235,6 +239,9 @@ bfs_web_pop_yearly <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx",
          pop_jan = as.numeric(pop_jan),
          pop_dec = as.numeric(pop_dec)) %>% 
   select(year, starts_with("pop_"))
+
+write_rds(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.Rds")
+write_dta(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.dta")
 ```
 
 ```{r echo=FALSE}
@@ -260,7 +267,7 @@ extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>%
          date = anytime::anydate(paste0(year, "-", month_num))) 
 ```
 
-Extra monthly dataset covering 'Russian Flu' between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
+Extra monthly dataset covering "Russian Flu" between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
 
 ```{r echo=FALSE}
 ggplot(extra_1889) +
@@ -268,6 +275,92 @@ ggplot(extra_1889) +
   theme_bw() +
   xlab("") + ylab("Monthly number of deaths")
 ```
+
+<!-- ----------------------------------------------------- -->
+
+# BAG 1
+
+BAG [Coronavirus: Situation in Switzerland](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html#-1680104524) 
+
+## Deaths
+
+```{r eval=FALSE}
+download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/aktuelle-ausbrueche-pandemien/2019-nCoV/covid-19-basisdaten-fallzahlen.csv.download.csv/Data%20on%20laboratory%20findings%20and%20deaths.csv",
+              destfile = "data-raw/BAG/Data on laboratory findings and deaths.csv", 
+              method = "curl")
+
+deaths_cases <- read_delim("data-raw/BAG/Data on laboratory findings and deaths.csv", 
+                           delim = ";",
+                           col_names = TRUE, 
+                           col_types = cols_only(
+                             fall_dt = col_date(),
+                             ktn = col_character(),
+                             akl = col_character(),
+                             sex = col_integer(),
+                             fallklasse_3 = col_integer(),
+                             pttoddat = col_date(),
+                             pttod_1 = col_integer())) %>% 
+  mutate(sex = factor(sex, labels = c("Men", "Women", "Unknown"))) %>% 
+  mutate(akl = factor(akl)) %>% 
+  rename(canton = ktn,
+         age_group = akl,
+         deaths = pttod_1, 
+         cases = fallklasse_3) 
+
+# write_rds(deaths_cases, "data/BAG/deaths_cases.rds")
+
+deaths <- deaths_cases %>% 
+  filter(!is.na(pttoddat)) %>% 
+  select(-fall_dt, -cases) %>% 
+  arrange(pttoddat, canton, sex, age_group) %>% 
+  mutate(weekend = chron::is.weekend(pttoddat))
+
+write_rds(deaths, "data/BAG/deaths.rds")
+```
+
+## Pops
+
+```{r}
+download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/aktuelle-ausbrueche-pandemien/2019-nCoV/covid-19-basisdaten-bevoelkerungszahlen.xlsx.download.xlsx/Population_Size_BFS.xlsx",
+              destfile = "data-raw/BAG/Population_Size_BFS.xlsx", 
+              method = "curl")
+
+population <- read_excel("data-raw/BAG/Population_Size_BFS.xlsx") %>% 
+  rename(canton = Kanton,
+         age_group = Alterklasse,
+         sex = Geschlecht) 
+
+write_rds(population, "data/BAG/population.rds")
+```
+
+# BAG 2 
+
+[COVID-⁠19 Switzerland](https://www.covid19.admin.ch/en/epidemiologic/death)
+
+```{r eval=FALSE}
+download.file(url = "https://www.covid19.admin.ch/api/data/20210324-lu7j46iy/downloads/sources-csv.zip",
+              destfile = "data-raw/BAG/bag-covid-pack.zip",
+              method = "curl")
+
+exdir = paste0("./data-raw/BAG/", Sys.Date())
+dir.create(exdir)
+
+unzip("data-raw/BAG/bag-covid-pack.zip", exdir = exdir) 
+
+unlink("./data-raw/BAG/bag-covid-pack.zip")
+```
+
+```{r}
+Death_geoRegion <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion.csv"))
+
+Death_geoRegion_AKL10_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_AKL10_w.csv"))
+
+Death_geoRegion_sex_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_sex_w.csv"))
+
+Death_geoRegion_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_w.csv"))
+```
+
+
 
 <!-- ----------------------------------------------------- -->
 
@@ -337,7 +430,7 @@ bfs_web_deaths_monthly %>%
   nrow()
 ```
 
-There are no years where summed monthly data differ from 'official' yearly sums.
+There are no years where summed monthly data differ from "official" yearly sums.
 
 ## Russian Flu vs BfS
 
