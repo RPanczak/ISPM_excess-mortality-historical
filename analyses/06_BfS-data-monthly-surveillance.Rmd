@@ -49,6 +49,20 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
 rm(bfs_web_pop_yearly)
 ```
 
+Population is available till 2019 only. 2020 figures are borrowed from COVID mionitoring website from BAG and described in `00.Rmd`. 
+
+```{r}
+population <- read_rds("data/BAG/population.rds") %>% 
+  filter(canton != "FL")
+
+sum(population$Population)
+
+bfs_web_deaths_monthly <- bfs_web_deaths_monthly %>% 
+  mutate(pop_dec = if_else(year == 2020, sum(population$Population), pop_dec))
+
+rm(population)
+```
+
 Deaths per 100k
 
 ```{r echo=FALSE}
@@ -63,8 +77,9 @@ bfs_web_deaths_monthly %>%
 
 # Data structure
 
-Package works with `srs` - *surveillance time series* objects. 
-In contrast to solution from `05` we now use proper dates, population denominator
+Package works with `srs` - *surveillance time series* objects.  
+
+In contrast to solution from `05.Rmd` we now use proper dates & population denominator
 
 ```{r}
 deaths_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
@@ -90,6 +105,8 @@ in1968 <- which(bfs_web_deaths_monthly$date >= as.Date("1967-12-01") &
 
 in2015 <- which(bfs_web_deaths_monthly$date >= as.Date("2014-12-01") & 
                   bfs_web_deaths_monthly$date <= as.Date("2016-06-01"))
+
+in2020 <- which(bfs_web_deaths_monthly$date >= as.Date("2020-01-01"))
 ```
 
 # Two methods 
@@ -236,6 +253,42 @@ farrington <- farringtonFlexible(deaths_sts, control1)
 
 ```{r echo=FALSE}
 plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
+
+## 2020 {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = in2020, 
+                 noPeriods = 10, b = 9, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(deaths_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily, main = "", legend.opts = list(x = "topleft"))
+```
+
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in2020, 
+                 noPeriods = 1, b = 9, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(deaths_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topleft"))
 ```
 
 ```{r eval=FALSE, include=FALSE}
