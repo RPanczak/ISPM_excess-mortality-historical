@@ -76,6 +76,10 @@ deaths <- deaths_cases %>%
 write_rds(deaths, "data/BAG/deaths.rds")
 ```
 
+```{r}
+deaths <- read_rds("data/BAG/deaths.rds")
+```
+
 ## Pops
 
 ```{r}
@@ -90,6 +94,12 @@ population <- read_excel("data-raw/BAG/Population_Size_BFS.xlsx") %>%
 
 write_rds(population, "data/BAG/population.rds")
 ```
+
+```{r}
+population <- read_rds("data/BAG/population.rds")
+```
+
+<!-- ----------------------------------------------------- -->
 
 # BAG 2 
 
