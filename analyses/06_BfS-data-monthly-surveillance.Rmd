@@ -63,7 +63,8 @@ bfs_web_deaths_monthly %>%
 
 # Data structure
 
-Package works with `srs` - *surveillance time series* objects. Creating one for 65 and older
+Package works with `srs` - *surveillance time series* objects. 
+In contrast to solution from `05` we now use proper dates, population denominator
 
 ```{r}
 deaths_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
@@ -75,76 +76,27 @@ deaths_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
                   multinomialTS = TRUE)
 ```
 
-Also selecting indices of observations in the pandemic
+Also selecting indices of observations for periods of interest.
 
 ```{r}
-in1890 <- which(bfs_web_deaths_monthly$date >= as.Date("1890-01-01") & 
+in1890 <- which(bfs_web_deaths_monthly$date >= as.Date("1889-12-01") & 
                   bfs_web_deaths_monthly$date <= as.Date("1891-01-01"))
+
+in1918 <- which(bfs_web_deaths_monthly$date >= as.Date("1918-06-01") & 
+                  bfs_web_deaths_monthly$date <= as.Date("1919-06-01"))
+
+in1968 <- which(bfs_web_deaths_monthly$date >= as.Date("1967-12-01") & 
+                  bfs_web_deaths_monthly$date <= as.Date("1969-06-01"))
+
+in2015 <- which(bfs_web_deaths_monthly$date >= as.Date("2014-12-01") & 
+                  bfs_web_deaths_monthly$date <= as.Date("2016-06-01"))
 ```
 
-# Three methods 
+# Two methods 
 
-##  EARS method {.tabset}
+## 1890 {.tabset}
 
-With three sub methods
-
-### C1
-
-EARS C1-MILD method 
-
-```{r}
-control <- list(range = in1890, method = "C1", alpha = 0.05)
-surv <- earsC(deaths_sts, control = control)
-```
-
-```{r echo=FALSE}
-plot(surv)
-```
-
-### C2
-
-EARS C2-MEDIUM method
-
-```{r}
-control <- list(range = in1890, method = "C2", alpha = 0.05)
-surv <- earsC(deaths_sts, control = control)
-```
-
-```{r echo=FALSE}
-plot(surv)
-```
-
-### C3
-
-EARS C3-HIGH method
-
-```{r}
-control <- list(range = in1890, method = "C3", alpha = 0.05)
-surv <- earsC(deaths_sts, control = control)
-```
-
-```{r echo=FALSE}
-plot(surv)
-```
-
-# `farringtonFlexible` original method
-
-```{r}
-control1 <- list(range = in1890, 
-                 noPeriods = 1, b = 9, w = 3,
-                 weightsThreshold = 1, 
-                 pastWeeksNotIncluded = 2,
-                 pThresholdTrend = 0.05, 
-                 thresholdMethod = "nbPlugin")
-
-farrington <- farringtonFlexible(deaths_sts, control1)
-```
-
-```{r echo=FALSE}
-plot(farrington)
-```
-
-# `farringtonFlexible` improved method
+### `farringtonFlexible` improved method
 
 ```{r}
 control2 <- list(range = in1890, 
@@ -158,9 +110,133 @@ noufaily <- farringtonFlexible(deaths_sts, control2)
 ```
 
 ```{r echo=FALSE}
-plot(noufaily)
+plot(noufaily, main = "", legend.opts = list(x = "topright"))
 ```
 
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in1890, 
+                 noPeriods = 1, b = 9, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(deaths_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
+
+## 1918 {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = in1918, 
+                 noPeriods = 10, b = 9, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(deaths_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily, main = "", legend.opts = list(x = "topright"))
+```
+
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in1918, 
+                 noPeriods = 1, b = 9, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(deaths_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
+
+## 1968 {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = in1968, 
+                 noPeriods = 10, b = 9, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(deaths_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily, main = "", legend.opts = list(x = "topright"))
+```
+
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in1968, 
+                 noPeriods = 1, b = 9, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(deaths_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
+
+## 2015 {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = in2015, 
+                 noPeriods = 10, b = 9, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(deaths_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily, main = "", legend.opts = list(x = "topright"))
+```
+
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = in2015, 
+                 noPeriods = 1, b = 9, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(deaths_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
 
 ```{r eval=FALSE, include=FALSE}
 noufaily@epoch
