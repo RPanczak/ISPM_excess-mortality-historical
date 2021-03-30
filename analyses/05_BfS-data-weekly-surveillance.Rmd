@@ -135,11 +135,11 @@ plot(surv)
 
 ```{r}
 control1 <- list(range = in2020, 
-                 noPeriods = 1, b = 4, w = 3,
+                 noPeriods = 1, b = 9, w = 8,
                  weightsThreshold = 1, 
-                 pastWeeksNotIncluded = 3,
+                 pastWeeksNotIncluded = 4,
                  pThresholdTrend = 0.05, 
-                 thresholdMethod = "delta")
+                 thresholdMethod = "nbPlugin")
 
 farrington <- farringtonFlexible(deaths_65_sts, control1)
 ```
@@ -152,9 +152,9 @@ plot(farrington)
 
 ```{r}
 control2 <- list(range = in2020, 
-                 noPeriods = 10, b = 4, w = 3,
+                 noPeriods = 10, b = 9, w = 4,
                  weightsThreshold = 2.58, 
-                 pastWeeksNotIncluded = 26,
+                 pastWeeksNotIncluded = 4,
                  pThresholdTrend = 1, 
                  thresholdMethod = "nbPlugin")
 
@@ -163,6 +163,25 @@ noufaily <- farringtonFlexible(deaths_65_sts, control2)
 
 ```{r echo=FALSE}
 plot(noufaily)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+noufaily@epoch
+noufaily@freq
+noufaily@start
+noufaily@state
+noufaily@alarm
+noufaily@observed
+noufaily@upperbound
+
+noufaily@observed - noufaily@upperbound
+
+noufaily@control$score
+noufaily@control$pvalue
+noufaily@control$expected
+noufaily@control$score
+
 ```
 
 <!-- ----------------------------------------------------- -->
