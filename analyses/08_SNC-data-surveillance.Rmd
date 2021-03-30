@@ -1,0 +1,240 @@
+---
+title: "Excess mortality: weekly & monthly SNC data & `surveillance` package"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(tidyverse, scales, surveillance)
+
+options(max.print = "75")
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+
+combineSTS <- function(stsList) {
+  epoch <- as.numeric(epoch(stsList[[1]]))
+  observed <- NULL
+  alarm <- NULL
+  for (i in 1:length(stsList)) {
+    observed <- cbind(observed,observed(stsList[[i]]))
+    alarm <- cbind(alarm,alarms(stsList[[i]]))
+  }
+  colnames(observed) <- colnames(alarm) <- names(stsList)
+  res <- sts(epoch=as.numeric(epoch), epochAsDate=TRUE,
+             observed=observed, alarm=alarm)
+  return(res)
+}
+```
+
+<!-- ----------------------------------------------------- -->
+
+# BFS years
+
+# 2015
+
+We choose 2015 as a year to test different approaches to calculate excess deaths due to unusually high flu and summer heatwave deaths.
+
+![](../misc/2015.png)
+[Graph source](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.317313.html).  
+[Press release](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.3742838.html).  
+
+# 2013
+
+![](../misc/2013.png)
+[Graph source](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.316166.html).  
+
+
+<!-- ----------------------------------------------------- -->
+
+# Data 
+
+Prepared in `02.Rmd`.  
+
+**We need pops split by sex & age!**  
+
+## Monthly number of deaths, 1971-2018
+
+```{r include=FALSE}
+bfs_snc_deaths_monthly <- read_rds("data/SNC/bfs_snc_deaths_monthly.Rds") %>% 
+  filter(year <= 2016) 
+
+monthly_males_old <- bfs_snc_deaths_monthly %>% 
+  filter(sex == "Male" & young == "65+")
+```
+
+## Weekly number of deaths, 1971-2018
+
+```{r echo=FALSE}
+bfs_snc_deaths_weekly <- read_rds("data/SNC/bfs_snc_deaths_weekly.Rds") %>%   filter(year <= 2016)
+
+weekly_males_old <- bfs_snc_deaths_weekly %>% 
+  filter(sex == "Male" & young == "65+")
+```
+
+<!-- ----------------------------------------------------- -->
+
+# `sts` data structure
+
+Package works with `sts` - *surveillance time series* objects.  
+
+## Monthly data
+
+```{r}
+monthly_males_old_sts <- sts(observed = monthly_males_old$deaths_month,
+                             epoch = monthly_males_old$month_num,
+                             start = c(1971, 1), 
+                             freq = 12,
+                             # population = as.matrix(bfs_web_deaths_monthly$pop_dec),
+                             epochAsDate = FALSE,
+                             multinomialTS = FALSE)
+```
+
+## Weekly data
+
+```{r}
+weekly_males_old_sts <- sts(observed = weekly_males_old$deaths_week,
+                            epoch = weekly_males_old$week_num,
+                            start = c(1971, 1), 
+                            freq = 52,
+                             epochAsDate = FALSE,
+                             multinomialTS = FALSE)
+```
+
+## Selected year indicator 
+
+Also selecting indices of observations for periods of interest.
+
+```{r}
+YEAR = 2003
+
+IN_monthly_males_old <- which(monthly_males_old$year == YEAR)
+
+IN_weekly_males_old <- which(weekly_males_old$year == YEAR)
+```
+
+# Three methods
+
+## Monthly 65+ {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = IN_monthly_males_old, 
+                 noPeriods = 10, b = 10, w = 2,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(monthly_males_old_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily, main = "", legend.opts = list(x = "topright"))
+```
+
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = IN_monthly_males_old, 
+                 noPeriods = 1, b = 10, w = 2,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 2,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(monthly_males_old_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
+
+### Comparing 'alarms' of different methods
+
+```{r}
+compare <- combineSTS(list(
+  farrington = farrington, 
+  farringtonFlexible = noufaily))
+
+# might need tinkering with margins
+# par(mar = c(4, 8, 2.1, 2))
+
+plot(compare, type = alarm ~ time)
+```
+
+## Weekly 65+  {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r}
+control2 <- list(range = IN_weekly_males_old, 
+                 noPeriods = 10, b = 4, w = 3,
+                 weightsThreshold = 2.58, 
+                 pastWeeksNotIncluded = 3,
+                 pThresholdTrend = 1, 
+                 thresholdMethod = "nbPlugin")
+
+noufaily <- farringtonFlexible(weekly_males_old_sts, control2)
+```
+
+```{r echo=FALSE}
+plot(noufaily, main = "", legend.opts = list(x = "topright"))
+```
+
+### `farringtonFlexible` original method
+
+```{r}
+control1 <- list(range = IN_weekly_males_old, 
+                 noPeriods = 1, b = 4, w = 3,
+                 weightsThreshold = 1, 
+                 pastWeeksNotIncluded = 26,
+                 pThresholdTrend = 0.05, 
+                 thresholdMethod = "nbPlugin")
+
+farrington <- farringtonFlexible(weekly_males_old_sts, control1)
+```
+
+```{r echo=FALSE}
+plot(farrington, main = "", legend.opts = list(x = "topright"))
+```
+
+### Comparing 'alarms' of different methods
+
+```{r}
+compare <- combineSTS(list(
+  farrington = farrington, 
+  farringtonFlexible = noufaily))
+
+# might need tinkering with margins
+# par(mar = c(4, 8, 2.1, 2))
+
+plot(compare, type = alarm ~ time)
+```
+
+# Computing Environment
+
+`r mu$session()`
+
+
