@@ -63,7 +63,7 @@ weekly_2010_2021 %>%
 
 # Data structure
 
-Package works with `srs` - *surveillance time series* objects. Creating one for 65 and older
+Package works with `sts` - *surveillance time series* objects. Creating one for 65 and older
 
 ```{r}
 deaths_65 <- weekly_2010_2021 %>% 

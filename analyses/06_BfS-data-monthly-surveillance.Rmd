@@ -77,7 +77,7 @@ bfs_web_deaths_monthly %>%
 
 # Data structure
 
-Package works with `srs` - *surveillance time series* objects.  
+Package works with `sts` - *surveillance time series* objects.  
 
 In contrast to solution from `05.Rmd` we now use proper dates & population denominator
 

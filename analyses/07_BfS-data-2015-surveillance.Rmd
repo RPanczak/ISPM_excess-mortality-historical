@@ -117,7 +117,7 @@ weekly_2010_2019 %>%
 
 # `sts` data structure
 
-Package works with `srs` - *surveillance time series* objects.  
+Package works with `sts` - *surveillance time series* objects.  
 
 ## Monthly data
 
