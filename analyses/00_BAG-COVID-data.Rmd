@@ -47,7 +47,12 @@ download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/ak
               destfile = "data-raw/BAG/Data on laboratory findings and deaths.csv", 
               method = "curl")
 
-deaths_cases <- read_delim("data-raw/BAG/Data on laboratory findings and deaths.csv", 
+zip(zipfile = "data-raw/BAG/Data on laboratory findings and deaths", 
+    files = "data-raw/BAG/Data on laboratory findings and deaths.csv")
+
+file.remove("data-raw/BAG/Data on laboratory findings and deaths.csv")
+
+deaths_cases <- read_delim("data-raw/BAG/Data on laboratory findings and deaths.zip", 
                            delim = ";",
                            col_names = TRUE, 
                            col_types = cols_only(
