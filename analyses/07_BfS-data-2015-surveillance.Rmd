@@ -146,12 +146,11 @@ deaths_weekly_65 <- weekly_2010_2019 %>%
 
 # deaths_weekly_65_sts <- sts(deaths_weekly_65$NumberOfDeaths, 
 #                      start = c(2010, 1), 
-#                      frequency = 52)
+#                      freq = 52)
 
-deaths_weekly_65_sts <- new("sts",
+deaths_weekly_65_sts <- sts(observed = deaths_weekly_65$NumberOfDeaths,
                             epoch = as.numeric(deaths_weekly_65$Ending),
                             start = c(2010, 1), 
-                            observed = deaths_weekly_65$NumberOfDeaths,
                             epochAsDate = TRUE)
 ```
 
@@ -162,12 +161,11 @@ deaths_weekly_0 <- weekly_2010_2019 %>%
 
 # deaths_weekly_0_sts <- sts(deaths_weekly_0$NumberOfDeaths, 
 #                      start = c(2010, 1), 
-#                      frequency = 52)
+#                      freq = 52)
 
-deaths_weekly_0_sts <- new("sts",
+deaths_weekly_0_sts <- sts(observed = deaths_weekly_0$NumberOfDeaths,
                            epoch = as.numeric(deaths_weekly_0$Ending),
                            start = c(2010, 1), 
-                           observed = deaths_weekly_0$NumberOfDeaths,
                            epochAsDate = TRUE)
 ```
 
@@ -201,6 +199,7 @@ noufaily <- farringtonFlexible(deaths_monthly_sts, control2)
 ```
 
 ```{r echo=FALSE}
+par(mar = c(2, 4, 1, 1))
 plot(noufaily, main = "", legend.opts = list(x = "topright"))
 ```
 
@@ -229,9 +228,7 @@ compare <- combineSTS(list(
   farrington = farrington, 
   farringtonFlexible = noufaily))
 
-# might need tinkering with margins
-# par(mar = c(4, 8, 2.1, 2))
-
+par(mar = c(4, 8, 2.1, 2))
 plot(compare, type = alarm ~ time)
 ```
 
@@ -247,11 +244,12 @@ control2 <- list(range = in2015week0age,
                  pThresholdTrend = 1, 
                  thresholdMethod = "nbPlugin")
 
-noufaily <- farringtonFlexible(deaths_weekly_0_sts, control2)
+noufaily_weekly_0 <- farringtonFlexible(deaths_weekly_0_sts, control2)
 ```
 
 ```{r echo=FALSE}
-plot(noufaily, main = "", legend.opts = list(x = "topright"))
+par(mar = c(2, 4, 1, 1))
+plot(noufaily_weekly_0, main = "", legend.opts = list(x = "topright"))
 ```
 
 ### `farringtonFlexible` original method
@@ -264,24 +262,21 @@ control1 <- list(range = in2015week0age,
                  pThresholdTrend = 0.05, 
                  thresholdMethod = "nbPlugin")
 
-farrington <- farringtonFlexible(deaths_weekly_0_sts, control1)
+farrington_weekly_0 <- farringtonFlexible(deaths_weekly_0_sts, control1)
 ```
 
 ```{r echo=FALSE}
-plot(farrington, main = "", legend.opts = list(x = "topright"))
+plot(farrington_weekly_0, main = "", legend.opts = list(x = "topright"))
 ```
 
 ### Comparing 'alarms' of different methods
 
 ```{r}
 compare <- combineSTS(list(
-  # boda = boda_0, 
-  farrington = farrington, 
-  farringtonFlexible = noufaily))
+  Farrington = farrington_weekly_0, 
+  Noufaily = noufaily_weekly_0))
 
-# might need tinkering with margins
-# par(mar = c(4, 8, 2.1, 2))
-
+par(mar = c(4, 5, 2.1, 2))
 plot(compare, type = alarm ~ time)
 ```
 
@@ -297,11 +292,12 @@ control2 <- list(range = in2015week65age,
                  pThresholdTrend = 1, 
                  thresholdMethod = "nbPlugin")
 
-noufaily <- farringtonFlexible(deaths_weekly_65_sts, control2)
+noufaily_weekly_65 <- farringtonFlexible(deaths_weekly_65_sts, control2)
 ```
 
 ```{r echo=FALSE}
-plot(noufaily, main = "", legend.opts = list(x = "topright"))
+par(mar = c(2, 4, 1, 1))
+plot(noufaily_weekly_65, main = "", legend.opts = list(x = "topright"))
 ```
 
 ### `farringtonFlexible` original method
@@ -314,43 +310,124 @@ control1 <- list(range = in2015week65age,
                  pThresholdTrend = 0.05, 
                  thresholdMethod = "nbPlugin")
 
-farrington <- farringtonFlexible(deaths_weekly_65_sts, control1)
+farrington_weekly_65 <- farringtonFlexible(deaths_weekly_65_sts, control1)
 ```
 
 ```{r echo=FALSE}
-plot(farrington, main = "", legend.opts = list(x = "topright"))
+plot(farrington_weekly_65, main = "", legend.opts = list(x = "topright"))
 ```
 
 ### Comparing 'alarms' of different methods
 
 ```{r}
 compare <- combineSTS(list(
-  # boda = boda_65, 
-  farrington = farrington, 
-  farringtonFlexible = noufaily))
+  Farrington = farrington_weekly_65, 
+  Noufaily = noufaily_weekly_65))
 
-# might need tinkering with margins
-# par(mar = c(4, 8, 2.1, 2))
-
+par(mar = c(4, 8, 2.1, 2))
 plot(compare, type = alarm ~ time)
 ```
 
+<!-- ----------------------------------------------------- -->
+
 ```{r eval=FALSE, include=FALSE}
 # extracting elements from results
-noufaily@epoch
-noufaily@freq
-noufaily@start
-noufaily@state
-noufaily@alarm
-noufaily@observed
-noufaily@upperbound
+noufaily_weekly_0@epoch
+noufaily_weekly_0@freq
+noufaily_weekly_0@start
+noufaily_weekly_0@state
+noufaily_weekly_0@alarm
+noufaily_weekly_0@observed
+noufaily_weekly_0@upperbound
 
-noufaily@observed - noufaily@upperbound
+noufaily_weekly_0@observed - noufaily_weekly_0@upperbound
 
-noufaily@control$score
-noufaily@control$pvalue
-noufaily@control$expected
-noufaily@control$score
+noufaily_weekly_0@control$score
+noufaily_weekly_0@control$pvalue
+noufaily_weekly_0@control$expected
+noufaily_weekly_0@control$score
+```
+
+# Comparing excess deaths
+
+Calculating excess in BfS data by subtracting `NumberOfDeaths` from `upperB`.
+
+Bfs in purple, our calculations in green; black line indicates difference. 
+
+## Weekly 0-64  {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r echo=FALSE}
+deaths_weekly_0 %>% 
+  filter(Year == 2015) %>% 
+  select(-Expected, -lowerB, -Year, - Week) %>% 
+  mutate(excess_bfs = Excess - upperB,
+         excess_calc = noufaily_weekly_0@observed - noufaily_weekly_0@upperbound[ ,1]) %>% 
+  mutate(excess_calc = ifelse(excess_calc <= 0, NA, excess_calc * -1)) %>% 
+  ggplot(mapping = aes(x = Ending)) +
+  geom_col(aes(y = excess_bfs), fill = "#af8dc3") +
+  geom_col(aes(y = excess_calc), fill = "#7fbf7b") +
+  geom_line(aes(y = excess_bfs + excess_calc)) +
+  ylim(-20, 10) +
+  labs(x = "", y = "Excess deaths") +
+  theme_bw() 
+```
+
+### `farringtonFlexible` original method
+
+```{r echo=FALSE}
+deaths_weekly_0 %>% 
+  filter(Year == 2015) %>% 
+  select(-Expected, -lowerB, -Year, - Week) %>% 
+  mutate(excess_bfs = Excess - upperB,
+         excess_calc = farrington_weekly_0@observed - farrington_weekly_0@upperbound[ ,1]) %>% 
+  mutate(excess_calc = ifelse(excess_calc <= 0, NA, excess_calc * -1)) %>% 
+  ggplot(mapping = aes(x = Ending)) +
+  geom_col(aes(y = excess_bfs), fill = "#af8dc3") +
+  geom_col(aes(y = excess_calc), fill = "#7fbf7b") +
+  geom_line(aes(y = excess_bfs + excess_calc)) +
+  ylim(-20, 10) +
+  labs(x = "", y = "Excess deaths") +
+  theme_bw() 
+```
+
+## Weekly 65+  {.tabset}
+
+### `farringtonFlexible` improved method
+
+```{r echo=FALSE}
+deaths_weekly_65 %>% 
+  filter(Year == 2015) %>% 
+  select(-Expected, -lowerB, -Year, - Week) %>% 
+  mutate(excess_bfs = Excess - upperB,
+         excess_calc = noufaily_weekly_65@observed - noufaily_weekly_65@upperbound[ ,1]) %>% 
+  mutate(excess_calc = ifelse(excess_calc <= 0, NA, excess_calc * -1)) %>% 
+  ggplot(mapping = aes(x = Ending)) +
+  geom_col(aes(y = excess_bfs), fill = "#af8dc3") +
+  geom_col(aes(y = excess_calc), fill = "#7fbf7b") +
+  geom_line(aes(y = excess_bfs + excess_calc)) +
+  ylim(-300, 300) +
+  labs(x = "", y = "Excess deaths") +
+  theme_bw() 
+```
+
+### `farringtonFlexible` original method
+
+```{r echo=FALSE}
+deaths_weekly_65 %>% 
+  filter(Year == 2015) %>% 
+  select(-Expected, -lowerB, -Year, - Week) %>% 
+  mutate(excess_bfs = Excess - upperB,
+         excess_calc = farrington_weekly_65@observed - farrington_weekly_65@upperbound[ ,1]) %>% 
+  mutate(excess_calc = ifelse(excess_calc <= 0, NA, excess_calc * -1)) %>% 
+  ggplot(mapping = aes(x = Ending)) +
+  geom_col(aes(y = excess_bfs), fill = "#af8dc3") +
+  geom_col(aes(y = excess_calc), fill = "#7fbf7b") +
+  geom_line(aes(y = excess_bfs + excess_calc)) +
+  ylim(-300, 300) +
+  labs(x = "", y = "Excess deaths") +
+  theme_bw() 
 ```
 
 <!-- ----------------------------------------------------- -->
