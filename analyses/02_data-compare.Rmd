@@ -144,7 +144,7 @@ hmd_ch_pop_raw %>%
 
 <!-- ----------------------------------------------------- -->
 
-# BfS 1
+# BfS
 
 ## Deaths 
 
@@ -251,6 +251,63 @@ ggplot(bfs_web_pop_yearly, aes(x = year)) +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]") +
   scale_y_continuous(labels = comma)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# SNC
+
+SNC aggregated data. Has limitations of only being available since `1971` but has advantage of possibility to split by sex & age groups since we can aggregate individual records to whatever strata we wish to use. 
+
+## Deaths monthly
+
+```{r}
+bfs_snc_deaths_monthly <- read_dta("data-raw/SNC/mortCHmonthly.dta") %>% 
+  zap_label() %>% zap_labels() %>% 
+  mutate(sex = factor(sex, labels = c("Male", "Female")),
+         young = factor(young, labels = c("65+", "0-64"))) %>%   
+  rename(month_num = month, 
+         deaths_month = count) %>% 
+  mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
+  relocate(year, month_num, date) %>% 
+  mutate(type = "monthly")
+
+
+write_rds(bfs_snc_deaths_monthly, "data/SNC/bfs_snc_deaths_monthly.Rds")
+write_dta(bfs_snc_deaths_monthly, "data/SNC/bfs_snc_deaths_monthly.dta")
+```
+
+```{r echo=FALSE}
+ggplot(bfs_snc_deaths_monthly, aes(x = date, y = deaths_month, colour = interaction(sex, young))) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Yearly number of deaths")
+```
+
+## Deaths weekly
+
+```{r}
+bfs_snc_deaths_weekly <- read_dta("data-raw/SNC/mortCHweely.dta") %>% 
+  zap_label() %>% zap_labels() %>% 
+  mutate(sex = factor(sex, labels = c("Male", "Female")),
+         young = factor(young, labels = c("65+", "0-64"))) %>% 
+  rename(week_num = week,
+         deaths_week = count) %>% 
+  # mutate(date = ISOweek::ISOweek2date(paste0(year, "-", week_num))) %>% 
+  relocate(year, week_num) %>% 
+  mutate(type = "weekly")
+
+write_rds(bfs_snc_deaths_weekly, "data/SNC/bfs_snc_deaths_weekly.Rds")
+write_dta(bfs_snc_deaths_weekly, "data/SNC/bfs_snc_deaths_weekly.dta")
+```
+
+```{r echo=FALSE}
+ggplot(bfs_snc_deaths_weekly, aes(x = week_num, y = deaths_week, colour = year, group = year)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_viridis_c(option = "E") +
+  facet_grid(vars(sex, young)) + 
+  xlab("") + ylab("Weekly number of deaths")
 ```
 
 <!-- ----------------------------------------------------- -->
