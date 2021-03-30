@@ -129,8 +129,7 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584733/mast
 Docs in `ts-q-01.04.02.01.30-2020-2021-APPENDIX.xlsx` 
 
 ```{r}
-weekly_canton_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), 
-                                           trim_ws = TRUE)
+weekly_canton_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
 ```
 
 ## Deaths per week by 5-year age group, sex and major region
@@ -144,9 +143,7 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584751/mast
 Docs in `ts-q-01.04.02.01.31-2020-2021-APPENDIX.xlsx`
 
 ```{r}
-weekly_gros_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_gros_age5_2020-2021.csv", 
-    ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), 
-    trim_ws = TRUE)
+weekly_gros_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_gros_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
 ```
 
 <!-- ----------------------------------------------------- -->
