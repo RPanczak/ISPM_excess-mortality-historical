@@ -1,0 +1,84 @@
+### `boda` method (iid prior)
+
+```{r}
+control_boda <- list(range = in2015month, 
+                     X = NULL, trend = TRUE, season = TRUE, 
+                     prior = "iid", alpha = 0.025, 
+                     mc.munu = 10000, mc.y = 1000)
+
+boda_month_iid <- boda(deaths_monthly_sts, control = control_boda)
+
+write_rds(boda_month_iid, "res/boda_month_iid.Rds")
+```
+
+```{r echo=FALSE}
+plot(boda_month_iid, main = "", legend.opts = list(x = "topright"))
+```
+
+### `boda` method (rw1 prior)
+
+```{r}
+control_boda <- list(range = in2015month, 
+                     X = NULL, trend = TRUE, season = TRUE, 
+                     prior = "rw1", alpha = 0.025, 
+                     mc.munu = 10000, mc.y = 1000)
+
+boda_month_rw1 <- boda(deaths_monthly_sts, control = control_boda)
+
+write_rds(boda_month_rw1, "res/boda_month_rw1.Rds")
+```
+
+```{r echo=FALSE}
+plot(boda_month_rw1, main = "", legend.opts = list(x = "topleft"))
+```
+
+### `boda` method (rw2 prior)
+
+```{r}
+control_boda <- list(range = in2015month, 
+                     X = NULL, trend = TRUE, season = TRUE, 
+                     prior = "rw2", alpha = 0.025, 
+                     mc.munu = 10000, mc.y = 1000)
+
+boda_month_rw2 <- boda(deaths_monthly_sts, control = control_boda)
+
+write_rds(boda_month_rw2, "res/boda_month_rw2.Rds")
+```
+
+```{r echo=FALSE}
+plot(boda_month_rw2, main = "", legend.opts = list(x = "topleft"))
+```
+
+### `boda` method
+
+```{r}
+control_boda <- list(range = in2015week0age, 
+                     X = NULL, trend = TRUE, season = TRUE, 
+                     prior = "iid", alpha = 0.025, 
+                     mc.munu = 10000, mc.y = 1000)
+
+boda_0 <- boda(deaths_weekly_65_sts, control = control_boda)
+
+write_rds(boda_0, "res/boda_0.Rds")
+```
+
+```{r echo=FALSE}
+plot(boda_0, main = "", legend.opts = list(x = "topleft"))
+```
+
+### `boda` method
+
+```{r}
+control_boda <- list(range = in2015week65age, 
+                     X = NULL, trend = TRUE, season = TRUE, 
+                     prior = "iid", alpha = 0.025, 
+                     mc.munu = 10000, mc.y = 1000,
+                     verbose = TRUE)
+
+boda_65 <- boda(deaths_weekly_65_sts, control = control_boda)
+```
+
+```{r echo=FALSE}
+plot(boda_65, main = "", legend.opts = list(x = "topleft"))
+```
+
