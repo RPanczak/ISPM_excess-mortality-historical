@@ -1,9 +1,5 @@
 # Demo R code for "Forecasting Imminent Deaths" 
 
-rm(list=ls())
-# Set working directory
-setwd()
-
 # Load packages
 library(data.table)
 library(ggplot2)
@@ -11,7 +7,7 @@ library(dplyr)
 
 # Load data
 # Source HMD 
-data <- read.table("data.txt", sep="")
+data <- read.table("data-raw/rizzi-vaupel.txt", sep="")
 data.dt <- data.table(data)
 
 # Compute later/earlier ratio
