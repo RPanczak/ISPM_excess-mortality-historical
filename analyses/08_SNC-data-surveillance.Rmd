@@ -1,5 +1,5 @@
 ---
-title: "Excess mortality: weekly & monthly SNC data & `surveillance` package"
+title: "Excess mortality: weekly & monthly SNC data & `surveillance` package in 2013"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -50,14 +50,6 @@ combineSTS <- function(stsList) {
 <!-- ----------------------------------------------------- -->
 
 # BFS years
-
-# 2015
-
-We choose 2015 as a year to test different approaches to calculate excess deaths due to unusually high flu and summer heatwave deaths.
-
-![](../misc/2015.png)
-[Graph source](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.317313.html).  
-[Press release](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.3742838.html).  
 
 # 2013
 
@@ -117,8 +109,9 @@ weekly_males_old_sts <- sts(observed = weekly_males_old$deaths_week,
                             epoch = weekly_males_old$week_num,
                             start = c(1971, 1), 
                             freq = 52,
-                             epochAsDate = FALSE,
-                             multinomialTS = FALSE)
+                            # population = as.matrix(bfs_web_deaths_monthly$pop_dec),
+                            epochAsDate = FALSE,
+                            multinomialTS = FALSE)
 ```
 
 ## Selected year indicator 
@@ -133,15 +126,17 @@ IN_monthly_males_old <- which(monthly_males_old$year == YEAR)
 IN_weekly_males_old <- which(weekly_males_old$year == YEAR)
 ```
 
+<!-- ----------------------------------------------------- -->
+
 # Three methods
 
 ## Monthly 65+ {.tabset}
 
-### `farringtonFlexible` improved method
+### Improved method
 
 ```{r}
 control2 <- list(range = IN_monthly_males_old, 
-                 noPeriods = 10, b = 10, w = 2,
+                 noPeriods = 10, b = 5, w = 2,
                  weightsThreshold = 2.58, 
                  pastWeeksNotIncluded = 2,
                  pThresholdTrend = 1, 
@@ -151,14 +146,14 @@ noufaily <- farringtonFlexible(monthly_males_old_sts, control2)
 ```
 
 ```{r echo=FALSE}
-plot(noufaily, main = "", legend.opts = list(x = "topright"))
+plot(noufaily, main = "", legend.opts = list(x = "bottomright"))
 ```
 
-### `farringtonFlexible` original method
+### Original method
 
 ```{r}
 control1 <- list(range = IN_monthly_males_old, 
-                 noPeriods = 1, b = 10, w = 2,
+                 noPeriods = 1, b = 5, w = 2,
                  weightsThreshold = 1, 
                  pastWeeksNotIncluded = 2,
                  pThresholdTrend = 0.05, 
@@ -168,10 +163,10 @@ farrington <- farringtonFlexible(monthly_males_old_sts, control1)
 ```
 
 ```{r echo=FALSE}
-plot(farrington, main = "", legend.opts = list(x = "topright"))
+plot(farrington, main = "", legend.opts = list(x = "bottomright"))
 ```
 
-### Comparing 'alarms' of different methods
+### Comparing 'alarms'
 
 ```{r}
 compare <- combineSTS(list(
@@ -186,11 +181,11 @@ plot(compare, type = alarm ~ time)
 
 ## Weekly 65+  {.tabset}
 
-### `farringtonFlexible` improved method
+### Improved method
 
 ```{r}
 control2 <- list(range = IN_weekly_males_old, 
-                 noPeriods = 10, b = 4, w = 3,
+                 noPeriods = 10, b = 5, w = 3,
                  weightsThreshold = 2.58, 
                  pastWeeksNotIncluded = 3,
                  pThresholdTrend = 1, 
@@ -200,14 +195,14 @@ noufaily <- farringtonFlexible(weekly_males_old_sts, control2)
 ```
 
 ```{r echo=FALSE}
-plot(noufaily, main = "", legend.opts = list(x = "topright"))
+plot(noufaily, main = "", legend.opts = list(x = "bottomright"))
 ```
 
-### `farringtonFlexible` original method
+### Original method
 
 ```{r}
 control1 <- list(range = IN_weekly_males_old, 
-                 noPeriods = 1, b = 4, w = 3,
+                 noPeriods = 1, b = 5, w = 3,
                  weightsThreshold = 1, 
                  pastWeeksNotIncluded = 26,
                  pThresholdTrend = 0.05, 
@@ -217,10 +212,10 @@ farrington <- farringtonFlexible(weekly_males_old_sts, control1)
 ```
 
 ```{r echo=FALSE}
-plot(farrington, main = "", legend.opts = list(x = "topright"))
+plot(farrington, main = "", legend.opts = list(x = "bottomright"))
 ```
 
-### Comparing 'alarms' of different methods
+### Comparing 'alarms'
 
 ```{r}
 compare <- combineSTS(list(
@@ -232,6 +227,8 @@ compare <- combineSTS(list(
 
 plot(compare, type = alarm ~ time)
 ```
+
+<!-- ----------------------------------------------------- -->
 
 # Computing Environment
 
