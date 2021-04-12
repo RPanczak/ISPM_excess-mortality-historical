@@ -42,11 +42,11 @@ mu <- Hmisc::markupSpecs$html
 ## Weekly number of deaths, 2010-2019
 
 ```{r eval=FALSE}
-download.file(url = 'https://www.bfs.admin.ch/bfsstatic/dam/assets/12607335/master',
-              destfile = 'data-raw/BfS/weekly_CH_2010-2019.csv',
-              method = 'curl')
+# download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/12607335/master",
+#               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv",
+#               method = "curl")
 
-weekly_2010_2019 <- read_delim("data-raw/BfS/weekly_CH_2010-2019.csv", ";", escape_double = FALSE, 
+weekly_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";", escape_double = FALSE, 
                                col_types = cols(CY = col_integer(), 
                                                 Week = col_integer(), 
                                                 Ending = col_date(format = "%d.%m.%Y"), 
@@ -58,11 +58,12 @@ weekly_2010_2019 <- read_delim("data-raw/BfS/weekly_CH_2010-2019.csv", ";", esca
   rename(Year = CY) %>% 
   filter(!is.na(Year))
 
-write_rds(weekly_2010_2019, "data/BfS/weekly_CH_2010-2019.Rds")
+write_rds(weekly_2010_2019, "data/BfS/bfs_web_deaths_weekly_2010-2019.Rds")
+haven::write_dta(weekly_2010_2019, "data/BfS/bfs_web_deaths_weekly_2010-2019.dta")
 ```
 
 ```{r include=FALSE}
-weekly_2010_2019 <- read_rds("data/BfS/weekly_CH_2010-2019.Rds") 
+weekly_2010_2019 <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds") 
 ```
 
 Last five years
@@ -81,11 +82,11 @@ weekly_2010_2019 %>%
 ## Weekly number of deaths, 2020-2021
 
 ```{r eval=FALSE}
-download.file(url = 'https://www.bfs.admin.ch/bfsstatic/dam/assets/16584731/master',
-              destfile = 'data-raw/BfS/weekly_CH_2020-2021.csv',
-              method = 'curl')
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16744393/master",
+              destfile = "data-raw/BfS/ts-e-14.03.04.03-wr.csv",
+              method = "curl")
 
-weekly_2020_2021 <- read_delim("data-raw/BfS/weekly_CH_2020-2021.csv", 
+weekly_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.csv", 
                                ";", escape_double = FALSE, 
                                col_types = cols(Year = col_integer(), 
                                                 Week = col_integer(), 
@@ -100,16 +101,28 @@ weekly_2020_2021 <- read_delim("data-raw/BfS/weekly_CH_2020-2021.csv",
          Excess = Diff) %>% 
   filter(!is.na(Year))
 
-write_rds(weekly_2020_2021, "data/BfS/weekly_CH_2020-2021.Rds")
+write_rds(weekly_2020_2021, "data/BfS/bfs_web_deaths_weekly_2020-2021.Rds")
+haven::write_dta(weekly_2020_2021, "data/BfS/bfs_web_deaths_weekly_2020-2021.dta")
 ```
 
 ```{r include=FALSE}
-weekly_2020_2021 <- read_rds("data/BfS/weekly_CH_2020-2021.Rds")
+weekly_2020_2021 <- read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds")
 ```
 
 ```{r echo=FALSE}
 weekly_2020_2021 %>% 
   filter(Ending < Sys.Date()) %>% 
+  ggplot(aes(x = Ending)) +
+  # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
+  geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
+  geom_line(aes(y = Expected, group = Age), colour = "gray60") + 
+  geom_line(aes(y = NumberOfDeaths, colour = Age)) + 
+  theme_minimal()
+```
+
+```{r eval=FALSE}
+weekly_2020_2021 %>% 
+  filter(Ending >= as.Date("2020-11-01")) %>% 
   ggplot(aes(x = Ending)) +
   # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
   geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
