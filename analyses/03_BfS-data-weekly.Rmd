@@ -35,7 +35,7 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
-# Weekly data
+# BfS - "Mortality, causes of death" chapter
 
 [Overview of data](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.html)
 
@@ -121,6 +121,7 @@ weekly_2020_2021 %>%
 ```
 
 ```{r eval=FALSE}
+# projected goes on; with a funny dip at the end?
 weekly_2020_2021 %>% 
   filter(Ending >= as.Date("2020-11-01")) %>% 
   ggplot(aes(x = Ending)) +
@@ -130,6 +131,32 @@ weekly_2020_2021 %>%
   geom_line(aes(y = NumberOfDeaths, colour = Age)) + 
   theme_minimal()
 ```
+
+## Yearly totals of excess deaths
+
+```{r}
+excess_2010_2020 <- weekly_2010_2019 %>% 
+  bind_rows(weekly_2020_2021 %>% filter(Ending <= as.Date("2020-12-31"))) %>% 
+  mutate(Excess_expected = NumberOfDeaths - Expected) %>% 
+  # mutate(Excess_upperB = NumberOfDeaths - upperB) %>% 
+  # group_by(Year, Age) %>% 
+  group_by(Year) %>% 
+  summarise(Excess_expected = sum(Excess_expected)) %>% 
+  # summarise(Excess_upperB = sum(Excess_upperB)) %>% 
+  ungroup()
+```
+
+```{r echo=FALSE}
+write_rds(excess_2010_2020, "data/BfS/excess_2010_2020.Rds")
+haven::write_dta(excess_2010_2020, "data/BfS/excess_2010_2020.dta")
+
+ggplot(excess_2010_2020) + 
+  geom_col(aes(x = factor(Year), y = Excess_expected)) + 
+  theme_minimal() + xlab("") + ylab("Excess deaths")
+```
+
+
+# BfS - "Population" chapter
 
 ## Deaths per week by 5-year age group, sex and canton
 
@@ -161,7 +188,7 @@ weekly_gros_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_gros_age5_2020-202
 
 <!-- ----------------------------------------------------- -->
 
-# MOMO
+# BfS - MOMO
 
 BfS [Mortality monitoring (MOMO)](https://www.experimental.bfs.admin.ch/expstat/en/home/innovative-methods/momo.html) 
 
@@ -211,10 +238,10 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
   pivot_longer(-sex, names_to = "age_group", values_to = "population") %>% 
   filter(age_group != "total") %>% 
   mutate(age_bin = case_when(
-      age_group == "x0_19" ~ "0-64",
-      age_group == "x20_39" ~ "0-64",
-      age_group == "x40_64" ~ "0-64",
-      TRUE ~ "65+")) %>% 
+    age_group == "x0_19" ~ "0-64",
+    age_group == "x20_39" ~ "0-64",
+    age_group == "x40_64" ~ "0-64",
+    TRUE ~ "65+")) %>% 
   group_by(sex, age_bin) %>% 
   summarise(population = sum(population)) %>% 
   ungroup() %>% 
