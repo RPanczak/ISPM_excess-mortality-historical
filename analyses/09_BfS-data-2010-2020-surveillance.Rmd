@@ -57,7 +57,6 @@ date_min <- as.Date(paste0(as.character(year), "-01-01"))
 date_max <- as.Date(paste0(as.character(year), "-12-31"))
 ```
 
-
 <!-- ----------------------------------------------------- -->
 
 # Data 
@@ -66,7 +65,7 @@ date_max <- as.Date(paste0(as.character(year), "-12-31"))
 
 Prepared in `03.Rmd`.  Collapsing age groups. 
 
-```{r echo=FALSE}
+```{r}
 bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds")  %>% 
   bind_rows(read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds") %>%
               filter(Ending <= as.Date("2020-12-31"))) %>% 
@@ -74,8 +73,10 @@ bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds"
   summarise(NumberOfDeaths = sum(NumberOfDeaths),
             Expected = sum(Expected)) %>% 
   ungroup() %>% 
-  mutate(Excess_expected = NumberOfDeaths - Expected) 
+  mutate(Excess_expected = NumberOfDeaths - Expected)
+```
 
+```{r echo=FALSE}
 bfs_web_deaths_weekly %>% 
   ggplot(aes(x = Ending)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
@@ -117,14 +118,16 @@ ggplot(excess_2015_2020) +
 
 Prepared in `02.Rmd`.  
 
-```{r echo=FALSE}
+```{r}
 bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") 
 
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
   filter(year >= 2010) %>% 
   select(-deaths_year) %>% 
   left_join(bfs_web_pop_yearly)
+```
 
+```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
   ggplot(aes(x = date)) +
   geom_rect(aes(xmin = date_min, xmax = date_max,
@@ -137,13 +140,11 @@ bfs_web_deaths_monthly %>%
   xlab("") + ylab("Deaths")
 ```
 
-<!-- ----------------------------------------------------- -->
-
-# `sts` data structure
+## `sts` data structure
 
 Package works with `sts` - *surveillance time series* objects.  
 
-## Weekly data
+### Weekly data
 
 ```{r}
 deaths_weekly_sts <- sts(observed = bfs_web_deaths_weekly$NumberOfDeaths,
@@ -152,7 +153,7 @@ deaths_weekly_sts <- sts(observed = bfs_web_deaths_weekly$NumberOfDeaths,
                          epochAsDate = TRUE)
 ```
 
-## Monthly data
+### Monthly data
 
 Not using population to match results from BfS.
 
@@ -165,16 +166,16 @@ deaths_monthly_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
                           multinomialTS = TRUE)
 ```
 
-## 2015 indicator 
+### "Analysis year" indicator 
 
 Also selecting indices of observations for periods of interest.
 
 ```{r}
 analysis_month <- which(isoWeekYear(epoch(deaths_monthly_sts))$ISOYear == year)
-
 analysis_week <- which(isoWeekYear(epoch(deaths_weekly_sts))$ISOYear == year)
-
 ```
+
+<!-- ----------------------------------------------------- -->
 
 # Excess deaths calculations
 
@@ -282,17 +283,23 @@ Bfs in purple, our calculations in green; black line indicates difference.
 
 ## Weekly  {.tabset}
 
+noufaily@control$expected[ ,1]
+
 ```{r include=FALSE}
 ymin = min(
   min(subset(bfs_web_deaths_weekly, Year == year, select = Excess_expected)),
-  min(noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]),
-  min(farrington_weekly@observed - farrington_weekly@upperbound[ ,1])
+  # min(noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]),
+  # min(farrington_weekly@observed - farrington_weekly@upperbound[ ,1])
+  min(noufaily_weekly@observed - noufaily_weekly@control$expected[ ,1]),
+  min(farrington_weekly@observed - farrington_weekly@control$expected[ ,1])
 )
 
 ymax = max(
   max(subset(bfs_web_deaths_weekly, Year == year, select = Excess_expected)),
-  max(noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]),
-  max(farrington_weekly@observed - farrington_weekly@upperbound[ ,1])
+  # max(noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]),
+  # max(farrington_weekly@observed - farrington_weekly@upperbound[ ,1])
+  max(noufaily_weekly@observed - noufaily_weekly@control$expected[ ,1]),
+  max(farrington_weekly@observed - farrington_weekly@control$expected[ ,1])
 )
 ```
 
@@ -303,11 +310,12 @@ bfs_web_deaths_weekly %>%
   filter(Year == year) %>% 
   select(Week, Excess_expected) %>% 
   rename(BfS = Excess_expected) %>% 
-  mutate(Calculated = noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]) %>% 
+  # mutate(Calculated = noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]) %>% 
+  mutate(Calculated = noufaily_weekly@observed - noufaily_weekly@control$expected[ ,1]) %>% 
   pivot_longer(BfS:Calculated, 
                names_to = "Source",
                values_to = "Excess_deaths") %>% 
-  ggplot(mapping = aes(x = factor(Week))) +
+  ggplot(mapping = aes(x = Week)) +
   geom_col(aes(y = Excess_deaths), width = 1, fill = "#af8dc3") +
   facet_grid(vars(Source)) +
   ylim(ymin, ymax) +
@@ -322,11 +330,12 @@ bfs_web_deaths_weekly %>%
   filter(Year == year) %>% 
   select(Week, Excess_expected) %>% 
   rename(BfS = Excess_expected) %>% 
-  mutate(Calculated = farrington_weekly@observed - farrington_weekly@upperbound[ ,1]) %>% 
+  # mutate(Calculated = farrington_weekly@observed - farrington_weekly@upperbound[ ,1]) %>% 
+  mutate(Calculated = farrington_weekly@observed - farrington_weekly@control$expected[ ,1]) %>% 
   pivot_longer(BfS:Calculated, 
                names_to = "Source",
                values_to = "Excess_deaths") %>% 
-  ggplot(mapping = aes(x = factor(Week))) +
+  ggplot(mapping = aes(x = Week)) +
   geom_col(aes(y = Excess_deaths), width = 1, fill = "#af8dc3") +
   facet_grid(vars(Source)) +
   ylim(ymin, ymax) +
