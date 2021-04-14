@@ -160,19 +160,20 @@ bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx"
   rename(year = x1) %>% 
   filter(!is.na(todesfalle_total)) %>% 
   select(year:todesfalle_im_dezember) %>% 
-  mutate(year = as.numeric(year))
+  mutate(year = as.numeric(year)) %>% 
+  rename(Year = year)
 
 bfs_web_deaths_yearly <- bfs_web_raw %>% 
-  select(year, todesfalle_total) %>% 
-  rename(deaths_year = todesfalle_total) 
+  select(Year, todesfalle_total) %>% 
+  rename(deaths_year = todesfalle_total)
 
 p1 <- bfs_web_raw %>% 
-  select(year, todesfalle_total) %>% 
+  select(Year, todesfalle_total) %>% 
   rename(deaths_year = todesfalle_total) %>% 
-  filter(year < 1877) %>% 
+  filter(Year < 1877) %>% 
   uncount(12) %>% 
-  group_by(year) %>% 
-  mutate(month_num = row_number()) %>% 
+  group_by(Year) %>% 
+  mutate(Month = row_number()) %>% 
   ungroup() %>% 
   mutate(deaths_month = NA,
          type = "yearly")
@@ -180,19 +181,19 @@ p1 <- bfs_web_raw %>%
 bfs_2_web_raw <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx") %>% 
   remove_empty() %>% 
   clean_names() %>% 
-  rename(year = jahr) 
+  rename(Year = jahr) 
 
 p2 <- bfs_2_web_raw %>% 
-  pivot_longer(!year, names_to = "month_num", values_to = "deaths_month") %>% 
-  mutate(month_num = as.numeric(str_replace(month_num, fixed("m"), "")))  %>% 
-  mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
-  relocate(year, month_num, date) %>% 
+  pivot_longer(!Year, names_to = "Month", values_to = "deaths_month") %>% 
+  mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(Year, Month, Date) %>% 
   mutate(type = "monthly")
 
 bfs_web_deaths_monthly <- p1 %>% 
   bind_rows(p2) %>% 
-  mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
-  relocate(year, month_num, date) 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(Year, Month, Date) 
 
 write_rds(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.Rds")
 write_dta(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.dta")
@@ -232,14 +233,14 @@ bfs_web_pop_yearly <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx",
                                 na = "...", skip = 1) %>% 
   remove_empty(c("rows", "cols")) %>%
   clean_names() %>% 
-  rename(year = x1, pop_jan = population_on_2, pop_dec = population_on_11) %>% 
-  filter(!is.na(year)) %>% 
+  rename(Year = x1, pop_jan = population_on_2, pop_dec = population_on_11) %>% 
+  filter(!is.na(Year)) %>% 
   filter(!is.na(pop_jan)) %>% 
-  mutate(year = if_else(year == "2010 7", "2010", year),
-         year = as.numeric(year), 
+  mutate(Year = if_else(Year == "2010 7", "2010", Year),
+         Year = as.numeric(Year), 
          pop_jan = as.numeric(pop_jan),
          pop_dec = as.numeric(pop_dec)) %>% 
-  select(year, starts_with("pop_"))
+  select(Year, starts_with("pop_"))
 
 write_rds(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.Rds")
 write_dta(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.dta")
@@ -266,10 +267,10 @@ bfs_snc_deaths_monthly <- read_dta("data-raw/SNC/mortCHmonthly.dta") %>%
   zap_label() %>% zap_labels() %>% 
   mutate(sex = factor(sex, labels = c("Male", "Female")),
          young = factor(young, labels = c("65+", "0-64"))) %>%   
-  rename(month_num = month, 
+  rename(Month = month, 
          deaths_month = count) %>% 
-  mutate(date = anytime::anydate(paste0(year, "-", month_num))) %>% 
-  relocate(year, month_num, date) %>% 
+  mutate(date = anytime::anydate(paste0(year, "-", Month))) %>% 
+  relocate(year, Month, date) %>% 
   mutate(type = "monthly")
 
 
@@ -370,9 +371,9 @@ extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>%
   clean_names() %>% 
   rename(year = x1) %>% 
   pivot_longer(-year, values_to = "deaths_month") %>% 
-  mutate(month_num = rep(1:12, length(unique(year))),
+  mutate(Month = rep(1:12, length(unique(year))),
          type = "monthly",
-         date = anytime::anydate(paste0(year, "-", month_num))) 
+         date = anytime::anydate(paste0(year, "-", Month))) 
 ```
 
 Extra monthly dataset covering "Russian Flu" between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
