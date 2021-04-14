@@ -52,7 +52,7 @@ combineSTS <- function(stsList) {
 # Years
 
 ```{r}
-year <- 2015
+year <- 2017
 date_min <- as.Date(paste0(as.character(year), "-01-01"))
 date_max <- as.Date(paste0(as.character(year), "-12-31"))
 ```
@@ -88,13 +88,6 @@ bfs_web_deaths_weekly %>%
   theme_minimal()
 ```
 
-We have one year with 53 not 52 weeks!
-
-```{r}
-bfs_web_deaths_weekly %>% 
-  filter(Week == 53)
-```
-
 ## Yearly totals of excess deaths
 
 Calculated from weekly data aggregating `NumberOfDeaths` and `Expected`.
@@ -119,12 +112,13 @@ ggplot(excess_2015_2020) +
 Prepared in `02.Rmd`.  
 
 ```{r}
-bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") 
+# bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") 
 
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
   filter(Year >= 2010) %>% 
-  select(-deaths_year) %>% 
-  left_join(bfs_web_pop_yearly)
+  select(-deaths_year) # %>% left_join(bfs_web_pop_yearly)
+
+# rm(bfs_web_pop_yearly)
 ```
 
 ```{r echo=FALSE}
@@ -153,6 +147,17 @@ deaths_weekly_sts <- sts(observed = bfs_web_deaths_weekly$NumberOfDeaths,
                          epochAsDate = TRUE)
 ```
 
+```{r eval=FALSE, include=FALSE}
+# We have one year with 53 not 52 weeks!
+
+bfs_web_deaths_weekly %>% 
+  filter(Week == 53)
+
+as.numeric(as.Date("2016-01-03"))
+
+zoo::as.Date(max(deaths_weekly_sts@epoch)) == max(bfs_web_deaths_weekly$Ending)
+```
+
 ### Monthly data
 
 Not using population to match results from BfS.
@@ -166,13 +171,20 @@ deaths_monthly_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
                           multinomialTS = TRUE)
 ```
 
+
+```{r eval=FALSE, include=FALSE}
+zoo::as.Date(max(deaths_monthly_sts@epoch)) == max(bfs_web_deaths_monthly$Date)
+```
+
 ### "Analysis year" indicator 
 
 Also selecting indices of observations for periods of interest.
 
 ```{r}
-analysis_month <- which(isoWeekYear(epoch(deaths_monthly_sts))$ISOYear == year)
-analysis_week <- which(isoWeekYear(epoch(deaths_weekly_sts))$ISOYear == year)
+# analysis_month <- which(isoWeekYear(epoch(deaths_monthly_sts))$ISOYear == year)
+analysis_month <- which(bfs_web_deaths_monthly$Year == year)
+# analysis_week <- which(isoWeekYear(epoch(deaths_weekly_sts))$ISOYear == year)
+analysis_week <- which(bfs_web_deaths_weekly$Year == year)
 ```
 
 <!-- ----------------------------------------------------- -->
