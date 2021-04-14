@@ -304,40 +304,44 @@ ymax = max(
 ### Improved method
 
 ```{r echo=FALSE}
-bfs_web_deaths_weekly %>% 
+noufaily_weekly_res <- bfs_web_deaths_weekly %>% 
   filter(Year == year) %>% 
   select(Week, Excess_expected) %>% 
-  rename(BfS = Excess_expected) %>% 
-  # mutate(Calculated = noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]) %>% 
-  mutate(Calculated = noufaily_weekly@observed - noufaily_weekly@control$expected[ ,1]) %>% 
-  pivot_longer(BfS:Calculated, 
+  rename(BfS = Excess_expected, Time = Week) %>% 
+  # mutate(noufaily_weekly = noufaily_weekly@observed - noufaily_weekly@upperbound[ ,1]) %>% 
+  mutate(noufaily_weekly = noufaily_weekly@observed - noufaily_weekly@control$expected[ ,1]) %>% 
+  pivot_longer(BfS:noufaily_weekly, 
                names_to = "Source",
-               values_to = "Excess_deaths") %>% 
-  ggplot(mapping = aes(x = Week)) +
+               values_to = "Excess_deaths") 
+
+noufaily_weekly_res %>% 
+  ggplot(mapping = aes(x = Time)) +
   geom_col(aes(y = Excess_deaths), width = 1, fill = "#af8dc3") +
   facet_grid(vars(Source)) +
   ylim(ymin, ymax) +
-  labs(x = "", y = "Excess deaths") +
+  labs(x = "", y = "Weekly excess deaths") +
   theme_bw() 
 ```
 
 ### Original method
 
 ```{r echo=FALSE}
-bfs_web_deaths_weekly %>% 
+farrington_weekly_res <- bfs_web_deaths_weekly %>% 
   filter(Year == year) %>% 
   select(Week, Excess_expected) %>% 
-  rename(BfS = Excess_expected) %>% 
-  # mutate(Calculated = farrington_weekly@observed - farrington_weekly@upperbound[ ,1]) %>% 
-  mutate(Calculated = farrington_weekly@observed - farrington_weekly@control$expected[ ,1]) %>% 
-  pivot_longer(BfS:Calculated, 
+  rename(BfS = Excess_expected, Time = Week) %>% 
+  # mutate(farrington_weekly = farrington_weekly@observed - farrington_weekly@upperbound[ ,1]) %>% 
+  mutate(farrington_weekly = farrington_weekly@observed - farrington_weekly@control$expected[ ,1]) %>% 
+  pivot_longer(BfS:farrington_weekly, 
                names_to = "Source",
-               values_to = "Excess_deaths") %>% 
-  ggplot(mapping = aes(x = Week)) +
+               values_to = "Excess_deaths") 
+
+farrington_weekly_res %>% 
+  ggplot(mapping = aes(x = Time)) +
   geom_col(aes(y = Excess_deaths), width = 1, fill = "#af8dc3") +
   facet_grid(vars(Source)) +
   ylim(ymin, ymax) +
-  labs(x = "", y = "Excess deaths") +
+  labs(x = "", y = "Weekly excess deaths") +
   theme_bw() 
 ```
 
@@ -362,32 +366,56 @@ ymax = max(
 ### Improved method
 
 ```{r echo=FALSE}
-bfs_web_deaths_monthly %>% 
+noufaily_monthly_res <- bfs_web_deaths_monthly %>% 
   filter(Year == year) %>% 
-  select(Month, deaths_month) %>% 
-  rename(BfS = deaths_month) %>% 
-  # mutate(Calculated = noufaily_monthly@observed - noufaily_monthly@upperbound[ ,1]) %>% 
-  mutate(Calculated = noufaily_monthly@observed[1:12, ] - noufaily_monthly@control$expected[1:12 ,1]) %>% 
-  ggplot(mapping = aes(x = factor(Month))) +
-  geom_col(aes(y = Calculated), width = 1, fill = "#af8dc3") +
+  select(Month) %>% 
+  rename(Time = Month) %>% 
+  # mutate(Excess_deaths = noufaily_monthly@observed - noufaily_monthly@upperbound[ ,1]) %>% 
+  mutate(Excess_deaths = noufaily_monthly@observed[1:12, ] - noufaily_monthly@control$expected[1:12 ,1],
+         Source = "noufaily_monthly") 
+
+noufaily_monthly_res %>% 
+  ggplot(mapping = aes(x = factor(Time))) +
+  geom_col(aes(y = Excess_deaths), width = 1, fill = "#af8dc3") +
   ylim(ymin, ymax) +
-  labs(x = "", y = "Excess deaths") +
+  labs(x = "", y = "Monthly excess deaths") +
   theme_bw() 
 ```
 
 ### Original method
 
 ```{r echo=FALSE}
-bfs_web_deaths_monthly %>% 
+farrington_monthly_res <- bfs_web_deaths_monthly %>% 
   filter(Year == year) %>% 
-  select(Month, deaths_month) %>% 
-  rename(BfS = deaths_month) %>% 
-  # mutate(Calculated = farrington_monthly@observed - farrington_monthly@upperbound[ ,1]) %>% 
-  mutate(Calculated = farrington_monthly@observed[1:12, ] - farrington_monthly@control$expected[1:12 ,1]) %>% 
-  ggplot(mapping = aes(x = factor(Month))) +
-  geom_col(aes(y = Calculated), width = 1, fill = "#af8dc3") +
+  select(Month) %>% 
+  rename(Time = Month) %>% 
+  # mutate(Excess_deaths = farrington_monthly@observed - farrington_monthly@upperbound[ ,1]) %>% 
+  mutate(Excess_deaths = farrington_monthly@observed[1:12, ] - farrington_monthly@control$expected[1:12 ,1],
+         Source = "farrington_monthly") 
+
+farrington_monthly_res %>% 
+  ggplot(mapping = aes(x = factor(Time))) +
+  geom_col(aes(y = Excess_deaths), width = 1, fill = "#af8dc3") +
   ylim(ymin, ymax) +
-  labs(x = "", y = "Excess deaths") +
+  labs(x = "", y = "Monthly excess deaths") +
+  theme_bw() 
+```
+
+## Yearly comparison
+
+```{r echo=FALSE}
+compare <- bind_rows(noufaily_weekly_res, 
+                     farrington_weekly_res %>% filter(Source != "BfS"),
+                     noufaily_monthly_res, 
+                     farrington_monthly_res) %>% 
+  group_by(Source) %>% 
+  summarise(Excess_deaths = round(sum(Excess_deaths))) %>%
+  ungroup() 
+
+compare %>% 
+  ggplot() + 
+  geom_col(aes(x = Source, y = Excess_deaths), fill = "#af8dc3") +
+  labs(x = "", y = "Yearly excess deaths") +
   theme_bw() 
 ```
 
