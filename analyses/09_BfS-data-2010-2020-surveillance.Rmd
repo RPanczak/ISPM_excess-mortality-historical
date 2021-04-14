@@ -31,20 +31,6 @@ knitr::opts_chunk$set(cache = FALSE,
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
-
-combineSTS <- function(stsList) {
-  epoch <- as.numeric(epoch(stsList[[1]]))
-  observed <- NULL
-  alarm <- NULL
-  for (i in 1:length(stsList)) {
-    observed <- cbind(observed,observed(stsList[[i]]))
-    alarm <- cbind(alarm,alarms(stsList[[i]]))
-  }
-  colnames(observed) <- colnames(alarm) <- names(stsList)
-  res <- sts(epoch=as.numeric(epoch), epochAsDate=TRUE,
-             observed=observed, alarm=alarm)
-  return(res)
-}
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -52,11 +38,21 @@ combineSTS <- function(stsList) {
 # Years
 
 ```{r}
-year <- 2017
+year <- 2016
 date_min <- as.Date(paste0(as.character(year), "-01-01"))
 date_max <- as.Date(paste0(as.character(year), "-12-31"))
 ```
 
+<!-- ----------------------------------------------------- -->
+
+# Gold(ish) standard
+
+```{r echo=FALSE,eval=FALSE, out.width='100%'}
+path <- paste0("./data/BfS/orig_plots/", as.character(year), ".png")
+knitr::include_graphics(path)
+```
+
+![](../data/BfS/orig_plots/2016.png)
 <!-- ----------------------------------------------------- -->
 
 # Data 
@@ -76,8 +72,22 @@ bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds"
   mutate(Excess_expected = NumberOfDeaths - Expected)
 ```
 
+### All available expected
+
 ```{r echo=FALSE}
 bfs_web_deaths_weekly %>% 
+  ggplot(aes(x = Ending)) +
+  geom_line(aes(y = Expected), colour = "darkorchid") + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+### Deaths and expected 5 years prior
+
+```{r echo=FALSE}
+bfs_web_deaths_weekly %>% 
+  filter(Year >= year - 5 & Year <= year) %>% 
   ggplot(aes(x = Ending)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), alpha = 0.005, inherit.aes = FALSE) +
@@ -85,6 +95,7 @@ bfs_web_deaths_weekly %>%
   geom_line(aes(y = Expected), colour = "darkorchid") + 
   # geom_vline(aes(xintercept = date_min), colour = "darkgreen") + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
   theme_minimal()
 ```
 
@@ -123,6 +134,7 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
+  filter(Year >= year - 5 & Year <= year) %>% 
   ggplot(aes(x = Date)) +
   geom_rect(aes(xmin = date_min, xmax = date_max,
                 ymin = -Inf, ymax = Inf), alpha = 0.005) +
@@ -200,6 +212,7 @@ control2 <- list(range = analysis_month,
                  noPeriods = 10, b = 4, w = 2,
                  weightsThreshold = 2.58, 
                  pastWeeksNotIncluded = 2,
+                 # pastWeeksNotIncluded = 12, # if previous year has sth going on?
                  pThresholdTrend = 1, 
                  thresholdMethod = "nbPlugin")
 
@@ -218,6 +231,7 @@ control1 <- list(range = analysis_month,
                  noPeriods = 1, b = 4, w = 2,
                  weightsThreshold = 1, 
                  pastWeeksNotIncluded = 2,
+                 # pastWeeksNotIncluded = 12, # if previous year has sth going on?
                  pThresholdTrend = 0.05, 
                  thresholdMethod = "delta")
 
@@ -226,17 +240,6 @@ farrington_monthly <- farringtonFlexible(deaths_monthly_sts, control1)
 
 ```{r echo=FALSE}
 plot(farrington_monthly, main = "", legend.opts = list(x = "bottomright"))
-```
-
-### Comparing 'alarms'
-
-```{r}
-compare <- combineSTS(list(
-  Farrington = farrington_monthly, 
-  Noufaily = noufaily_monthly))
-
-par(mar = c(4, 5, 2.1, 2))
-plot(compare, type = alarm ~ time)
 ```
 
 ## Weekly  {.tabset}
@@ -248,6 +251,7 @@ control2 <- list(range = analysis_week,
                  noPeriods = 10, b = 4, w = 3,
                  weightsThreshold = 2.58, 
                  pastWeeksNotIncluded = 3,
+                 # pastWeeksNotIncluded = 53, # if previous year has sth going on?
                  pThresholdTrend = 1, 
                  thresholdMethod = "nbPlugin")
 
@@ -266,6 +270,7 @@ control1 <- list(range = analysis_week,
                  noPeriods = 1, b = 4, w = 3,
                  weightsThreshold = 1, 
                  pastWeeksNotIncluded = 26,
+                 # pastWeeksNotIncluded = 53, # if previous year has sth going on?
                  pThresholdTrend = 0.05, 
                  thresholdMethod = "delta")
 
@@ -274,17 +279,6 @@ farrington_weekly <- farringtonFlexible(deaths_weekly_sts, control1)
 
 ```{r echo=FALSE}
 plot(farrington_weekly, main = "", legend.opts = list(x = "bottomright"))
-```
-
-### Comparing 'alarms'
-
-```{r}
-compare <- combineSTS(list(
-  Farrington = farrington_weekly, 
-  Noufaily = noufaily_weekly))
-
-par(mar = c(4, 5, 2.1, 2))
-plot(compare, type = alarm ~ time)
 ```
 
 <!-- ----------------------------------------------------- -->
