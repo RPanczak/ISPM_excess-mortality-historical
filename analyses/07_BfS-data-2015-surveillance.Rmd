@@ -53,7 +53,7 @@ combineSTS <- function(stsList) {
 
 We choose 2015 as a year to test different approaches to calculate excess deaths due to unusually high flu and summer heatwave deaths.
 
-![](../misc/2015.png)
+![](../data/BfS/orig_plots/2015.png)
 [Graph source](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.317313.html).  
 [Press release](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.3742838.html).  
 
