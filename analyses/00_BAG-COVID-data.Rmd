@@ -120,11 +120,11 @@ dir.create(exdir)
 
 unzip("data-raw/BAG/bag-covid-pack.zip", exdir = exdir) 
 
-unlink("./data-raw/BAG/bag-covid-pack.zip")
+file.remove("./data-raw/BAG/bag-covid-pack.zip")
 ```
 
 ```{r}
-exdir = paste0("./data-raw/BAG/2021-03-24")
+exdir = paste0("./data-raw/BAG/", Sys.Date())
 
 Death_geoRegion <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion.csv"))
 
