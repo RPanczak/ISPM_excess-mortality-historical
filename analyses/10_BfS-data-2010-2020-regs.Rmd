@@ -399,63 +399,38 @@ ggplot(pred_deaths_monthly, aes(x = Date)) +
   theme_minimal()
 ```
 
-## Oz solution
+## GAM
 
 ### Weekly data
 
 ```{r}
-summary(oz_weekly <- lm_robust(NumberOfDeaths ~ Week + 
-                                 Week_2 +
-                                 si_one  + co_one, 
-                               se_type = "classical", # options are "HC0", "HC1" (or "stata", the equivalent), "HC2" (default), "HC3", or "classical"
-                               data = reg_deaths_weekly))
 
-predict <- predict(oz_weekly, pred_deaths_weekly, se.fit = TRUE,
-                   interval = "confidence")
-
-pred_deaths_weekly$oz_fit <- predict$fit[, 1]
-
-pred_deaths_weekly$oz_lci <- predict$fit[, 2]
-pred_deaths_weekly$oz_uci <- predict$fit[, 3]
-```
-
-```{r}
-ggplot(pred_deaths_weekly, aes(x = Ending)) +
-  geom_ribbon(aes(ymin = oz_lci, ymax = oz_uci), alpha = 0.1) + 
-  geom_line(aes(y = oz_fit)) +
-  geom_line(aes(y = NumberOfDeaths), color = "#beaed4", size = 1) + 
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  xlab("") +
-  theme_minimal()
 ```
 
 ### Monthly data
 
 ```{r}
-summary(oz_monthly <- lm_robust(deaths_month ~ Month + 
-                                  Month_2 +
-                                  si_one  + co_one, 
-                                se_type = "classical", # options are "HC0", "HC1" (or "stata", the equivalent), "HC2" (default), "HC3", or "classical"
-                                data = reg_deaths_monthly))
 
-predict <- predict(oz_monthly, pred_deaths_monthly, se.fit = TRUE,
-                   interval = "confidence")
-
-pred_deaths_monthly$oz_fit <- predict$fit[, 1]
-
-pred_deaths_monthly$oz_lci <- predict$fit[, 2]
-pred_deaths_monthly$oz_uci <- predict$fit[, 3]
 ```
+
+## INLA
+
+### Weekly data
 
 ```{r}
-ggplot(pred_deaths_monthly, aes(x = Date)) +
-  geom_ribbon(aes(ymin = oz_lci, ymax = oz_uci), alpha = 0.1) + 
-  geom_line(aes(y = oz_fit)) +
-  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  xlab("") +
-  theme_minimal()
+
 ```
+
+### Monthly data
+
+```{r}
+
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Comparing excess deaths totals
+
 
 
 # Computing Environment
