@@ -20,7 +20,7 @@ set.seed(12345)
 
 library(pacman)
 p_load(tidyverse, lubridate, scales, magrittr,
-       estimatr)
+       ciTools)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -32,25 +32,6 @@ knitr::opts_chunk$set(cache = FALSE,
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
-
-# https://statcompute.wordpress.com/2015/12/20/prediction-intervals-for-poisson-regression/
-p_load("doParallel", "foreach")
-registerDoParallel(cores = 4)
-boot_pi <- function(model, pdata, n, p) {
-  odata <- model$data
-  lp <- (1 - p) / 2
-  up <- 1 - lp
-  seeds <- round(runif(n, 1, 1000), 0)
-  boot_y <- foreach(i = 1:n, .combine = rbind) %dopar% {
-    set.seed(seeds[i])
-    bdata <- odata[sample(seq(nrow(odata)), size = nrow(odata), replace = TRUE), ]
-    bpred <- predict(update(model, data = bdata), type = "response", newdata = pdata)
-    rpois(length(bpred), lambda = bpred)
-  }
-  boot_ci <- t(apply(boot_y, 2, quantile, c(lp, up)))
-  return(data.frame(pred = predict(model, newdata = pdata, type = "response"), lower = boot_ci[, 1], upper = boot_ci[, 2]))
-}
-
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -350,6 +331,66 @@ summary(mz_weekly <- glm(NumberOfDeaths ~ Week +
                            si_one + si_two + co_one + co_two, 
                          family = "poisson", data = reg_deaths_weekly))
 
+pred_deaths_weekly %<>%
+  add_ci(mz_weekly, names = c("mz_lci", "mz_uci"), yhatName = "mz_fit") %>%
+  add_pi(mz_weekly, names = c("mz_lpi", "mz_upi"), nSims = 20000) %>% 
+  dplyr::select(-pred) %>% 
+  as_tibble()
+```
+
+```{r eval=FALSE, include=FALSE}
+ggplot(pred_deaths_weekly, aes(x = Ending)) +
+  geom_ribbon(aes(ymin = mz_lci, ymax = mz_uci), alpha = 0.1) + 
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = NumberOfDeaths), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+```{r}
+ggplot(pred_deaths_weekly, aes(x = Ending)) +
+  geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = NumberOfDeaths), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+### Monthly data
+
+```{r}
+summary(mz_monthly <- glm(deaths_month ~ Month + 
+                            si_one + si_two + co_one + co_two, 
+                          family = "poisson", data = reg_deaths_monthly))
+
+pred_deaths_monthly %<>%
+  add_ci(mz_monthly, names = c("mz_lci", "mz_uci"), yhatName = "mz_fit") %>%
+  add_pi(mz_monthly, names = c("mz_lpi", "mz_upi"), nSims = 20000) %>% 
+  dplyr::select(-pred) %>% 
+  as_tibble()
+```
+
+```{r}
+ggplot(pred_deaths_monthly, aes(x = Date)) +
+  geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+## GAM
+
+### Weekly data
+
+```{r}
+summary(mz_weekly <- glm(NumberOfDeaths ~ Week + 
+                           si_one + si_two + co_one + co_two, 
+                         family = "poisson", data = reg_deaths_weekly))
+
 predict <- predict(mz_weekly, pred_deaths_weekly, type = "response", se.fit = TRUE)
 
 pred_deaths_weekly$mz_fit <- predict$fit
@@ -397,20 +438,6 @@ ggplot(pred_deaths_monthly, aes(x = Date)) +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   xlab("") +
   theme_minimal()
-```
-
-## GAM
-
-### Weekly data
-
-```{r}
-
-```
-
-### Monthly data
-
-```{r}
-
 ```
 
 ## INLA
