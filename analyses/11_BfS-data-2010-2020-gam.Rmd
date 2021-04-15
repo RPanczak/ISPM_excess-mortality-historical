@@ -1,0 +1,364 @@
+---
+title: "Excess mortality: 2010-2020 monthly BfS data & regression(s) approach"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(tidyverse, lubridate, scales, magrittr,
+       slider, 
+       ciTools, 
+       mgcv, gratia, nlme)
+
+options(max.print = "75")
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Years
+
+```{r}
+year <- 2020
+
+year_from <- year - 10
+date_from <- ymd(paste0(as.character(year_from), "-01-01"))
+
+year_reg <- year - 1
+date_reg <- ymd(paste0(as.character(year_reg), "-01-01"))
+
+date_min <- ymd(paste0(as.character(year), "-01-01"))
+date_max <- ymd(paste0(as.character(year), "-12-31"))
+# to extend
+# date_max <- ymd(paste0(as.character(year + 1), "-03-01"))
+
+# definitions of pandemic years
+# 1919 only spring so maybe out?
+# choose 1957 or 1958!
+# not sure 1968 1969
+
+flu_years <- c(1890, 
+               1918, 1919, 
+               1957, 1958, 
+               1968, 1969, 
+               1977, 1978, 1979, 
+               2009, 
+               2010, 
+               2020)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Data 
+
+## Monthly number of deaths, 2010-2020. 
+
+Prepared in `02.Rmd`.  
+
+```{r}
+# bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds")
+
+bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
+  filter(Year >= 2010) %>% 
+  select(-deaths_year) %>% 
+  # left_join(bfs_web_pop_yearly) %>% 
+  # mutate(flu_year = ifelse(Year %in% flu_years, 1, 0),
+  #        not = 1 - flu_year) %>% 
+  mutate(
+    si_one = sin(2*pi*Month/12),
+    si_two = sin(4*pi*Month/12),
+    co_one = cos(2*pi*Month/12),
+    co_two = cos(4*pi*Month/12)) %>% 
+  mutate(Time = row_number()) %>% 
+  relocate(Time)
+
+# with(bfs_web_deaths_monthly, table(flu_year, not))
+
+# rm(bfs_web_pop_yearly)
+```
+
+```{r echo=FALSE}
+bfs_web_deaths_monthly %>% 
+  filter(Year <= year) %>% 
+  ggplot(aes(x = Date)) +
+  geom_rect(aes(xmin = date_min, xmax = date_max, 
+                ymin = -Inf, ymax = Inf), 
+            fill = "#7fc97f", alpha = 0.01, inherit.aes = FALSE) +
+  geom_rect(aes(xmin = date_from, xmax = date_min, 
+                ymin = -Inf, ymax = Inf), 
+            fill = "#fdc086", alpha = 0.01, inherit.aes = FALSE) +
+  geom_line(aes(y = deaths_month)) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma) +
+  theme_minimal() + 
+  xlab("") + ylab("Deaths")
+```
+
+## 5-year median
+
+```{r}
+bfs_web_deaths_monthly %<>% 
+  arrange(Month, Year) %>% 
+  group_by(Month) %>% 
+  mutate(mean_5y   = slide_dbl(deaths_month, mean, 
+                               na.rm = TRUE, .before = 5, .complete = TRUE),
+         mean_10y  = slide_dbl(deaths_month, mean, 
+                               na.rm = TRUE, .before = 10, .complete = TRUE),
+         median_5y = slide_dbl(deaths_month, mean, 
+                               na.rm = TRUE, .before = 5, .complete = TRUE),
+         median_10y = slide_dbl(deaths_month, mean, 
+                                na.rm = TRUE, .before = 10, .complete = TRUE)) %>% 
+  ungroup() %>% 
+  arrange(Year, Month) %>% 
+  filter(Date >= date_from)
+```
+
+```{r echo=FALSE}
+bfs_web_deaths_monthly %>% 
+  filter(Year >= year - 5 & Year <= year) %>%
+  ggplot(aes(x = Date)) +
+  geom_rect(aes(xmin = date_min, xmax = date_max, 
+                ymin = -Inf, ymax = Inf), alpha = 0.005, inherit.aes = FALSE) +
+  geom_line(aes(y = deaths_month), colour = "grey40") + 
+  geom_line(aes(y = median_5y), colour = "firebrick") + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+## 10-year median
+
+```{r echo=FALSE}
+bfs_web_deaths_monthly %>% 
+  filter(Year >= year & Year <= year) %>%
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = deaths_month), colour = "grey40") + 
+  geom_line(aes(y = median_5y), alpha = 0.5, size = 0.5, colour = "firebrick") + 
+  geom_line(aes(y = median_10y), alpha = 0.5, size = 1, colour = "firebrick") + 
+  scale_x_date(date_breaks = "2 months", date_labels = "%b") +
+  xlab("") +
+  theme_minimal()
+```
+
+## Outcome
+
+```{r echo=FALSE}
+bfs_web_deaths_monthly %>% 
+  filter(Year <= year_reg) %>% 
+  ggplot(aes(deaths_month)) +
+  geom_histogram() +
+  theme_minimal()
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Regression approach
+
+## Data
+
+Separating analysis from prediction
+
+```{r}
+reg_deaths_monthly <- bfs_web_deaths_monthly %>% 
+  filter(Year <= year_reg)
+
+pred_deaths_monthly <- bfs_web_deaths_monthly # %>% filter(Year > year_reg)
+```
+
+## Marcel's solution
+
+```{r}
+summary(mz_monthly <- glm(deaths_month ~ Month + 
+                            si_one + si_two + co_one + co_two, 
+                          family = "poisson", data = reg_deaths_monthly))
+
+pred_deaths_monthly %<>%
+  add_pi(mz_monthly, names = c("mz_lpi", "mz_upi"), yhatName = "mz_fit", nSims = 20000) %>% 
+  as_tibble()
+```
+
+```{r echo=FALSE}
+pred_deaths_monthly %>% 
+  filter(Year >= year - 5) %>% 
+  ggplot(aes(x = Date)) +
+  geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = median_5y), colour = "firebrick") + 
+  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+```{r echo=FALSE}
+pred_deaths_monthly %>% 
+  filter(Year >= year) %>% 
+  ggplot(aes(x = Date)) +
+  geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = median_10y), colour = "firebrick") + 
+  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+## GAM
+
+Following info from [here](https://fromthebottomoftheheap.net/2014/05/09/modelling-seasonal-data-with-gam/)
+
+```{r}
+ctrl <- list(niterEM = 0, msVerbose = TRUE, optimMethod = "L-BFGS-B")
+```
+
+### Monthly data
+
+```{r}
+bs = "cs"
+k = 6
+
+summary(gam_monthly0 <- gamm(deaths_month ~ 
+                               s(Time, bs = bs, k = k) + 
+                               s(Month, bs = "cc", k = 12),
+                             family = "poisson", data = reg_deaths_monthly))
+
+acf(resid(gam_monthly0$lme), lag.max = 36, main = "ACF")
+pacf(resid(gam_monthly0$lme), lag.max = 36, main = "pACF")
+
+summary(gam_monthly1 <- gamm(deaths_month ~ 
+                               s(Time, bs = bs, k = k) + 
+                               s(Month, bs = "cc", k = 12),
+                             correlation = corARMA(form = ~ Time, p = 1),
+                             family = "poisson", data = reg_deaths_monthly,
+                             control = ctrl))
+
+summary(gam_monthly2 <- gamm(deaths_month ~ 
+                               s(Time, bs = bs, k = k) + 
+                               s(Month, bs = "cc", k = 12),
+                             correlation = corARMA(form = ~ Time, p = 2),
+                             family = "poisson", data = reg_deaths_monthly,
+                             control = ctrl))
+
+summary(gam_monthly3 <- gamm(deaths_month ~ 
+                               s(Time, bs = bs, k = k) + 
+                               s(Month, bs = "cc", k = 12),
+                             correlation = corARMA(form = ~ Time, p = 3),
+                             family = "poisson", data = reg_deaths_monthly,
+                             control = ctrl))
+
+# anova.lme(gam_monthly0$lme, gam_monthly1$lme, gam_monthly2$lme, gam_monthly3$lme)
+AIC(gam_monthly0$lme, gam_monthly1$lme, gam_monthly2$lme, gam_monthly3$lme)
+BIC(gam_monthly0$lme, gam_monthly1$lme, gam_monthly2$lme, gam_monthly3$lme)
+```
+
+```{r}
+draw(gam_monthly1$gam) 
+appraise(gam_monthly1$gam)
+
+# comp <- compare_smooths(gam_monthly1, gam_monthly_2)
+# draw(comp)
+```
+
+```{r}
+predict <- predict(gam_monthly1$gam, pred_deaths_monthly, 
+                   type = "response", se.fit = TRUE)
+
+pred_deaths_monthly$gam_fit <- predict$fit
+pred_deaths_monthly$gam_se <- predict$se.fit
+```
+
+
+```{r}
+pred_deaths_monthly %>% 
+  ggplot(aes(x = Date)) +
+  # geom_ribbon(aes(ymin = gam_lci, ymax = gam_uci), alpha = 0.1) + 
+  geom_line(aes(y = gam_fit)) +
+  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+```{r}
+pred_deaths_monthly %>% 
+  filter(Year >= year - 5) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = median_5y), color = "firebrick") +
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = gam_fit), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  ylab("REG vs GAM") +  xlab("") +
+  theme_minimal()
+```
+
+```{r}
+pred_deaths_monthly %>% 
+  filter(Year == year) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = median_10y), color = "firebrick") +
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = gam_fit), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "2 months", date_labels = "%b") +
+  ylab("REG vs GAM") +  xlab("") +
+  theme_minimal()
+```
+
+### Comparing excess deaths totals
+
+```{r}
+pred_deaths_monthly %>% 
+  filter(Year == year) %>% 
+  summarise(NumberOfDeaths = sum(deaths_month), 
+            exc_mz = round(NumberOfDeaths - sum(mz_fit)),
+            exc_gam = round(NumberOfDeaths - sum(gam_fit)))
+```
+
+## INLA
+
+### Weekly data
+
+```{r}
+
+```
+
+### Monthly data
+
+```{r}
+
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Comparing excess deaths totals
+
+
+
+# Computing Environment
+
+`r mu$session()`
+
+
