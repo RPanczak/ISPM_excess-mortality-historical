@@ -246,27 +246,27 @@ summary(gam_monthly0 <- gamm(deaths_month ~
                                s(Month, bs = "cc", k = 12),
                              family = "poisson", data = reg_deaths_monthly))
 
-acf(resid(gam_monthly0$lme), lag.max = 36, main = "ACF")
-pacf(resid(gam_monthly0$lme), lag.max = 36, main = "pACF")
+# acf(resid(gam_monthly0$lme), lag.max = 36, main = "ACF")
+# pacf(resid(gam_monthly0$lme), lag.max = 36, main = "pACF")
 
 summary(gam_monthly1 <- gamm(deaths_month ~ 
                                s(Time, bs = bs, k = k) + 
                                s(Month, bs = "cc", k = 12),
-                             correlation = corARMA(form = ~ Time, p = 1),
+                             correlation = corARMA(form = ~ 1 | Year, p = 1),
                              family = "poisson", data = reg_deaths_monthly,
                              control = ctrl))
 
 summary(gam_monthly2 <- gamm(deaths_month ~ 
                                s(Time, bs = bs, k = k) + 
                                s(Month, bs = "cc", k = 12),
-                             correlation = corARMA(form = ~ Time, p = 2),
+                             correlation = corARMA(form = ~ 1 | Year, p = 2),
                              family = "poisson", data = reg_deaths_monthly,
                              control = ctrl))
 
 summary(gam_monthly3 <- gamm(deaths_month ~ 
                                s(Time, bs = bs, k = k) + 
                                s(Month, bs = "cc", k = 12),
-                             correlation = corARMA(form = ~ Time, p = 3),
+                             correlation = corARMA(form = ~ 1 | Year, p = 3),
                              family = "poisson", data = reg_deaths_monthly,
                              control = ctrl))
 
