@@ -22,7 +22,8 @@ library(pacman)
 p_load(tidyverse, lubridate, scales, magrittr,
        slider, 
        ciTools, 
-       mgcv, gratia, nlme)
+       mgcv, gratia, nlme,
+       INLA)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -235,8 +236,6 @@ Following info from [here](https://fromthebottomoftheheap.net/2014/05/09/modelli
 ctrl <- list(niterEM = 0, msVerbose = TRUE, optimMethod = "L-BFGS-B")
 ```
 
-### Monthly data
-
 ```{r}
 bs = "cs"
 k = 6
@@ -339,21 +338,88 @@ pred_deaths_monthly %>%
 
 ## INLA
 
-### Weekly data
+### Data
+
+Separating analysis from prediction
 
 ```{r}
-
+reg_deaths_monthly <- bfs_web_deaths_monthly %>% 
+  filter(Date <= date_max) %>% 
+  mutate(deaths_month_inla = ifelse(Year == 2020, NA, deaths_month))
 ```
 
-### Monthly data
+### Setup
+
+```{r echo=TRUE, results='hide'}
+# Jeffreys prior 
+a1 <- 5e-5
+b1 <- 5e-5
+lgprior1 <- list(prec = list(param = c(a1, b1)))
+
+# Gelman prior
+a2 <- -0.5
+b2 <- 5e-5
+lgprior2 <- list(prec = list(param = c(a2, b2)))
+
+# iid prior 
+# Schrödle & Held 2010 & Blangiardo et al 2013
+a0 <- 1
+b0 <- 0.1
+prior.nu <- list(prec = list(param = c(a0, b0)))
+
+# intercept & fixed
+inla.set.control.fixed.default() 
+# intercept ~ N(0,0) 
+# other fixed effects ~ N(0, 0.001) 
+
+# where the format is N(mean, precision) 
+# precision = inverse of the variance. 
+
+# PC prior
+U <- 1
+hyper.prec = list(theta = list(
+  prior = "pc.prec",
+  param = c(U, 0.01)
+))
+# scaling
+inla.setOption(scale.model.default = TRUE)
+```
+
+### Models
 
 ```{r}
+mod <- inla(deaths_month_inla ~ 1 + 
+               f(Time, model = "rw1", hyper = hyper.prec, constr = FALSE) + 
+               f(Month, model = "rw1", hyper = hyper.prec, constr = FALSE), 
+             family = "poisson", 
+             control.compute = list(dic= TRUE, waic = TRUE, cpo = TRUE),  
+             data = reg_deaths_monthly)
 
+plot(mod)
+
+pred_deaths_monthly$inla_fit <- exp(mod$summary.fitted.values[, c("0.5quant")])
+
+pred_deaths_monthly %>% 
+  filter(Year == year) %>%
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = median_10y), color = "firebrick") +
+  geom_line(aes(y = mz_fit)) +
+  geom_line(aes(y = inla_fit), color = "#beaed4", size = 1) + 
+  scale_x_date(date_breaks = "2 months", date_labels = "%b") +
+  ylab("REG vs GAM") +  xlab("") +
+  theme_minimal()
 ```
 
-<!-- ----------------------------------------------------- -->
+### Comparing excess deaths totals
 
-# Comparing excess deaths totals
+```{r}
+pred_deaths_monthly %>% 
+  filter(Year == year) %>% 
+  summarise(NumberOfDeaths = sum(deaths_month), 
+            exc_mz = round(NumberOfDeaths - sum(mz_fit)),
+            exc_gam = round(NumberOfDeaths - sum(gam_fit)),
+            exc_inla = round(NumberOfDeaths - sum(inla_fit)))
+```
 
 
 
