@@ -19,8 +19,7 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(tidyverse, lubridate, scales, magrittr,
-       slider, ciTools)
+p_load(tidyverse, lubridate, scales, magrittr, slider)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -32,6 +31,34 @@ knitr::opts_chunk$set(cache = FALSE,
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
+```
+
+```{r}
+# first method for CI
+# https://fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/
+# https://fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-ii/
+  
+# second method for CI
+# https://statcompute.wordpress.com/2015/12/20/prediction-intervals-for-poisson-regression/
+p_load(doParallel, foreach)
+
+registerDoParallel(cores = 4)
+
+boot_pi <- function(model, pdata, n, p) {
+  odata <- model$data
+  lp <- (1 - p) / 2
+  up <- 1 - lp
+  set.seed(2016)
+  seeds <- round(runif(n, 1, 1000), 0)
+  boot_y <- foreach(i = 1:n, .combine = rbind) %dopar% {
+    set.seed(seeds[i])
+    bdata <- odata[sample(seq(nrow(odata)), size = nrow(odata), replace = TRUE), ]
+    bpred <- predict(update(model, data = bdata), type = "response", newdata = pdata)
+    rpois(length(bpred), lambda = bpred)
+  }
+  boot_ci <- t(apply(boot_y, 2, quantile, c(lp, up)))
+  return(data.frame(pred = predict(model, newdata = pdata, type = "response"), lower = boot_ci[, 1], upper = boot_ci[, 2]))
+}
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -240,24 +267,34 @@ pred_data <- bfs_web_deaths_monthly %>%
 # summary(pred_data$Year)
 ```
 
-## Monthly data
+## Three predictions
 
 ```{r}
 summary(monthly <- glm(deaths ~ Year + 
                          si_one + si_two + co_one + co_two, 
-                       # offset = log(pop),
-                       family = "poisson", data = reg_data))
+                       data = reg_data, 
+                       offset = log(pop),
+                       family = "poisson"))
 
+ilink <- family(monthly)$linkinv
+
+predict1 <- predict(monthly, pred_data, type = "link", se.fit = TRUE)
+
+predict2 <- boot_pi(monthly, pred_data, 1000, 0.95)
 
 pred_data %<>%
-  add_pi(monthly, names = c("lpi", "upi"), yhatName = "fit", nSims = 20000) %>% 
-  as_tibble()
+  mutate(fit = ilink(predict1$fit), 
+         lpi1 = ilink(predict1$fit - (2 * predict1$se.fit)),
+         upi1 = ilink(predict1$fit + (2 * predict1$se.fit)),
+         # fit = predict2$pred, 
+         lpi2 = predict2$lower,
+         upi2 = predict2$upper)
 ```
 
 ```{r echo=FALSE}
 pred_data %>% 
   ggplot(aes(x = Date)) +
-  geom_ribbon(aes(ymin = lpi, ymax = upi), alpha = 0.1) + 
+  geom_ribbon(aes(ymin = lpi2, ymax = upi2), alpha = 0.1) + 
   geom_line(aes(y = fit)) +
   geom_line(aes(y = median), colour = "firebrick") + 
   geom_line(aes(y = deaths), color = "#beaed4", size = 1) + 
