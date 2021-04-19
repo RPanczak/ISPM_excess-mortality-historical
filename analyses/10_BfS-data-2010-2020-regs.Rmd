@@ -20,9 +20,7 @@ set.seed(12345)
 
 library(pacman)
 p_load(tidyverse, lubridate, scales, magrittr,
-       slider, 
-       ciTools, 
-       mgcv, gratia, nlme)
+       slider, ciTools)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -236,11 +234,9 @@ bfs_web_deaths_monthly %>%
   xlab("") + ylab("Deaths")
 ```
 
-<!-- ----------------------------------------------------- -->
+## 5- & 10-year medians
 
-# 5- & 10-year means
-
-## Weekly 
+### Weekly 
 
 ```{r}
 bfs_web_deaths_weekly %<>% 
@@ -288,7 +284,7 @@ bfs_web_deaths_weekly %>%
   theme_minimal()
 ```
 
-## Monthly 
+### Monthly 
 
 ```{r}
 bfs_web_deaths_monthly %<>% 
@@ -330,6 +326,36 @@ bfs_web_deaths_monthly %>%
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") +
   theme_minimal()
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Seasonality
+
+### Weekly data
+
+```{r}
+dcmp <- bfs_web_deaths_monthly %>%
+  tsibble::as_tsibble(index = Time) %>% 
+  filter(Year < year) %>% 
+  fabletools::model(feasts::STL(deaths_month ~ season(window = Inf)))
+
+# fabletools::components(dcmp)
+fabletools::components(dcmp) %>% 
+  autoplot()
+```
+
+### Monthly data
+
+```{r}
+dcmp <- bfs_web_deaths_monthly %>%
+  tsibble::as_tsibble(index = Time) %>% 
+  filter(Year < year) %>% 
+  fabletools::model(feasts::STL(deaths_month ~ season(window = Inf)))
+
+# fabletools::components(dcmp)
+fabletools::components(dcmp) %>% 
+  autoplot()
 ```
 
 <!-- ----------------------------------------------------- -->
