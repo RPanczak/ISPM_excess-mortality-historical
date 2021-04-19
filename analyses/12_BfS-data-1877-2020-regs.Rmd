@@ -37,7 +37,7 @@ mu <- Hmisc::markupSpecs$html
 # first method for CI
 # https://fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-i/
 # https://fromthebottomoftheheap.net/2017/05/01/glm-prediction-intervals-ii/
-  
+
 # second method for CI
 # https://statcompute.wordpress.com/2015/12/20/prediction-intervals-for-poisson-regression/
 p_load(doParallel, foreach)
@@ -80,10 +80,16 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
 
 ```{r}
 year_from <- min(bfs_web_deaths_monthly$Year)
+
+year_from <- 1909
+
 date_from <- ymd(paste0(as.character(year_from), "-01-01"))
 
 year_reg <- year_from + 10
 date_reg <- ymd(paste0(as.character(year_reg), "-01-01"))
+
+year_max <- 2019
+date_max <- ymd(paste0(as.character(year_reg), "-01-01"))
 ```
 
 ## Pandemics
@@ -99,7 +105,7 @@ Data till 2019 - taking mean from jan & dec values.
 
 ```{r}
 bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") %>% 
-  filter(Year >= year_from) %>% 
+  filter(Year >= min(bfs_web_deaths_monthly$Year)) %>% 
   mutate(pop = round((pop_jan + pop_dec) / 2)) %>% 
   select(-pop_jan, -pop_dec)
 ```
@@ -118,8 +124,8 @@ bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") %>%
 ```{r}
 bfs_web_deaths_monthly %<>% 
   left_join(bfs_web_pop_yearly) %>%
-  mutate(deaths_flu_year = ifelse(Year %in% flu_years, NA, deaths),
-         deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, deaths),
+  mutate(deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, deaths),
+         deaths_flu_year = ifelse(Year %in% flu_years, NA, deaths),
          pop = ifelse(Year == 2020, pop_2020_pred, pop)) %>% 
   mutate(
     si_one = sin(2*pi*Month/12),
@@ -184,7 +190,7 @@ bfs_web_deaths_monthly %>%
   ggplot(aes(x = Date)) +
   geom_line(aes(y = (deaths /pop) * 100000)) + 
   scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
-  scale_y_continuous(labels = comma, limits = c(0, 350)) +
+  scale_y_continuous(labels = comma, limits = c(0, NA)) +
   theme_minimal() + 
   xlab("") + ylab("Deaths / 100k people")
 
@@ -206,10 +212,11 @@ bfs_web_deaths_monthly %<>%
   group_by(Month) %>% 
   mutate(median = slide_dbl(deaths, mean, 
                             na.rm = TRUE, .before = 10, .complete = TRUE),
-         median_flu_year = slide_dbl(deaths_flu_year, mean, 
-                                     na.rm = TRUE, .before = 10, .complete = TRUE),
          median_flu_year_hc = slide_dbl(deaths_flu_year_hc, mean, 
-                                        na.rm = TRUE, .before = 10, .complete = TRUE)) %>% 
+                                        na.rm = TRUE, .before = 10, .complete = TRUE), 
+         median_flu_year = slide_dbl(deaths_flu_year, mean, 
+                                     na.rm = TRUE, .before = 10, .complete = TRUE)
+         ) %>% 
   ungroup() %>% 
   arrange(Year, Month)
 ```
@@ -267,40 +274,82 @@ pred_data <- bfs_web_deaths_monthly %>%
 # summary(pred_data$Year)
 ```
 
-## Three predictions
-
 ```{r}
+# all data
 summary(monthly <- glm(deaths ~ Year + 
                          si_one + si_two + co_one + co_two, 
-                       data = reg_data, 
                        offset = log(pop),
+                       data = reg_data, 
                        family = "poisson"))
 
 ilink <- family(monthly)$linkinv
 
-predict1 <- predict(monthly, pred_data, type = "link", se.fit = TRUE)
+# predict1 <- predict(monthly, pred_data, type = "link", se.fit = TRUE)
 
 predict2 <- boot_pi(monthly, pred_data, 1000, 0.95)
 
+# flu hc excluded
+summary(monthly_flu_hc <- glm(deaths_flu_year_hc ~ Year + 
+                                si_one + si_two + co_one + co_two, 
+                              offset = log(pop),
+                              data = reg_data, 
+                              family = "poisson"))
+
+ilink <- family(monthly_flu_hc)$linkinv
+
+# predict1_flu_hc <- predict(monthly_flu_hc, pred_data, type = "link", se.fit = TRUE)
+
+predict2_flu_hc <- boot_pi(monthly_flu_hc, pred_data, 1000, 0.95)
+
 pred_data %<>%
-  mutate(fit = ilink(predict1$fit), 
-         lpi1 = ilink(predict1$fit - (2 * predict1$se.fit)),
-         upi1 = ilink(predict1$fit + (2 * predict1$se.fit)),
-         # fit = predict2$pred, 
-         lpi2 = predict2$lower,
-         upi2 = predict2$upper)
+  mutate(
+    # fit = ilink(predict1$fit), 
+    # lpi = ilink(predict1$fit - (2 * predict1$se.fit)),
+    # upi = ilink(predict1$fit + (2 * predict1$se.fit)),
+    fit = predict2$pred,
+    lpi = predict2$lower,
+    upi = predict2$upper,
+    # fit_flu_hc = ilink(predict1_flu_hc$fit), 
+    # lpi_flu_hc = ilink(predict1_flu_hc$fit - (2 * predict1_flu_hc$se.fit)),
+    # upi_flu_hc = ilink(predict1_flu_hc$fit + (2 * predict1_flu_hc$se.fit)),
+    fit_flu_hc = predict2_flu_hc$pred,
+    lpi_flu_hc = predict2_flu_hc$lower,
+    upi_flu_hc = predict2_flu_hc$upper)
 ```
+
+## Two predictions
+
+### 1919 {.tabset}
+
+#### With extremes
 
 ```{r echo=FALSE}
 pred_data %>% 
   ggplot(aes(x = Date)) +
-  geom_ribbon(aes(ymin = lpi2, ymax = upi2), alpha = 0.1) + 
-  geom_line(aes(y = fit)) +
+  geom_ribbon(aes(ymin = lpi, ymax = upi), alpha = 0.1) + 
+  geom_line(aes(y = fit), colour = "grey50") +
   geom_line(aes(y = median), colour = "firebrick") + 
   geom_line(aes(y = deaths), color = "#beaed4", size = 1) + 
-  scale_y_continuous(labels = comma) +
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma, limits = c(0, 6200)) +
+  scale_x_date(date_breaks = "3 months", date_labels = "%b") +
   xlab("") + ylab("Observed, 10y median & predicted deaths") +
+  ggtitle(as.character(year_reg)) +
+  theme_minimal()
+```
+
+#### Without extremes
+
+```{r echo=FALSE}
+pred_data %>% 
+  ggplot(aes(x = Date)) +
+  geom_ribbon(aes(ymin = lpi_flu_hc, ymax = upi_flu_hc), alpha = 0.1) + 
+  geom_line(aes(y = fit_flu_hc), colour = "grey50") +
+  geom_line(aes(y = median_flu_year_hc), colour = "firebrick") + 
+  geom_line(aes(y = deaths), color = "#beaed4", size = 1) + 
+  scale_y_continuous(labels = comma, limits = c(0, 6200)) +
+  scale_x_date(date_breaks = "3 months", date_labels = "%b") +
+  xlab("") + ylab("Observed, 10y median & predicted deaths") +
+  ggtitle(as.character(year_reg)) +
   theme_minimal()
 ```
 
