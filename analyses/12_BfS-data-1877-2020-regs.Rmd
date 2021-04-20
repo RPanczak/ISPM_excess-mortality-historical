@@ -270,7 +270,6 @@ bfs_web_deaths_monthly %>%
 Method from https://statcompute.wordpress.com/2015/12/20/prediction-intervals-for-poisson-regression/
 
 ```{r}
-
 p_load(doParallel, foreach)
 
 registerDoParallel(cores = 4)
@@ -396,7 +395,8 @@ rm(predict, predict_flu_hc, predict_flu, pred_data, reg_data, YEAR)
 write_rds(expected_deaths_monthly, "data/expected_deaths_monthly.Rds")
 ```
 
-```{r}
+```{r include=FALSE}
+p_unload(doParallel, foreach)
 expected_deaths_monthly <- read_rds("data/expected_deaths_monthly.Rds")
 ```
 
@@ -518,7 +518,138 @@ mort_plot(2020)
 mort_plot(2020, extremes = TRUE) 
 ```
 
+<!-- ----------------------------------------------------- -->
 
+# Alt Viz
+
+## Animate
+
+```{r message=FALSE, include=FALSE}
+p_load(gganimate)
+
+p <- expected_deaths_monthly %>% 
+  mutate(Year = as.integer(Year),
+         Month = as.integer(Month)) %>% 
+  ggplot(aes(x = Month)) +
+  geom_ribbon(aes(ymin = lpi_flu, ymax = upi_flu), alpha = 0.1) +
+  geom_line(aes(y = fit_flu), colour = "grey50") +
+  # geom_line(aes(y = median_flu_year), colour = "firebrick") + 
+  geom_line(aes(y = deaths), color = "purple", size = 1) + 
+  scale_y_continuous(labels = comma) +
+  scale_x_continuous(breaks = seq(1, 12, 2)) +
+  xlab("Month") + ylab("Observed vs. predicted deaths") +
+  labs(title = "Year: {closest_state}") +
+  theme_minimal() +
+  transition_states(Year, transition_length = 1, state_length = 1) +
+  ease_aes('linear')  
+
+animate(p, fps = 1)
+
+anim_save("data/mort_anim.gif")
+
+p_unload(gganimate)
+```
+
+![](../data/mort_anim.gif)
+
+## Stacked
+
+```{r echo=FALSE}
+expected_deaths_monthly %>% 
+  mutate(Year = as.integer(Year),
+         Month = as.integer(Month)) %>% 
+  ggplot(aes(x = Month)) +
+  geom_line(aes(y = deaths, group = Year, color = Year), alpha = 0.5) + 
+  scale_y_continuous(labels = comma, limits = c(3000, 11000)) +
+  scale_x_continuous(breaks = seq(1, 12, 2)) +
+  scale_color_viridis_c() +
+  xlab("Month") + ylab("Observed deaths") +
+  theme_minimal()
+
+expected_deaths_monthly %>% 
+  mutate(Year = as.integer(Year),
+         Month = as.integer(Month)) %>% 
+  ggplot(aes(x = Month)) +
+  geom_line(aes(y = median_flu_year, group = Year, color = Year), alpha = 0.5) + 
+  scale_y_continuous(labels = comma, limits = c(3000, 11000)) +
+  scale_x_continuous(breaks = seq(1, 12, 2)) +
+  scale_color_viridis_c() +
+  xlab("Month") + ylab("Median 10y deaths") +
+  theme_minimal()
+
+expected_deaths_monthly %>% 
+  mutate(Year = as.integer(Year),
+         Month = as.integer(Month)) %>% 
+  ggplot(aes(x = Month)) +
+  geom_line(aes(y = fit_flu, group = Year, color = Year), alpha = 0.5) + 
+  scale_y_continuous(labels = comma, limits = c(3000, 11000)) +
+  scale_x_continuous(breaks = seq(1, 12, 2)) +
+  scale_color_viridis_c() +
+  xlab("Month") + ylab("Observed deaths") +
+  theme_minimal()
+```
+
+## Diffs
+
+```{r echo=FALSE}
+expected_deaths_monthly %>% 
+  # filter(Year >= 1887 & Year <= 1891) %>% 
+  select(Date, deaths, fit_flu) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = deaths - fit_flu)) +
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%Y") +
+  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
+  xlab("Year") + ylab("Difference observed expected") +
+  theme_minimal()
+```
+
+```{r echo=FALSE}
+expected_deaths_monthly %>% 
+  filter(Year >= 1887 & Year <= 1891) %>% 
+  select(Date, deaths, fit_flu) %>% 
+  mutate(From = pmin(deaths, fit_flu),
+         To = pmax(deaths, fit_flu),
+         Difference = ifelse(deaths > fit_flu, "More", "Less")) %>% 
+  ggplot(aes(x = Date)) +
+  # geom_line(aes(y = fit_flu), color = "grey80") + 
+  geom_linerange(aes(ymin = From, ymax = To, color = Difference), size = 1) + 
+  scale_y_continuous(labels = comma, limits = c(3000, 11000)) +
+  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
+  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
+  xlab("Year") + ylab("Difference observed expected") +
+  theme_minimal()
+
+expected_deaths_monthly %>% 
+  filter(Year >= 1915 & Year <= 1919) %>% 
+  select(Date, deaths, fit_flu) %>% 
+  mutate(From = pmin(deaths, fit_flu),
+         To = pmax(deaths, fit_flu),
+         Difference = ifelse(deaths > fit_flu, "More", "Less")) %>% 
+  ggplot(aes(x = Date)) +
+  # geom_line(aes(y = fit_flu), color = "grey80") + 
+  geom_linerange(aes(ymin = From, ymax = To, color = Difference), size = 1) + 
+  scale_y_continuous(labels = comma, limits = c(3000, 11000)) +
+  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
+  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
+  xlab("Year") + ylab("Difference observed expected") +
+  theme_minimal()
+
+expected_deaths_monthly %>% 
+  filter(Year >= 2016) %>%
+  select(Date, deaths, fit_flu) %>% 
+  mutate(From = pmin(deaths, fit_flu),
+         To = pmax(deaths, fit_flu),
+         Difference = ifelse(deaths > fit_flu, "More", "Less")) %>% 
+  ggplot(aes(x = Date)) +
+  # geom_line(aes(y = fit_flu), color = "grey80") + 
+  geom_linerange(aes(ymin = From, ymax = To, color = Difference), size = 1) + 
+  scale_y_continuous(labels = comma, limits = c(3000, 11000)) +
+  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
+  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
+  xlab("Year") + ylab("Difference observed expected") +
+  theme_minimal()
+```
 
 <!-- ----------------------------------------------------- -->
 
