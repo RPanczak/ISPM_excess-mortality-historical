@@ -48,7 +48,6 @@ boot_pi <- function(model, pdata, n, p) {
   odata <- model$data
   lp <- (1 - p) / 2
   up <- 1 - lp
-  set.seed(2016)
   seeds <- round(runif(n, 1, 1000), 0)
   boot_y <- foreach(i = 1:n, .combine = rbind) %dopar% {
     set.seed(seeds[i])
@@ -57,7 +56,8 @@ boot_pi <- function(model, pdata, n, p) {
     rpois(length(bpred), lambda = bpred)
   }
   boot_ci <- t(apply(boot_y, 2, quantile, c(lp, up)))
-  return(data.frame(pred = predict(model, newdata = pdata, type = "response"), lower = boot_ci[, 1], upper = boot_ci[, 2]))
+  return(data.frame(pred = predict(model, newdata = pdata, type = "response"), 
+                    lower = boot_ci[, 1], upper = boot_ci[, 2]))
 }
 ```
 
@@ -81,7 +81,7 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
 ```{r}
 year_from <- min(bfs_web_deaths_monthly$Year)
 
-year_from <- 1909
+# year_from <- 1909
 
 date_from <- ymd(paste0(as.character(year_from), "-01-01"))
 
@@ -96,7 +96,17 @@ date_max <- ymd(paste0(as.character(year_reg), "-01-01"))
 
 ```{r}
 flu_years_hc <- c(1890, 1918, 2020)
+
+flu_years_hc_affected <- c(seq(1890 + 1, 1890 + 10),
+                           seq(1918 + 1, 1918 + 10))
+
 flu_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
+
+flu_years_affected <- c(flu_years_hc_affected,
+                        seq(1957 + 1, 1957 + 10),
+                        seq(1968 + 1, 1968 + 10),
+                        seq(1977 + 1, 1977 + 10),
+                        seq(2009 + 1, 2009 + 10))
 ```
 
 ## Pops
@@ -124,14 +134,17 @@ bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") %>%
 ```{r}
 bfs_web_deaths_monthly %<>% 
   left_join(bfs_web_pop_yearly) %>%
-  mutate(deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, deaths),
+  mutate(flu_year_hc = ifelse(Year %in% flu_years_hc, 1, 0),
+         flu_year_hc_affected = ifelse(Year %in% flu_years_hc_affected, 1, 0),
+         deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, deaths),
+         flu_year = ifelse(Year %in% flu_years, 1, 0),
+         flu_year_affected = ifelse(Year %in% flu_years_affected, 1, 0),
          deaths_flu_year = ifelse(Year %in% flu_years, NA, deaths),
-         pop = ifelse(Year == 2020, pop_2020_pred, pop)) %>% 
-  mutate(
-    si_one = sin(2*pi*Month/12),
-    si_two = sin(4*pi*Month/12),
-    co_one = cos(2*pi*Month/12),
-    co_two = cos(4*pi*Month/12)) 
+         pop = ifelse(Year == 2020, pop_2020_pred, pop),
+         si_one = sin(2*pi*Month/12),
+         si_two = sin(4*pi*Month/12),
+         co_one = cos(2*pi*Month/12),
+         co_two = cos(4*pi*Month/12)) 
 
 rm(bfs_web_pop_yearly)
 ```
@@ -162,46 +175,66 @@ bfs_web_deaths_monthly %>%
   theme_minimal()
 ```
 
-## First & last pandemic
+## Three pandemics
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year <= 1890) %>% 
+  filter(Year >= 1887 & Year <= 1891) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  scale_y_continuous(labels = comma, limits = c(0, 9500)) +
+  scale_y_continuous(labels = comma, limits = c(0, 11000)) +
   theme_minimal() + 
   xlab("") + ylab("Deaths")
 
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 2010) %>% 
+  filter(Year >= 1915 & Year <= 1919) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  scale_y_continuous(labels = comma, limits = c(0, 9500)) +
+  scale_y_continuous(labels = comma, limits = c(0, 11000)) +
+  theme_minimal() + 
+  xlab("") + ylab("Deaths")
+
+bfs_web_deaths_monthly %>% 
+  filter(Year >= 2016) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = deaths)) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma, limits = c(0, 11000)) +
   theme_minimal() + 
   xlab("") + ylab("Deaths")
 ```
 
+## With denominator  
+
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year <= 1890) %>% 
+  filter(Year >= 1887 & Year <= 1891) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = (deaths /pop) * 100000)) + 
-  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
-  scale_y_continuous(labels = comma, limits = c(0, NA)) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma, limits = c(0, 325)) +
   theme_minimal() + 
-  xlab("") + ylab("Deaths / 100k people")
+  xlab("") + ylab("Deaths / 100k")
 
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 2010) %>% 
+  filter(Year >= 1915 & Year <= 1919) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = (deaths /pop) * 100000)) + 
-  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
-  scale_y_continuous(labels = comma, limits = c(0, 350)) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma, limits = c(0, 325)) +
   theme_minimal() + 
-  xlab("") + ylab("Deaths / 100k people")
+  xlab("") + ylab("Deaths / 100k")
+
+bfs_web_deaths_monthly %>% 
+  filter(Year >= 2016) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = (deaths /pop) * 100000)) + 
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma, limits = c(0, 325)) +
+  theme_minimal() + 
+  xlab("") + ylab("Deaths / 100k")
 ```
 
 ## 5- & 10-year medians
@@ -210,25 +243,27 @@ bfs_web_deaths_monthly %>%
 bfs_web_deaths_monthly %<>% 
   arrange(Month, Year) %>% 
   group_by(Month) %>% 
-  mutate(median = slide_dbl(deaths, mean, 
-                            na.rm = TRUE, .before = 10, .complete = TRUE),
+  mutate(median =             slide_dbl(deaths, mean, 
+                                        na.rm = TRUE, .before = 10, .complete = TRUE),
          median_flu_year_hc = slide_dbl(deaths_flu_year_hc, mean, 
                                         na.rm = TRUE, .before = 10, .complete = TRUE), 
-         median_flu_year = slide_dbl(deaths_flu_year, mean, 
-                                     na.rm = TRUE, .before = 10, .complete = TRUE)
-         ) %>% 
+         median_flu_year =    slide_dbl(deaths_flu_year, mean, 
+                                        na.rm = TRUE, .before = 10, .complete = TRUE)
+  ) %>% 
   ungroup() %>% 
   arrange(Year, Month)
 ```
 
+Impact of 1957 on 1958
+
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 1956 & Year <= 1957) %>% 
+  filter(Year >= 1956 & Year <= 1958) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths), colour = "grey60") + 
-  geom_line(aes(y = median), colour = "orange") + 
-  geom_line(aes(y = median_flu_year), colour = "firebrick") + 
-  geom_line(aes(y = median_flu_year_hc), colour = "brown") + 
+  geom_line(aes(y = median), colour = "green") + 
+  geom_line(aes(y = median_flu_year), colour = "purple") +
+  geom_line(aes(y = median_flu_year_hc), colour = "orange") +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   xlab("") +
   theme_minimal()
@@ -261,8 +296,6 @@ bfs_web_deaths_monthly %>%
 
 # Marcel's regression approach
 
-## Data
-
 ```{r}
 reg_data <- bfs_web_deaths_monthly %>% 
   filter(Year >= year_from & Year < year_reg) 
@@ -272,9 +305,7 @@ pred_data <- bfs_web_deaths_monthly %>%
 
 # summary(reg_data$Year)
 # summary(pred_data$Year)
-```
 
-```{r}
 # all data
 summary(monthly <- glm(deaths ~ Year + 
                          si_one + si_two + co_one + co_two, 
@@ -324,14 +355,26 @@ pred_data %<>%
 #### With extremes
 
 ```{r echo=FALSE}
+max <- pred_data %>% 
+  filter(Year == 1919) %>% 
+  summarise(lpi = max(lpi),
+            upi = max(upi),
+            median = max(median),
+            lpi_flu_hc = max(lpi_flu_hc),
+            upi_flu_hc = max(upi_flu_hc),
+            median_flu_year_hc = max(median_flu_year_hc)) %>% 
+  rowwise() %>% 
+  mutate(max = max(c(lpi, upi, median, lpi_flu_hc, upi_flu_hc, median_flu_year_hc)))
+
 pred_data %>% 
+  filter(Year == 1919) %>% 
   ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymin = lpi, ymax = upi), alpha = 0.1) + 
   geom_line(aes(y = fit), colour = "grey50") +
   geom_line(aes(y = median), colour = "firebrick") + 
-  geom_line(aes(y = deaths), color = "#beaed4", size = 1) + 
-  scale_y_continuous(labels = comma, limits = c(0, 6200)) +
-  scale_x_date(date_breaks = "3 months", date_labels = "%b") +
+  geom_line(aes(y = deaths), color = "purple", size = 1) + 
+  scale_y_continuous(labels = comma, limits = c(0, max$max)) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") + ylab("Observed, 10y median & predicted deaths") +
   ggtitle(as.character(year_reg)) +
   theme_minimal()
@@ -341,13 +384,14 @@ pred_data %>%
 
 ```{r echo=FALSE}
 pred_data %>% 
+  filter(Year == 1919) %>% 
   ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymin = lpi_flu_hc, ymax = upi_flu_hc), alpha = 0.1) + 
   geom_line(aes(y = fit_flu_hc), colour = "grey50") +
   geom_line(aes(y = median_flu_year_hc), colour = "firebrick") + 
-  geom_line(aes(y = deaths), color = "#beaed4", size = 1) + 
-  scale_y_continuous(labels = comma, limits = c(0, 6200)) +
-  scale_x_date(date_breaks = "3 months", date_labels = "%b") +
+  geom_line(aes(y = deaths), color = "purple", size = 1) + 
+  scale_y_continuous(labels = comma, limits = c(0, max$max)) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") + ylab("Observed, 10y median & predicted deaths") +
   ggtitle(as.character(year_reg)) +
   theme_minimal()
