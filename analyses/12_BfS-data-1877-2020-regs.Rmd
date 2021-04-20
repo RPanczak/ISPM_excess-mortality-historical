@@ -81,8 +81,6 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
 ```{r}
 year_from <- min(bfs_web_deaths_monthly$Year)
 
-# year_from <- 1909
-
 date_from <- ymd(paste0(as.character(year_from), "-01-01"))
 
 year_reg <- year_from + 10
@@ -301,7 +299,17 @@ reg_data <- bfs_web_deaths_monthly %>%
   filter(Year >= year_from & Year < year_reg) 
 
 pred_data <- bfs_web_deaths_monthly %>% 
-  filter(Year == year_reg)
+  filter(Year == year_reg) %>%
+  mutate(
+    fit = NA_real_,
+    lpi = NA_real_,
+    upi = NA_real_,
+    fit_flu_hc = NA_real_,
+    lpi_flu_hc = NA_real_,
+    upi_flu_hc = NA_real_,
+    fit_flu = NA_real_,
+    lpi_flu = NA_real_,
+    upi_flu = NA_real_)
 
 # summary(reg_data$Year)
 # summary(pred_data$Year)
@@ -313,11 +321,14 @@ summary(monthly <- glm(deaths ~ Year +
                        data = reg_data, 
                        family = "poisson"))
 
-ilink <- family(monthly)$linkinv
+predict <- boot_pi(monthly, pred_data, 1000, 0.95)
 
-# predict1 <- predict(monthly, pred_data, type = "link", se.fit = TRUE)
-
-predict2 <- boot_pi(monthly, pred_data, 1000, 0.95)
+pred_data %<>%
+  mutate(
+    fit = predict$pred,
+    lpi = predict$lower,
+    upi = predict$upper
+  )
 
 # flu hc excluded
 summary(monthly_flu_hc <- glm(deaths_flu_year_hc ~ Year + 
@@ -326,26 +337,30 @@ summary(monthly_flu_hc <- glm(deaths_flu_year_hc ~ Year +
                               data = reg_data, 
                               family = "poisson"))
 
-ilink <- family(monthly_flu_hc)$linkinv
-
-# predict1_flu_hc <- predict(monthly_flu_hc, pred_data, type = "link", se.fit = TRUE)
-
-predict2_flu_hc <- boot_pi(monthly_flu_hc, pred_data, 1000, 0.95)
+predict_flu_hc <- boot_pi(monthly_flu_hc, pred_data, 1000, 0.95)
 
 pred_data %<>%
   mutate(
-    # fit = ilink(predict1$fit), 
-    # lpi = ilink(predict1$fit - (2 * predict1$se.fit)),
-    # upi = ilink(predict1$fit + (2 * predict1$se.fit)),
-    fit = predict2$pred,
-    lpi = predict2$lower,
-    upi = predict2$upper,
-    # fit_flu_hc = ilink(predict1_flu_hc$fit), 
-    # lpi_flu_hc = ilink(predict1_flu_hc$fit - (2 * predict1_flu_hc$se.fit)),
-    # upi_flu_hc = ilink(predict1_flu_hc$fit + (2 * predict1_flu_hc$se.fit)),
-    fit_flu_hc = predict2_flu_hc$pred,
-    lpi_flu_hc = predict2_flu_hc$lower,
-    upi_flu_hc = predict2_flu_hc$upper)
+    fit_flu_hc = predict_flu_hc$pred,
+    lpi_flu_hc = predict_flu_hc$lower,
+    upi_flu_hc = predict_flu_hc$upper
+  )
+
+# all flu excluded
+summary(monthly_flu <- glm(deaths_flu_year ~ Year + 
+                             si_one + si_two + co_one + co_two, 
+                           offset = log(pop),
+                           data = reg_data, 
+                           family = "poisson"))
+
+predict_flu <- boot_pi(monthly_flu, pred_data, 1000, 0.95)
+
+pred_data %<>%
+  mutate(
+    fit_flu = predict_flu$pred,
+    lpi_flu = predict_flu$lower,
+    upi_flu = predict_flu$upper
+    )
 ```
 
 ## Two predictions
