@@ -404,20 +404,20 @@ for (YEAR in year_reg:year_max){
   } 
   
   if (YEAR == year_reg) {
-    expected_deaths_monthly <- pred_data
+    ch_expected_deaths_monthly <- pred_data
   } else {
-    expected_deaths_monthly <- bind_rows(expected_deaths_monthly, pred_data)
+    ch_expected_deaths_monthly <- bind_rows(ch_expected_deaths_monthly, pred_data)
   }
 }
 
 rm(predict, predict_flu_hc, predict_flu, pred_data, reg_data, YEAR)
-write_rds(expected_deaths_monthly, "data/expected_deaths_monthly.Rds")
-haven::write_dta(expected_deaths_monthly, "data/expected_deaths_monthly.dta")
+write_rds(ch_expected_deaths_monthly, "data/ch_expected_deaths_monthly.Rds")
+haven::write_dta(ch_expected_deaths_monthly, "data/ch_expected_deaths_monthly.dta")
 ```
 
 ```{r include=FALSE}
 p_unload(doParallel, foreach)
-expected_deaths_monthly <- read_rds("data/expected_deaths_monthly.Rds")
+ch_expected_deaths_monthly <- read_rds("data/ch_expected_deaths_monthly.Rds")
 ```
 
 ## Two predictions
@@ -425,7 +425,7 @@ expected_deaths_monthly <- read_rds("data/expected_deaths_monthly.Rds")
 ```{r echo=FALSE}
 mort_plot <- function(plot_Year, extremes = FALSE) {
   
-  plot_data <- expected_deaths_monthly %>% 
+  plot_data <- ch_expected_deaths_monthly %>% 
     filter(Year >= plot_Year - 1 & Year <= plot_Year + 1)
   
   max <- plot_data %>% 
@@ -547,7 +547,7 @@ mort_plot(2020, extremes = TRUE)
 ```{r message=FALSE, include=FALSE}
 p_load(gganimate)
 
-p <- expected_deaths_monthly %>% 
+p <- ch_expected_deaths_monthly %>% 
   mutate(Year = as.integer(Year),
          Month = as.integer(Month)) %>% 
   ggplot(aes(x = Month)) +
@@ -575,7 +575,7 @@ p_unload(gganimate)
 ## Stacked
 
 ```{r echo=FALSE}
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   mutate(Year = as.integer(Year),
          Month = as.integer(Month)) %>% 
   ggplot(aes(x = Month)) +
@@ -586,7 +586,7 @@ expected_deaths_monthly %>%
   xlab("Month") + ylab("Observed deaths") +
   theme_minimal()
 
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   mutate(Year = as.integer(Year),
          Month = as.integer(Month)) %>% 
   ggplot(aes(x = Month)) +
@@ -597,7 +597,7 @@ expected_deaths_monthly %>%
   xlab("Month") + ylab("Median 10y deaths") +
   theme_minimal()
 
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   mutate(Year = as.integer(Year),
          Month = as.integer(Month)) %>% 
   ggplot(aes(x = Month)) +
@@ -612,7 +612,7 @@ expected_deaths_monthly %>%
 ## Diffs 1
 
 ```{r echo=FALSE}
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   # filter(Year >= 1887 & Year <= 1891) %>% 
   mutate(Y = deaths - fit_flu,
          Difference = ifelse(deaths > fit_flu, "More", "Less")) %>% 
@@ -628,7 +628,7 @@ expected_deaths_monthly %>%
 ## Diffs 2
 
 ```{r echo=FALSE}
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   filter(Year >= 1887 & Year <= 1891) %>% 
   select(Date, deaths, fit_flu) %>% 
   mutate(From = pmin(deaths, fit_flu),
@@ -643,7 +643,7 @@ expected_deaths_monthly %>%
   xlab("Year") + ylab("Difference observed expected") +
   theme_minimal()
 
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   filter(Year >= 1915 & Year <= 1919) %>% 
   select(Date, deaths, fit_flu) %>% 
   mutate(From = pmin(deaths, fit_flu),
@@ -658,7 +658,7 @@ expected_deaths_monthly %>%
   xlab("Year") + ylab("Difference observed expected") +
   theme_minimal()
 
-expected_deaths_monthly %>% 
+ch_expected_deaths_monthly %>% 
   filter(Year >= 2016) %>%
   select(Date, deaths, fit_flu) %>% 
   mutate(From = pmin(deaths, fit_flu),
