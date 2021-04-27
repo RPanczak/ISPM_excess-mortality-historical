@@ -45,6 +45,7 @@ p_load(HMDHFDplus)
 
 password <- readr::read_file("secrets/HMD.txt")
 
+# CH
 # pop
 hmd_ch_pop_raw <- readHMDweb(CNTRY = "CHE", item ="Population" , 
                              username = "r.panczak@gmail.com", password = password,
@@ -65,35 +66,61 @@ write_dta(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.dta")
 
 hmd_ch_deaths <- hmd_ch_deaths_raw %>% 
   select(Year, Total) %>% 
-  rename(year = Year) %>% 
-  group_by(year) %>% 
+  group_by(Year) %>% 
   summarise(deaths_year = sum(Total)) %>% 
   as_tibble()
 
 write_rds(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.Rds")
 write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
+
+# ES
+# pop
+hmd_es_pop_raw <- readHMDweb(CNTRY = "ESP", item ="Population" , 
+                             username = "r.panczak@gmail.com", password = password,
+                             fixup = FALSE) %>% 
+  as_tibble()
+
+write_rds(hmd_es_pop_raw, "data-raw/mortality_org/hmd_es_pop_raw.Rds")
+write_dta(hmd_es_pop_raw, "data-raw/mortality_org/hmd_es_pop_raw.dta")
+
+# deaths
+hmd_es_deaths_raw <- readHMDweb(CNTRY = "ESP", item = "Deaths_1x1",
+                                username = "r.panczak@gmail.com", password = password,
+                                fixup = FALSE) %>% 
+  as_tibble()
+
+write_rds(hmd_es_deaths_raw, "data-raw/mortality_org/hmd_es_deaths_raw.Rds")
+write_dta(hmd_es_deaths_raw, "data-raw/mortality_org/hmd_es_deaths_raw.dta")
+
+hmd_es_deaths <- hmd_es_deaths_raw %>% 
+  select(Year, Total) %>% 
+  group_by(Year) %>% 
+  summarise(deaths_year = sum(Total)) %>% 
+  as_tibble()
+
+write_rds(hmd_es_deaths, "data/mortality_org/hmd_es_deaths.Rds")
+write_dta(hmd_es_deaths, "data/mortality_org/hmd_es_deaths.dta")
 p_unload(HMDHFDplus)
 ```
 
-## Deaths 
+## Deaths CH
 
 ```{r include=FALSE}
-hmd_ch_deaths_raw <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
 ```
 
-Available only yearly but for one year age bands & separate by sex. Time from `r min(hmd_ch_deaths_raw$Year)` to `r max(hmd_ch_deaths_raw$Year)`.
+Available only yearly but for one year age bands & separate by sex. Time from `r min(hmd_ch_deaths$Year)` to `r max(hmd_ch_deaths$Year)`.
 
 Data is in yearly resolution. 
 
 ```{r echo=FALSE}
-ggplot(hmd_ch_deaths, aes(x = year)) +
+ggplot(hmd_ch_deaths, aes(x = Year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-## Pops 
+## Pops CH
 
 Similarly, population data is aggregated by year. 
 
@@ -102,8 +129,7 @@ hmd_ch_pop_raw <- read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds")
 
 hmd_ch_pop_year <- hmd_ch_pop_raw %>% 
   select(Year, Total) %>% 
-  rename(year = Year) %>% 
-  group_by(year) %>% 
+  group_by(Year) %>% 
   summarise(pop_year = sum(Total)) %>% 
   as_tibble()
 
@@ -111,7 +137,7 @@ write_rds(hmd_ch_pop_year, "data/mortality_org/hmd_ch_pop_year.Rds")
 ```
 
 ```{r echo=FALSE}
-ggplot(hmd_ch_pop_year, aes(x = year)) +
+ggplot(hmd_ch_pop_year, aes(x = Year)) +
   geom_line(aes(y = pop_year/1000000)) +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]") +
@@ -140,6 +166,23 @@ hmd_ch_pop_raw %>%
   facet_grid(vars(year)) +
   theme_bw() +
   scale_fill_brewer(palette = "Set1")
+```
+
+## Deaths ES
+
+```{r include=FALSE}
+hmd_es_deaths <- read_rds("data/mortality_org/hmd_es_deaths.Rds")
+```
+
+Available yearly from `r min(hmd_es_deaths$Year)` to `r max(hmd_es_deaths$Year)`.
+
+Data is in yearly resolution. 
+
+```{r echo=FALSE}
+ggplot(hmd_es_deaths, aes(x = Year)) +
+  geom_line(aes(y = deaths_year)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly number of deaths")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -211,11 +254,11 @@ Yearly deaths for period 1803 to 1876; monthly deaths thereafter.
 
 ```{r echo=FALSE}
 ggplot(data = filter(bfs_web_deaths_monthly, 
-                     year < 1877), 
-       aes(x = date)) +
+                     Year < 1877), 
+       aes(x = Date)) +
   geom_line(aes(y = deaths_year)) +
   geom_line(data = filter(bfs_web_deaths_monthly, 
-                          year >= 1877), 
+                          Year >= 1877), 
             aes(y = deaths_month)) +
   facet_grid(vars(type), scales = "free_y") +
   theme_bw() +
@@ -247,7 +290,7 @@ write_dta(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.dta")
 ```
 
 ```{r echo=FALSE}
-ggplot(bfs_web_pop_yearly, aes(x = year)) +
+ggplot(bfs_web_pop_yearly, aes(x = Year)) +
   geom_line(aes(y = pop_dec/1000000)) +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]") +
@@ -272,7 +315,6 @@ bfs_snc_deaths_monthly <- read_dta("data-raw/SNC/mortCHmonthly.dta") %>%
   mutate(date = anytime::anydate(paste0(year, "-", Month))) %>% 
   relocate(year, Month, date) %>% 
   mutate(type = "monthly")
-
 
 write_rds(bfs_snc_deaths_monthly, "data/SNC/bfs_snc_deaths_monthly.Rds")
 write_dta(bfs_snc_deaths_monthly, "data/SNC/bfs_snc_deaths_monthly.dta")
@@ -317,11 +359,12 @@ ggplot(bfs_snc_deaths_weekly, aes(x = week_num, y = deaths_week, colour = year, 
 bfs_snc_pop_yearly_mid <- read_dta("data-raw/SNC/staend_wb_jahresmitte_71_18.dta") %>% 
   zap_label() %>% 
   select(sex, year, agegrp07, npop07) %>% 
+  rename(Year = year) %>% 
   filter(!is.na(agegrp07)) %>% 
   mutate(sex = labelled::to_factor(sex)) %>% 
   mutate(age_bin = ifelse(agegrp07 <= 6, 0, 1)) %>% 
   mutate(age_bin = factor(age_bin, labels = c("0-64", "65+"))) %>% 
-  group_by(year, sex, age_bin) %>% 
+  group_by(Year, sex, age_bin) %>% 
   summarise(population = sum(npop07)) %>% 
   ungroup()
 
@@ -331,11 +374,12 @@ write_dta(bfs_snc_pop_yearly_mid, "data/SNC/bfs_snc_pop_yearly_mid.dta")
 bfs_snc_pop_yearly_end <- read_dta("data-raw/SNC/staend_wb_jahresende_71_18.dta") %>% 
   zap_label() %>% 
   select(sex, year, agegrp07, npop07) %>% 
+  rename(Year = year) %>% 
   filter(!is.na(agegrp07)) %>% 
   mutate(sex = labelled::to_factor(sex)) %>% 
   mutate(age_bin = ifelse(agegrp07 <= 6, 0, 1)) %>% 
   mutate(age_bin = factor(age_bin, labels = c("0-64", "65+"))) %>% 
-  group_by(year, sex, age_bin) %>% 
+  group_by(Year, sex, age_bin) %>% 
   summarise(population = sum(npop07)) %>% 
   ungroup()
 
@@ -345,16 +389,16 @@ write_dta(bfs_snc_pop_yearly_end, "data/SNC/bfs_snc_pop_yearly_end.dta")
 
 ```{r eval=FALSE, include=FALSE}
 bfs_snc_pop_yearly_end %>% 
-  select(year, sex, age_bin, population) %>% 
+  select(Year, sex, age_bin, population) %>% 
   rename(pop_end = population) %>% 
   left_join(bfs_snc_pop_yearly_mid %>% 
-              select(year, sex, age_bin, population) %>% 
+              select(Year, sex, age_bin, population) %>% 
               rename(pop_mid = population))
 ```
 
 ```{r}
 bfs_snc_pop_yearly_end %>% 
-  ggplot(aes(x = year, y = population, 
+  ggplot(aes(x = Year, y = population, 
              colour = interaction(sex, age_bin))) +
   geom_line() +
   theme_bw() +
@@ -369,18 +413,18 @@ bfs_snc_pop_yearly_end %>%
 extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>% 
   remove_empty() %>% 
   clean_names() %>% 
-  rename(year = x1) %>% 
-  pivot_longer(-year, values_to = "deaths_month") %>% 
-  mutate(Month = rep(1:12, length(unique(year))),
+  rename(Year = x1) %>% 
+  pivot_longer(-Year, values_to = "deaths_month") %>% 
+  mutate(Month = rep(1:12, length(unique(Year))),
          type = "monthly",
-         date = anytime::anydate(paste0(year, "-", Month))) 
+         Date = anytime::anydate(paste0(Year, "-", Month))) 
 ```
 
-Extra monthly dataset covering "Russian Flu" between `r min(extra_1889$year)` and `r max(extra_1889$year)`. 
+Extra monthly dataset covering "Russian Flu" between `r min(extra_1889$Year)` and `r max(extra_1889$Year)`. 
 
 ```{r echo=FALSE}
 ggplot(extra_1889) +
-  geom_line(aes(x = date, y = deaths_month)) +
+  geom_line(aes(x = Date, y = deaths_month)) +
   theme_bw() +
   xlab("") + ylab("Monthly number of deaths")
 ```
@@ -395,7 +439,7 @@ ggplot(extra_1889) +
 compare <- full_join(
   bfs_web_pop_yearly, 
   bfs_snc_pop_yearly_end %>% 
-    group_by(year) %>% 
+    group_by(Year) %>% 
     summarize(population = sum(population))) %>% 
   mutate(diff = pop_dec - population) %>% 
   filter(!is.na(population))
@@ -432,7 +476,7 @@ compare %>%
          bfs_pop_dec = pop_dec, 
          hmd_pop_year = pop_year) %>% 
   pivot_longer(bfs_pop_jan:hmd_pop_year) %>% 
-  ggplot(aes(x = year, y = value/1000000, color = name)) +
+  ggplot(aes(x = Year, y = value/1000000, color = name)) +
   geom_line() +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]")
@@ -442,7 +486,7 @@ Difference between Jan pop from BfS and yearly pop from HMD
 
 ```{r echo=FALSE}
 compare %>% 
-  ggplot(aes(x = year, y = pop_jan - pop_year)) +
+  ggplot(aes(x = Year, y = pop_jan - pop_year)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
   geom_line() +
   scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
@@ -454,7 +498,7 @@ Difference between Dec pop from BfS and yearly pop from HMD
 
 ```{r echo=FALSE}
 compare %>% 
-  ggplot(aes(x = year, y = pop_dec - pop_year)) +
+  ggplot(aes(x = Year, y = pop_dec - pop_year)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
   geom_line() +
   scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
@@ -469,11 +513,11 @@ compare <-
   left_join(
     
     bfs_snc_pop_yearly_end %>% 
-      group_by(year) %>% 
+      group_by(Year) %>% 
       summarize(bfs_end = sum(population)),
     
     bfs_snc_pop_yearly_mid %>% 
-      group_by(year) %>% 
+      group_by(Year) %>% 
       summarize(bfs_mid = sum(population))
     
   ) %>% 
@@ -500,7 +544,7 @@ Timeline of differences between BfS figures and HMD
 compare %>% 
   select(-diff1, -diff2) %>% 
   pivot_longer(bfs_end:hmd) %>% 
-  ggplot(aes(x = year, y = value/1000000, color = name)) +
+  ggplot(aes(x = Year, y = value/1000000, color = name)) +
   geom_line() +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]")
@@ -510,7 +554,7 @@ Difference between mid pop from BfS and yearly pop from HMD
 
 ```{r echo=FALSE}
 compare %>% 
-  ggplot(aes(x = year, y = bfs_mid - hmd)) +
+  ggplot(aes(x = Year, y = bfs_mid - hmd)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
   geom_line() +
   scale_y_continuous(labels = comma, limits = c(-40000, 120000)) +
@@ -522,7 +566,7 @@ Difference between Dec pop from BfS and yearly pop from HMD
 
 ```{r echo=FALSE}
 compare %>% 
-  ggplot(aes(x = year, y = bfs_end - hmd)) +
+  ggplot(aes(x = Year, y = bfs_end - hmd)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
   geom_line() +
   scale_y_continuous(labels = comma, limits = c(-40000, 120000)) +
@@ -539,7 +583,7 @@ compare %>%
 ```{r}
 bfs_web_deaths_monthly %>% 
   filter(!is.na(deaths_month)) %>% 
-  group_by(year) %>% 
+  group_by(Year) %>% 
   summarize(deaths_summed = sum(deaths_month)) %>% 
   ungroup() %>% 
   left_join(bfs_web_deaths_yearly) %>% 
@@ -553,10 +597,10 @@ There are no years where summed monthly data differ from "official" yearly sums.
 
 ```{r}
 compare <- extra_1889 %>% 
-  select(date, deaths_month) %>% 
+  select(Date, deaths_month) %>% 
   rename(deaths_month_russian = deaths_month) %>% 
   left_join(bfs_web_deaths_monthly %>% 
-              select(date, deaths_month) %>% 
+              select(Date, deaths_month) %>% 
               rename(deaths_month_bfs = deaths_month)) %>% 
   mutate(diff = deaths_month_bfs - deaths_month_russian)
 ```
@@ -570,7 +614,7 @@ summary(compare$diff)
 Timeline of differences between BfS figures and HMD
 
 ```{r echo=FALSE}
-ggplot(compare, aes(x = date, y = diff)) +
+ggplot(compare, aes(x = Date, y = diff)) +
   geom_line() +
   theme_bw() +
   xlab("") + ylab("Yearly difference in number of deaths")
@@ -596,11 +640,60 @@ summary(compare$diff)
 Timeline of differences between BfS figures and HMD
 
 ```{r echo=FALSE}
-ggplot(compare, aes(x = year, y = diff)) +
+ggplot(compare, aes(x = Year, y = diff)) +
   geom_line() +
   theme_bw() +
   xlab("") + ylab("Yearly difference in number of deaths")
 ```
+
+<!-- ----------------------------------------------------- -->
+
+# Spain
+
+```{r}
+spain_pop <- read_xlsx("data-raw/Spain/Spain_Population.xlsx") %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  rename(Year = year) %>% 
+  rename(population = prados_de_la_escosura2020_july) %>% 
+  select(Year, population)
+
+spain_deaths_monthly <- read_xlsx("data-raw/Spain/Spain.xlsx") %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  rename(Year = jahr) %>% 
+  pivot_longer(!Year, names_to = "Month", values_to = "deaths_month") %>% 
+  mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(Year, Month, Date) %>% 
+  left_join(spain_pop)
+
+write_rds(spain_deaths_monthly, "data/Spain/spain_deaths_monthly.Rds")
+write_dta(spain_deaths_monthly, "data/Spain/spain_deaths_monthly.dta")
+```
+
+## Deaths monthly
+
+```{r echo=FALSE}
+spain_deaths_monthly %>% 
+  ggplot(aes(x = Date, y = deaths_month)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Monthly deaths")
+```
+
+## Population yearly monthly
+
+```{r echo=FALSE}
+spain_pop %>% 
+  ggplot(aes(x = Year, y = population)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Yearly population")
+
+rm(spain_pop)
+```
+
 
 <!-- ----------------------------------------------------- -->
 
