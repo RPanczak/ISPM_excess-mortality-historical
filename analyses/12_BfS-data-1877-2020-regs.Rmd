@@ -146,7 +146,7 @@ bfs_web_deaths_monthly %>%
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 1887 & Year <= 1891) %>% 
+  filter(Year >= 1888 & Year <= 1892) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
@@ -155,7 +155,7 @@ bfs_web_deaths_monthly %>%
   xlab("") + ylab("Deaths")
 
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 1915 & Year <= 1919) %>% 
+  filter(Year >= 1917 & Year <= 1921) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
@@ -177,7 +177,7 @@ bfs_web_deaths_monthly %>%
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 1887 & Year <= 1891) %>% 
+  filter(Year >= 1888 & Year <= 1892) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = (deaths /pop) * 100000)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
@@ -186,7 +186,7 @@ bfs_web_deaths_monthly %>%
   xlab("") + ylab("Deaths / 100k")
 
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 1915 & Year <= 1919) %>% 
+  filter(Year >= 1917 & Year <= 1921) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = (deaths /pop) * 100000)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
@@ -222,7 +222,22 @@ bfs_web_deaths_monthly %<>%
   arrange(Year, Month)
 ```
 
-Impact of 1957 on 1958
+Impact of 1918 
+
+```{r echo=FALSE}
+bfs_web_deaths_monthly %>% 
+  filter(Year >= 1918 & Year <= 1920) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = deaths), colour = "grey60") + 
+  geom_line(aes(y = median), colour = "green") + 
+  geom_line(aes(y = median_flu_year), colour = "purple") +
+  geom_line(aes(y = median_flu_year_hc), colour = "orange") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  xlab("") +
+  theme_minimal()
+```
+
+Impact of 1957
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
@@ -261,6 +276,7 @@ rm(dcmp)
 bfs_web_deaths_monthly %>% 
   ggplot(aes(deaths)) +
   geom_histogram(binwidth = 50) +
+  xlab("Number of deaths") + ylab("Monthly deaths") +
   theme_minimal()
 ```
 
@@ -429,11 +445,11 @@ mort_plot <- function(plot_Year, extremes = FALSE) {
       geom_rect(aes(xmin = as.Date(paste0(plot_Year, "-01-01")), 
                     xmax = as.Date(paste0(plot_Year, "-12-31")), 
                     ymin = -Inf, ymax = Inf), 
-                fill = "purple", alpha = 0.01, inherit.aes = FALSE) +    
+                fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +    
       geom_ribbon(aes(ymin = lpi, ymax = upi), alpha = 0.1) + 
       geom_line(aes(y = fit), colour = "grey50") +
-      geom_line(aes(y = median), colour = "firebrick") + 
-      geom_line(aes(y = deaths), color = "purple", size = 1) + 
+      geom_line(aes(y = median), colour = "#2c7bb6") + 
+      geom_line(aes(y = deaths), color = "#d7191c", size = 1) + 
       scale_y_continuous(labels = comma, limits = c(0, max$max)) +
       scale_x_date(date_breaks = "4 months", date_labels = "%b") +
       xlab("") + ylab("Observed, 10y median & predicted deaths") +
@@ -449,11 +465,11 @@ mort_plot <- function(plot_Year, extremes = FALSE) {
       geom_rect(aes(xmin = as.Date(paste0(plot_Year, "-01-01")), 
                     xmax = as.Date(paste0(plot_Year, "-12-31")), 
                     ymin = -Inf, ymax = Inf), 
-                fill = "purple", alpha = 0.01, inherit.aes = FALSE) +   
+                fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +   
       geom_ribbon(aes(ymin = lpi_flu, ymax = upi_flu), alpha = 0.1) + 
       geom_line(aes(y = fit_flu), colour = "grey50") +
-      geom_line(aes(y = median_flu_year), colour = "firebrick") + 
-      geom_line(aes(y = deaths), color = "purple", size = 1) + 
+      geom_line(aes(y = median_flu_year), colour = "#2c7bb6") + 
+      geom_line(aes(y = deaths), color = "#d7191c", size = 1) + 
       scale_y_continuous(labels = comma, limits = c(0, max$max)) +
       scale_x_date(date_breaks = "4 months", date_labels = "%b") +
       xlab("") + ylab("Observed, 10y median & predicted deaths") +
@@ -534,10 +550,10 @@ p <- expected_deaths_monthly %>%
   mutate(Year = as.integer(Year),
          Month = as.integer(Month)) %>% 
   ggplot(aes(x = Month)) +
-  geom_ribbon(aes(ymin = lpi_flu, ymax = upi_flu), alpha = 0.1) +
-  geom_line(aes(y = fit_flu), colour = "grey50") +
+  geom_ribbon(aes(ymin = lpi_flu, ymax = upi_flu), fill = "#2c7bb6", alpha = 0.1) +
+  geom_line(aes(y = fit_flu), colour = "#2c7bb6") +
   # geom_line(aes(y = median_flu_year), colour = "firebrick") + 
-  geom_line(aes(y = deaths), color = "purple", size = 1) + 
+  geom_line(aes(y = deaths), color = "#d7191c", size = 1) + 
   scale_y_continuous(labels = comma) +
   scale_x_continuous(breaks = seq(1, 12, 2)) +
   xlab("Month") + ylab("Observed vs. predicted deaths") +
@@ -592,20 +608,23 @@ expected_deaths_monthly %>%
   theme_minimal()
 ```
 
-## Diffs
+## Diffs 1
 
 ```{r echo=FALSE}
 expected_deaths_monthly %>% 
   # filter(Year >= 1887 & Year <= 1891) %>% 
-  select(Date, deaths, fit_flu) %>% 
+  mutate(Y = deaths - fit_flu,
+         Difference = ifelse(deaths > fit_flu, "More", "Less")) %>% 
   ggplot(aes(x = Date)) +
-  geom_line(aes(y = deaths - fit_flu)) +
+  geom_col(aes(y = Y, fill = Difference)) +
   scale_y_continuous(labels = comma) +
   scale_x_date(date_breaks = "10 years", date_labels = "%Y") +
-  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   xlab("Year") + ylab("Difference observed expected") +
   theme_minimal()
 ```
+
+## Diffs 2
 
 ```{r echo=FALSE}
 expected_deaths_monthly %>% 
