@@ -565,12 +565,12 @@ p <- ch_expected_deaths_monthly %>%
 
 animate(p, fps = 1)
 
-anim_save("data/mort_anim.gif")
+anim_save("res/ch_mort_anim.gif")
 
 p_unload(gganimate)
 ```
 
-![](../data/mort_anim.gif)
+![](../res/ch_mort_anim.gif)
 
 ## Stacked
 
