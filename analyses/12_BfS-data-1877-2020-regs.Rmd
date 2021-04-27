@@ -249,6 +249,9 @@ dcmp <- bfs_web_deaths_monthly %>%
 
 fabletools::components(dcmp) %>% 
   autoplot()
+```
+
+```{r echo=FALSE}
 rm(dcmp)
 ```
 
@@ -296,7 +299,7 @@ boot_pi <- function(model, pdata, n, p) {
 Analyses using 10 previous years.  
 With three different inclusions depending on pandemic / flu years
 
-```{r eval=FALSE}
+```{r results='hide'}
 for (YEAR in year_reg:year_max){
   
   print(paste("Analysing year", YEAR))
@@ -327,7 +330,7 @@ for (YEAR in year_reg:year_max){
                          data = reg_data, 
                          family = "poisson"))
   
-  predict <- boot_pi(monthly, pred_data, 1000, 0.95)
+  predict <- boot_pi(monthly, pred_data, 1000, 0.99)
   
   pred_data %<>%
     mutate(
@@ -353,7 +356,7 @@ for (YEAR in year_reg:year_max){
                                   data = reg_data, 
                                   family = "poisson"))
     
-    predict_flu_hc <- boot_pi(monthly_flu_hc, pred_data, 1000, 0.95)
+    predict_flu_hc <- boot_pi(monthly_flu_hc, pred_data, 1000, 0.99)
     
     pred_data %<>%
       mutate(
@@ -374,7 +377,7 @@ for (YEAR in year_reg:year_max){
                                data = reg_data, 
                                family = "poisson"))
     
-    predict_flu <- boot_pi(monthly_flu, pred_data, 1000, 0.95)
+    predict_flu <- boot_pi(monthly_flu, pred_data, 1000, 0.99)
     
     pred_data %<>%
       mutate(
