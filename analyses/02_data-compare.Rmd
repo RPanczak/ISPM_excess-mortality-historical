@@ -100,6 +100,35 @@ hmd_es_deaths <- hmd_es_deaths_raw %>%
 
 write_rds(hmd_es_deaths, "data/mortality_org/hmd_es_deaths.Rds")
 write_dta(hmd_es_deaths, "data/mortality_org/hmd_es_deaths.dta")
+
+# SE
+# pop
+hmd_se_pop_raw <- readHMDweb(CNTRY = "SWE", item ="Population" , 
+                             username = "r.panczak@gmail.com", password = password,
+                             fixup = FALSE) %>% 
+  as_tibble()
+
+write_rds(hmd_se_pop_raw, "data-raw/mortality_org/hmd_se_pop_raw.Rds")
+write_dta(hmd_se_pop_raw, "data-raw/mortality_org/hmd_se_pop_raw.dta")
+
+# deaths
+hmd_se_deaths_raw <- readHMDweb(CNTRY = "SWE", item = "Deaths_1x1",
+                                username = "r.panczak@gmail.com", password = password,
+                                fixup = FALSE) %>% 
+  as_tibble()
+
+write_rds(hmd_se_deaths_raw, "data-raw/mortality_org/hmd_se_deaths_raw.Rds")
+write_dta(hmd_se_deaths_raw, "data-raw/mortality_org/hmd_se_deaths_raw.dta")
+
+hmd_se_deaths <- hmd_se_deaths_raw %>% 
+  select(Year, Total) %>% 
+  group_by(Year) %>% 
+  summarise(deaths_year = sum(Total)) %>% 
+  as_tibble()
+
+write_rds(hmd_se_deaths, "data/mortality_org/hmd_se_deaths.Rds")
+write_dta(hmd_se_deaths, "data/mortality_org/hmd_se_deaths.dta")
+
 p_unload(HMDHFDplus)
 ```
 
@@ -694,6 +723,64 @@ spain_pop %>%
 rm(spain_pop)
 ```
 
+<!-- ----------------------------------------------------- -->
+
+# Sweden
+
+```{r}
+sweden_pop <- read_xlsx("data-raw/SCB/be0101_tab9utveng1749-2020.xlsx",
+                        skip = 4) %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  select(year, population) %>% 
+  filter(!is.na(population)) %>% 
+  mutate(year = ifelse(year == "20001)", 2000, year),
+         year = as.numeric(year)) %>% 
+  rename(Year = year) 
+
+sweden_deaths_monthly <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
+                                  skip = 2) %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  rename(Month_txt = month) %>% 
+  filter(Month_txt != "Unknown") %>% 
+  select(-sex) %>% 
+  pivot_longer(!Month_txt, names_to = "Year", values_to = "deaths_month") %>% 
+  group_by(Year, Month_txt) %>% 
+  summarise(deaths_month = sum(deaths_month)) %>% 
+  ungroup() %>% 
+  mutate(Year = as.numeric(str_replace(Year, fixed("x"), "")),
+         Month = match(Month_txt, month.name)) %>% 
+    select(-Month_txt) %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(Year, Month, Date) %>% 
+  left_join(sweden_pop)
+
+write_rds(sweden_deaths_monthly, "data/Sweden/sweden_deaths_monthly.Rds")
+write_dta(sweden_deaths_monthly, "data/Sweden/sweden_deaths_monthly.dta")
+```
+
+## Deaths monthly
+
+```{r echo=FALSE}
+sweden_deaths_monthly %>% 
+  ggplot(aes(x = Date, y = deaths_month)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Monthly deaths")
+```
+
+## Population yearly monthly
+
+```{r echo=FALSE}
+sweden_pop %>% 
+  ggplot(aes(x = Year, y = population)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Yearly population")
+
+rm(sweden_pop)
+```
 
 <!-- ----------------------------------------------------- -->
 
