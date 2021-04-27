@@ -754,7 +754,8 @@ sweden_deaths_monthly <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
     select(-Month_txt) %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Year, Month, Date) %>% 
-  left_join(sweden_pop)
+  left_join(sweden_pop) %>% 
+  arrange(Year, Month)
 
 write_rds(sweden_deaths_monthly, "data/Sweden/sweden_deaths_monthly.Rds")
 write_dta(sweden_deaths_monthly, "data/Sweden/sweden_deaths_monthly.dta")
