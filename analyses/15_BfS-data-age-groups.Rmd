@@ -1,0 +1,124 @@
+---
+title: "Excess mortality: HMD data"
+subtitle: "Changing age profile"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+<!-- ----------------------------------------------------- -->
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(tidyverse, lubridate, scales, magrittr, slider)
+
+options(max.print = "75")
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Data 
+
+## Mortality 
+
+[The Human Mortality Database](https://www.mortality.org/) `1x1` data.  
+
+**Covering period to 2018 only!**  
+
+Grouping age to: `<1, 1-4, 5-19, 20-39, 40-59, 60-79, >=80`.  
+
+```{r include=FALSE}
+hmd_ch_deaths <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
+  select(-Female, -Male) %>% 
+  mutate(Age = ifelse(Age == "110+", "111", Age),
+         Age = as.numeric(Age), 
+         Age_group = cut(Age, 
+                         breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
+                         # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+")), 
+                         right=FALSE
+         )) %>%
+  group_by(Year, Age_group) %>% 
+  summarise(Deaths = sum(Total)) %>% 
+  ungroup() %>% 
+  as_tibble()
+
+# sjmisc::frq(hmd_ch_deaths, Age_group)
+```
+
+## Pandemics 
+
+```{r}
+analysis_years <- c(1890, 1918, 1957, 2020)
+
+previous_years <- c(seq(1890 - 10, 1890 - 1),
+                    seq(1918 - 10, 1918 - 1),
+                    seq(1957 - 10, 1957 - 1),
+                    seq(2020 - 10, 2020 - 1))
+```
+
+## Together 
+
+```{r}
+data <- bind_rows( 
+  hmd_ch_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"), 
+  hmd_ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous")
+) %>%  
+  arrange(Year) %>% 
+  mutate(Pandemic = ifelse(Year %in% analysis_years, Year, NA)) %>% 
+  fill(Pandemic, .direction = "up")
+```
+
+
+## Pops
+
+<!-- ----------------------------------------------------- -->
+
+# Viz
+
+```{r}
+data %>% 
+  ggplot(aes(x = Age_group, y = Deaths, colour = Age_group)) + 
+  geom_boxplot() +
+  facet_grid(vars(Pandemic), vars(Type)) + 
+    scale_y_continuous(labels = comma) +
+  theme_minimal() + 
+  xlab("Age group")
+```
+
+```{r}
+data %>% 
+  ggplot(aes(x = Age_group, y = Deaths, colour = Age_group)) + 
+  geom_line(aes(group = Year)) +
+  facet_grid(vars(Pandemic), vars(Type)) + 
+    scale_y_continuous(labels = comma) +
+  theme_minimal() + 
+  xlab("Age group")
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
+
+
