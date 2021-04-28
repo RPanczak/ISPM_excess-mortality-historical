@@ -41,22 +41,28 @@ mu <- Hmisc::markupSpecs$html
 
 ## Mortality 
 
+### HMD 
+
 [The Human Mortality Database](https://www.mortality.org/) `1x1` data.  
 
 **Covering period to 2018 only!**  
 
-Grouping age to: `<1, 1-4, 5-19, 20-39, 40-59, 60-79, >=80`.  
+<!-- Grouping age to: `<1, 1-4, 5-19, 20-39, 40-59, 60-79, >=80`.   -->
 
 ```{r include=FALSE}
 hmd_ch_deaths <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
   select(-Female, -Male) %>% 
   mutate(Age = ifelse(Age == "110+", "111", Age),
          Age = as.numeric(Age), 
+         # Age_group = cut(Age, 
+         # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
+         # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
+         # right=FALSE), 
          Age_group = cut(Age, 
-                         breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
-                         # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+")), 
-                         right=FALSE
-         )) %>%
+                         breaks = c(seq(0, 90, 5), 112), 
+                         # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                         right=FALSE)
+  ) %>%
   group_by(Year, Age_group) %>% 
   summarise(Deaths = sum(Total)) %>% 
   ungroup() %>% 
@@ -64,6 +70,93 @@ hmd_ch_deaths <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>%
 
 # sjmisc::frq(hmd_ch_deaths, Age_group)
 ```
+
+### BfS 
+
+Yearly totals aggregated for **2019** and **2020** from *provisional* weekly data from:  
+
+- [2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004426.html) (Docs in `ts-q-01.04.02.01.30-APPENDIX.xlsx`)
+
+- [2020](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.15464210.html) (Docs in `ts-q-01.04.02.01.30-2020-APPENDIX.xlsx`)
+
+```{r include=FALSE}
+weekly_canton_age5_2019 <- read_delim("data-raw/BfS/weekly_canton_age5_2000-2019.csv", ";", escape_double = FALSE, col_types = cols(Obs_value = col_integer()), trim_ws = TRUE) %>% 
+  filter(GEO == "CH") %>% 
+  mutate(Year = as.numeric(str_sub(TIME_PERIOD, 1, 4))) %>% 
+  filter(Year == 2019) %>% 
+  filter(AGE != "_T") %>% 
+  filter(SEX != "T") %>% 
+  group_by(Year, AGE) %>% 
+  summarise(Deaths = sum(Obs_value)) %>% 
+  ungroup() %>% 
+  mutate(
+    Age = case_when(
+      AGE == "Y0T4" ~	0	,
+      AGE == "Y5T9" ~	5	,
+      AGE == "Y10T14" ~	10	,
+      AGE == "Y15T19" ~	15	,
+      AGE == "Y20T24" ~	20	,
+      AGE == "Y25T29" ~	25	,
+      AGE == "Y30T34" ~	30	,
+      AGE == "Y35T39" ~	35	,
+      AGE == "Y40T44" ~	40	,
+      AGE == "Y45T49" ~	45	,
+      AGE == "Y50T54" ~	50	,
+      AGE == "Y55T59" ~	55	,
+      AGE == "Y60T64" ~	60	,
+      AGE == "Y65T69" ~	65	,
+      AGE == "Y70T74" ~	70	,
+      AGE == "Y75T79" ~	75	,
+      AGE == "Y80T84" ~	80	,
+      AGE == "Y85T89" ~	85	,
+      AGE == "Y_GE90" ~	90	
+    ),
+    Age_group = cut(Age, 
+                    breaks = c(seq(0, 90, 5), 112), 
+                    # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                    right=FALSE)
+  ) %>% 
+  select(Year, Age_group, Deaths)
+
+weekly_canton_age5_2020 <- read_delim("data-raw/BfS/weekly_canton_age5_2020.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE) %>% 
+  filter(GEO == "CH") %>% 
+  mutate(Year = as.numeric(str_sub(TIME_PERIOD, 1, 4))) %>% 
+  filter(Year == 2020) %>% 
+  filter(AGE != "_T") %>% 
+  filter(SEX != "T") %>% 
+  group_by(Year, AGE) %>% 
+  summarise(Deaths = sum(OBS_VALUE)) %>% 
+  ungroup() %>% 
+  mutate(
+    Age = case_when(
+      AGE == "Y0T4" ~	0	,
+      AGE == "Y5T9" ~	5	,
+      AGE == "Y10T14" ~	10	,
+      AGE == "Y15T19" ~	15	,
+      AGE == "Y20T24" ~	20	,
+      AGE == "Y25T29" ~	25	,
+      AGE == "Y30T34" ~	30	,
+      AGE == "Y35T39" ~	35	,
+      AGE == "Y40T44" ~	40	,
+      AGE == "Y45T49" ~	45	,
+      AGE == "Y50T54" ~	50	,
+      AGE == "Y55T59" ~	55	,
+      AGE == "Y60T64" ~	60	,
+      AGE == "Y65T69" ~	65	,
+      AGE == "Y70T74" ~	70	,
+      AGE == "Y75T79" ~	75	,
+      AGE == "Y80T84" ~	80	,
+      AGE == "Y85T89" ~	85	,
+      AGE == "Y_GE90" ~	90	
+    ),
+    Age_group = cut(Age, 
+                    breaks = c(seq(0, 90, 5), 112), 
+                    # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                    right=FALSE)
+  ) %>% 
+  select(Year, Age_group, Deaths)
+```
+
 
 ## Pandemics 
 
@@ -76,41 +169,42 @@ previous_years <- c(seq(1890 - 10, 1890 - 1),
                     seq(2020 - 10, 2020 - 1))
 ```
 
-## Together 
-
-```{r}
+```{r echo=FALSE}
 data <- bind_rows( 
   hmd_ch_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"), 
-  hmd_ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous")
+  hmd_ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
+  weekly_canton_age5_2019 %>% mutate(Type = "Previous"),
+  weekly_canton_age5_2020 %>% mutate(Type = "Pandemic")
 ) %>%  
-  arrange(Year) %>% 
+  arrange(Year, Age_group) %>% 
   mutate(Pandemic = ifelse(Year %in% analysis_years, Year, NA)) %>% 
   fill(Pandemic, .direction = "up")
 ```
-
-
-## Pops
 
 <!-- ----------------------------------------------------- -->
 
 # Viz
 
-```{r}
-data %>% 
-  ggplot(aes(x = Age_group, y = Deaths, colour = Age_group)) + 
-  geom_boxplot() +
-  facet_grid(vars(Pandemic), vars(Type)) + 
-    scale_y_continuous(labels = comma) +
+```{r echo=FALSE}
+ggplot(data = data %>% filter(Type == "Previous"),
+       aes(x = Age_group, y = Deaths)) + 
+  geom_boxplot(aes(colour = Age_group)) +
+  geom_line(data = data %>% filter(Type == "Pandemic"), aes(group = Year)) +
+  facet_grid(vars(Pandemic)) + 
+  scale_y_continuous(labels = comma) +
+  scale_color_viridis_d() +
   theme_minimal() + 
   xlab("Age group")
 ```
 
-```{r}
-data %>% 
-  ggplot(aes(x = Age_group, y = Deaths, colour = Age_group)) + 
-  geom_line(aes(group = Year)) +
-  facet_grid(vars(Pandemic), vars(Type)) + 
-    scale_y_continuous(labels = comma) +
+```{r echo=FALSE}
+ggplot(data = data %>% filter(Type == "Previous"),
+    aes(x = Age_group, y = Deaths)) + 
+  geom_line(aes(colour = Age_group, group = Year)) +
+  geom_point(data = data %>% filter(Type == "Pandemic"), aes(group = Year)) +
+  facet_grid(vars(Pandemic)) + 
+  scale_y_continuous(labels = comma) +
+  scale_color_viridis_d() +
   theme_minimal() + 
   xlab("Age group")
 ```
