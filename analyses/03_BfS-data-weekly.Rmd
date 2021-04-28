@@ -158,32 +158,52 @@ ggplot(excess_2010_2020) +
 
 # BfS - "Population" chapter
 
+2019
+canton
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004426.html
+gr
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004450.html
+
+Docs in `ts-q-01.04.02.01.30-APPENDIX.xlsx`
+
+2020 
+canon
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.15464210.html
+gr
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.15464206.html
+
+Docs in `ts-q-01.04.02.01.30-2020-APPENDIX.xlsx`
+
+2021
+canton
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187299.html
+gr
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187304.html
+
+Docs in `ts-q-01.04.02.01.30-2021-APPENDIX.xlsx`
+
 ## Deaths per week by 5-year age group, sex and canton
 
 ```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584733/master",
-              destfile = "data-raw/BfS/weekly_canton_age5_2020-2021.csv", 
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/13187299/master",
+              destfile = "data-raw/BfS/weekly_canton_age5_2000-2019.csv", 
+              method = "curl")
+
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/15464210/master",
+              destfile = "data-raw/BfS/weekly_canton_age5_2020.csv", 
+              method = "curl")
+
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17004426/master",
+              destfile = "data-raw/BfS/weekly_canton_age5_2021.csv", 
               method = "curl")
 ```
 
-Docs in `ts-q-01.04.02.01.30-2020-2021-APPENDIX.xlsx` 
-
 ```{r}
-weekly_canton_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
-```
+weekly_canton_age5_2000_2019 <- read_delim("data-raw/BfS/weekly_canton_age5_2000-2019.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
 
-## Deaths per week by 5-year age group, sex and major region
+weekly_canton_age5_2020 <- read_delim("data-raw/BfS/weekly_canton_age5_2020.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
 
-```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16584751/master",
-              destfile = "data-raw/BfS/weekly_gros_age5_2020-2021.csv", 
-              method = "curl")
-```
-
-Docs in `ts-q-01.04.02.01.31-2020-2021-APPENDIX.xlsx`
-
-```{r}
-weekly_gros_age5_2020_2021 <- read_delim("data-raw/BfS/weekly_gros_age5_2020-2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
+weekly_canton_age5_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
 ```
 
 <!-- ----------------------------------------------------- -->
