@@ -68,6 +68,7 @@ hmd_ch_deaths <- hmd_ch_deaths_raw %>%
   select(Year, Total) %>% 
   group_by(Year) %>% 
   summarise(deaths_year = sum(Total)) %>% 
+  ungroup() %>% 
   as_tibble()
 
 write_rds(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.Rds")
