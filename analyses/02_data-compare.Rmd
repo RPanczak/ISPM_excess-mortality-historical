@@ -681,14 +681,14 @@ ggplot(compare, aes(x = Year, y = diff)) +
 # Spain
 
 ```{r}
-spain_pop <- read_xlsx("data-raw/Spain/Spain_Population.xlsx") %>% 
+spain_pop <- read_xlsx("data-raw/INE/Spain_Population.xlsx") %>% 
   remove_empty() %>% 
   clean_names() %>% 
   rename(Year = year) %>% 
   rename(population = prados_de_la_escosura2020_july) %>% 
   select(Year, population)
 
-spain_deaths_monthly <- read_xlsx("data-raw/Spain/Spain.xlsx") %>% 
+spain_deaths_monthly <- read_xlsx("data-raw/INE/Spain.xlsx") %>% 
   remove_empty() %>% 
   clean_names() %>% 
   rename(Year = jahr) %>% 
@@ -698,8 +698,8 @@ spain_deaths_monthly <- read_xlsx("data-raw/Spain/Spain.xlsx") %>%
   relocate(Year, Month, Date) %>% 
   left_join(spain_pop)
 
-write_rds(spain_deaths_monthly, "data/Spain/spain_deaths_monthly.Rds")
-write_dta(spain_deaths_monthly, "data/Spain/spain_deaths_monthly.dta")
+write_rds(spain_deaths_monthly, "data/INE/spain_deaths_monthly.Rds")
+write_dta(spain_deaths_monthly, "data/INE/spain_deaths_monthly.dta")
 ```
 
 ## Deaths monthly
@@ -712,7 +712,7 @@ spain_deaths_monthly %>%
   xlab("") + ylab("Monthly deaths")
 ```
 
-## Population yearly monthly
+## Population yearly
 
 ```{r echo=FALSE}
 spain_pop %>% 
@@ -758,8 +758,8 @@ sweden_deaths_monthly <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
   left_join(sweden_pop) %>% 
   arrange(Year, Month)
 
-write_rds(sweden_deaths_monthly, "data/Sweden/sweden_deaths_monthly.Rds")
-write_dta(sweden_deaths_monthly, "data/Sweden/sweden_deaths_monthly.dta")
+write_rds(sweden_deaths_monthly, "data/SCB/sweden_deaths_monthly.Rds")
+write_dta(sweden_deaths_monthly, "data/SCB/sweden_deaths_monthly.dta")
 ```
 
 ## Deaths monthly
