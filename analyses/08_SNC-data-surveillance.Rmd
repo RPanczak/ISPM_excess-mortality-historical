@@ -53,7 +53,7 @@ combineSTS <- function(stsList) {
 
 # 2013
 
-![](../misc/2013.png)
+![](../data/BfS/orig_plots/2013.png)
 [Graph source](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.assetdetail.316166.html).  
 
 
@@ -94,7 +94,7 @@ Package works with `sts` - *surveillance time series* objects.
 
 ```{r}
 monthly_males_old_sts <- sts(observed = monthly_males_old$deaths_month,
-                             epoch = monthly_males_old$month_num,
+                             epoch = monthly_males_old$Month,
                              start = c(1971, 1), 
                              freq = 12,
                              # population = as.matrix(bfs_web_deaths_monthly$pop_dec),
