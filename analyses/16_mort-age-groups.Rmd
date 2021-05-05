@@ -21,7 +21,7 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(tidyverse, lubridate, scales, magrittr, slider)
+p_load(tidyverse, readxl, janitor, lubridate, scales, magrittr, slider)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -49,34 +49,37 @@ Grouping age to 5-year age bands.
 
 <!-- Grouping age to: `<1, 1-4, 5-19, 20-39, 40-59, 60-79, >=80`.   -->
 
-```{r include=FALSE}
+```{r}
 read_hmd <- function(dataset) {
   read_rds(dataset) %>% 
-  select(-Female, -Male) %>% 
-  mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.numeric(Age), 
-         # Age_group = cut(Age, 
-         # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
-         # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
-         # right=FALSE), 
-         Age_group = cut(Age, 
-                         breaks = c(seq(0, 90, 5), 112), 
-                         # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
-                         right=FALSE)
-  ) %>%
-  group_by(Year, Age_group) %>% 
-  summarise(Deaths = sum(Total)) %>% 
-  ungroup() %>% 
-  as_tibble()
+    select(-Female, -Male) %>% 
+    mutate(Age = ifelse(Age == "110+", "111", Age),
+           Age = as.numeric(Age), 
+           # Age_group = cut(Age, 
+           # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
+           # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
+           # right=FALSE), 
+           Age_group = cut(Age, 
+                           breaks = c(seq(0, 90, 5), 112), 
+                           # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                           right=FALSE)
+    ) %>%
+    group_by(Year, Age_group) %>% 
+    summarise(Deaths = sum(Total)) %>% 
+    ungroup() %>% 
+    as_tibble()
 }
 
-hmd_ch_deaths <- read_hmd("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
+hmd_ch_deaths <- read_hmd("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
+  mutate(Country = "Switzerland") %>% relocate(Country)
 # sjmisc::frq(hmd_ch_deaths, Age_group)
 
-hmd_se_deaths <- read_hmd("data-raw/mortality_org/hmd_se_deaths_raw.Rds") 
+hmd_se_deaths <- read_hmd("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% 
+  mutate(Country = "Sweden") %>% relocate(Country)
 # sjmisc::frq(hmd_se_deaths, Age_group)
 
-hmd_es_deaths <- read_hmd("data-raw/mortality_org/hmd_es_deaths_raw.Rds") 
+hmd_es_deaths <- read_hmd("data-raw/mortality_org/hmd_es_deaths_raw.Rds") %>% 
+  mutate(Country = "Spain") %>% relocate(Country)
 # sjmisc::frq(hmd_es_deaths, Age_group)
 ```
 
@@ -86,12 +89,12 @@ hmd_es_deaths <- read_hmd("data-raw/mortality_org/hmd_es_deaths_raw.Rds")
 
 Yearly totals data delivered by BfS.  
 
-```{r include=FALSE}
-bfs_ch_deaths <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
-                          col_types = cols(KalJahr = col_integer(),
-                                           Alter = col_integer(),
-                                           COUNT = col_integer()), 
-                          trim_ws = TRUE) %>% 
+```{r}
+ch_deaths <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
+                      col_types = cols(KalJahr = col_integer(),
+                                       Alter = col_integer(),
+                                       COUNT = col_integer()), 
+                      trim_ws = TRUE) %>% 
   rename(Year = KalJahr) %>% 
   mutate(Age_group = cut(Alter, 
                          breaks = c(seq(0, 90, 5), 113), 
@@ -101,7 +104,42 @@ bfs_ch_deaths <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv",
   group_by(Year, Age_group) %>% 
   summarise(Deaths = sum(COUNT)) %>% 
   ungroup() %>% 
-  select(Year, Age_group, Deaths)
+  select(Year, Age_group, Deaths) %>% 
+  mutate(Country = "Switzerland") %>% relocate(Country)
+```
+
+### SWE
+
+Yearly totals data from SCB.  
+
+```{r}
+se_deaths <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
+                       col_types = c("text", "text", "text", "numeric", "numeric"), 
+                       skip = 2) %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  select(-x1, -x3) %>% 
+  mutate(Age = str_replace(x2, fixed(" years"), ""),
+         Age = str_replace(Age, fixed(" year"), ""),
+         Age = str_replace(Age, fixed("100+"), "100"),
+         Age = as.numeric(Age)) %>% 
+  fill(Age) %>% 
+  group_by(Age) %>% 
+  summarize(x2019 = sum(x2019),
+            x2020 = sum(x2020)) %>% 
+  ungroup() %>% 
+  pivot_longer(-Age, names_to = "Year", values_to = "Deaths") %>% 
+  mutate(Year = as.numeric(str_replace(Year, fixed("x"), "")),
+         Age_group = cut(Age, 
+                         breaks = c(seq(0, 90, 5), 113), 
+                         # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                         right=FALSE)
+  ) %>% 
+  group_by(Year, Age_group) %>% 
+  summarise(Deaths = sum(Deaths)) %>% 
+  ungroup() %>% 
+  select(Year, Age_group, Deaths) %>% 
+  mutate(Country = "Sweden") %>% relocate(Country)
 ```
 
 ## Pandemics 
@@ -121,13 +159,13 @@ data <- bind_rows(
   hmd_ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
   hmd_ch_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"), 
   # BfS for last two years
-  bfs_ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous")
+  ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous")
 ) %>%  
   arrange(Year, Age_group) %>% 
   mutate(Pandemic = ifelse(Year %in% analysis_years, Year, NA)) %>% 
   fill(Pandemic, .direction = "up")
 
-rm(hmd_ch_deaths, bfs_ch_deaths)
+rm(hmd_ch_deaths, ch_deaths)
 ```
 
 <!-- ----------------------------------------------------- -->
