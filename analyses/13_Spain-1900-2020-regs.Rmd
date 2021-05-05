@@ -43,7 +43,7 @@ Monthly number of deaths, **1900-2020**.
 Prepared in `02.Rmd`.  
 
 ```{r}
-spain_deaths_monthly <- read_rds("data/Spain/spain_deaths_monthly.Rds") %>% 
+spain_deaths_monthly <- read_rds("data/INE/spain_deaths_monthly.Rds") %>% 
   rename(deaths = deaths_month, 
          pop = population)
 ```
@@ -134,7 +134,7 @@ spain_deaths_monthly %>%
   xlab("") + ylab("Deaths / 100k")
 ```
 
-## 5- & 10-year medians
+## 10-year medians
 
 ```{r}
 spain_deaths_monthly %<>% 
@@ -347,13 +347,13 @@ haven::write_dta(es_expected_deaths_monthly, "data/es_expected_deaths_monthly.dt
 
 ```{r include=FALSE}
 p_unload(doParallel, foreach)
-es_expected_deaths_monthly <- read_rds("data/es_expected_deaths_monthly.Rds")
+# es_expected_deaths_monthly <- read_rds("data/es_expected_deaths_monthly.Rds")
 ```
 
 ## Two predictions
 
 ```{r echo=FALSE}
-mort_plot <- function(plot_Year, extremes = FALSE) {
+mort_plot <- function(plot_Year, extremes_remove = FALSE) {
   
   plot_data <- es_expected_deaths_monthly %>% 
     filter(Year >= plot_Year - 1 & Year <= plot_Year + 1)
@@ -369,7 +369,7 @@ mort_plot <- function(plot_Year, extremes = FALSE) {
     rowwise() %>% 
     mutate(max = max(c(deaths, lpi, upi, median, lpi_flu, upi_flu, median_flu_year)))
   
-  if (extremes == FALSE) {
+  if (extremes_remove == FALSE) {
     
     plot_data %>% 
       ggplot(aes(x = Date)) +
@@ -389,7 +389,7 @@ mort_plot <- function(plot_Year, extremes = FALSE) {
                          as.character(plot_Year + 1))) +
       theme_minimal()
     
-  } else if (extremes == TRUE) {
+  } else if (extremes_remove == TRUE) {
     
     plot_data %>% 
       ggplot(aes(x = Date)) +
@@ -423,7 +423,7 @@ mort_plot(1918)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(1918, extremes = TRUE) 
+mort_plot(1918, extremes_remove = TRUE) 
 ```
 
 ### 1957 {.tabset}
@@ -437,7 +437,7 @@ mort_plot(1957)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(1957, extremes = TRUE) 
+mort_plot(1957, extremes_remove = TRUE) 
 ```
 
 ### 2020 {.tabset}
@@ -451,7 +451,7 @@ mort_plot(2020)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(2020, extremes = TRUE) 
+mort_plot(2020, extremes_remove = TRUE) 
 ```
 
 <!-- ----------------------------------------------------- -->
