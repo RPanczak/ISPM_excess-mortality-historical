@@ -87,7 +87,7 @@ bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") %>%
   select(-pop_jan, -pop_dec)
 ```
 
-2020 simply predicted using pops from last 10 years
+2020 simply `lm` predicted using pops from last 10 years
 
 ```{r}
 (pop_2020_pred <- predict(
@@ -204,7 +204,7 @@ bfs_web_deaths_monthly %>%
   xlab("") + ylab("Deaths / 100k")
 ```
 
-## 5- & 10-year medians
+## 10-year medians
 
 ```{r}
 bfs_web_deaths_monthly %<>% 
@@ -411,19 +411,20 @@ for (YEAR in year_reg:year_max){
 }
 
 rm(predict, predict_flu_hc, predict_flu, pred_data, reg_data, YEAR)
+
 write_rds(ch_expected_deaths_monthly, "data/ch_expected_deaths_monthly.Rds")
 haven::write_dta(ch_expected_deaths_monthly, "data/ch_expected_deaths_monthly.dta")
 ```
 
 ```{r include=FALSE}
 p_unload(doParallel, foreach)
-ch_expected_deaths_monthly <- read_rds("data/ch_expected_deaths_monthly.Rds")
+# ch_expected_deaths_monthly <- read_rds("data/ch_expected_deaths_monthly.Rds")
 ```
 
 ## Two predictions
 
 ```{r echo=FALSE}
-mort_plot <- function(plot_Year, extremes = FALSE) {
+mort_plot <- function(plot_Year, extremes_remove = FALSE) {
   
   plot_data <- ch_expected_deaths_monthly %>% 
     filter(Year >= plot_Year - 1 & Year <= plot_Year + 1)
@@ -439,7 +440,7 @@ mort_plot <- function(plot_Year, extremes = FALSE) {
     rowwise() %>% 
     mutate(max = max(c(deaths, lpi, upi, median, lpi_flu, upi_flu, median_flu_year)))
   
-  if (extremes == FALSE) {
+  if (extremes_remove == FALSE) {
     
     plot_data %>% 
       ggplot(aes(x = Date)) +
@@ -459,7 +460,7 @@ mort_plot <- function(plot_Year, extremes = FALSE) {
                          as.character(plot_Year + 1))) +
       theme_minimal()
     
-  } else if (extremes == TRUE) {
+  } else if (extremes_remove == TRUE) {
     
     plot_data %>% 
       ggplot(aes(x = Date)) +
@@ -493,7 +494,7 @@ mort_plot(1890)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(1890, extremes = TRUE) 
+mort_plot(1890, extremes_remove = TRUE) 
 ```
 
 ### 1918 {.tabset}
@@ -507,7 +508,7 @@ mort_plot(1918)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(1918, extremes = TRUE) 
+mort_plot(1918, extremes_remove = TRUE) 
 ```
 
 ### 1957 {.tabset}
@@ -521,7 +522,7 @@ mort_plot(1957)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(1957, extremes = TRUE) 
+mort_plot(1957, extremes_remove = TRUE) 
 ```
 
 ### 2020 {.tabset}
@@ -535,7 +536,7 @@ mort_plot(2020)
 #### Without extremes
 
 ```{r echo=FALSE}
-mort_plot(2020, extremes = TRUE) 
+mort_plot(2020, extremes_remove = TRUE) 
 ```
 
 <!-- ----------------------------------------------------- -->
