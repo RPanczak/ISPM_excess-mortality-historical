@@ -69,19 +69,18 @@ Prepared in `02.Rmd`.
 bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds") 
 
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
-  filter(year >= 1877) %>% 
-  filter(year <= 2016) %>% 
+  filter(Year >= 1877) %>% 
+  filter(Year <= 2016) %>% 
   select(-deaths_year) %>% 
   left_join(bfs_web_pop_yearly)
-
 ```
 
 Deaths per 100k
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(year >= 2014) %>%
-  ggplot(aes(x = date)) +
+  filter(Year >= 2014) %>%
+  ggplot(aes(x = Date)) +
   geom_rect(aes(xmin = as.Date("2015-01-01"), xmax = as.Date("2015-12-31"), 
                 ymin = -Inf, ymax = Inf), alpha = 0.005) +
   geom_line(aes(y = (deaths_month/pop_dec) * 100000)) + 
@@ -97,7 +96,7 @@ Prepared in `03.Rmd`.
 **We need pops split by binary age!**  
 
 ```{r echo=FALSE}
-weekly_2010_2019 <- read_rds("data/BfS/weekly_CH_2010-2019.Rds") %>% 
+weekly_2010_2019 <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds") %>% 
   filter(Year <= 2016)
 # left_join(bfs_web_pop_yearly, by = c("Year" = "year"))
 
@@ -121,11 +120,11 @@ Package works with `sts` - *surveillance time series* objects.
 
 ## Monthly data
 
-Not using population to match results from BfS.
+**Not using population to match results from BfS.**
 
 ```{r}
 deaths_monthly_sts <- sts(observed = bfs_web_deaths_monthly$deaths_month,
-                          epoch = as.numeric(bfs_web_deaths_monthly$date),
+                          epoch = as.numeric(bfs_web_deaths_monthly$Date),
                           start = c(1877, 1), 
                           frequency = 12,
                           # population = as.matrix(bfs_web_deaths_monthly$pop_dec),
