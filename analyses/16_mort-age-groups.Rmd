@@ -29,7 +29,10 @@ knitr::opts_chunk$set(cache = FALSE,
                       tidy = FALSE,
                       comment = NA,
                       message = FALSE,
-                      warning = FALSE)
+                      warning = FALSE,
+                      # fig.width=8, fig.height=6,
+                      # out.width="800px", out.height="600px",
+                      dpi=300)
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
@@ -60,7 +63,7 @@ read_hmd <- function(dataset) {
            # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
            # right=FALSE), 
            Age_group = cut(Age, 
-                           breaks = c(seq(0, 90, 5), 112), 
+                           breaks = c(seq(0, 90, 5), 113), 
                            # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
                            right=FALSE)
     ) %>%
@@ -118,9 +121,9 @@ se_deaths <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx",
                        skip = 2) %>% 
   remove_empty() %>% 
   clean_names() %>% 
+  filter(!is.na(x2019)) %>% 
   select(-x1, -x3) %>% 
-  mutate(Age = str_replace(x2, fixed(" years"), ""),
-         Age = str_replace(Age, fixed(" year"), ""),
+  mutate(Age = word(x2, 1),
          Age = str_replace(Age, fixed("100+"), "100"),
          Age = as.numeric(Age)) %>% 
   fill(Age) %>% 
@@ -148,14 +151,14 @@ Yearly totals data from INE
 
 ```{r}
 es_deaths_2019 <- read_delim("data-raw/INE/Spain2019age.csv",
-                        delim = ";",
-                        locale = locale(grouping_mark = "."),
-                        trim_ws = TRUE) %>% 
+                             delim = ";",
+                             locale = locale(grouping_mark = "."),
+                             trim_ws = TRUE) %>% 
   mutate(Year = as.integer(Periodo)) %>% 
   mutate(Age = word(Edad, 1),
          Age = str_replace(Age, fixed("Menores"), "0"),
          Age = as.numeric(Age)
-         ) %>% 
+  ) %>% 
   mutate(Age_group = cut(Age, 
                          breaks = c(seq(0, 90, 5), 113), 
                          # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
@@ -168,9 +171,9 @@ es_deaths_2019 <- read_delim("data-raw/INE/Spain2019age.csv",
   mutate(Country = "Spain") %>% relocate(Country)
 
 es_deaths_2020 <- read_delim("data-raw/INE/Spain2020weeklyage.csv",
-                        delim = ";",
-                        locale = locale(grouping_mark = "."),
-                        trim_ws = TRUE) %>% 
+                             delim = ";",
+                             locale = locale(grouping_mark = "."),
+                             trim_ws = TRUE) %>% 
   rename(Edad = `Edad (grupos quinquenales)`) %>% 
   filter(Edad != "Todas las edades") %>% 
   filter(Edad != "No consta") %>% 
@@ -178,8 +181,8 @@ es_deaths_2020 <- read_delim("data-raw/INE/Spain2020weeklyage.csv",
   mutate(Age = str_replace(Edad, fixed("De "), ""),
          Age = word(Age, 1),
          Age = as.numeric(Age)
-         ) %>% 
-    mutate(Age_group = cut(Age, 
+  ) %>% 
+  mutate(Age_group = cut(Age, 
                          breaks = c(seq(0, 90, 5), 113), 
                          # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
                          right=FALSE)
@@ -210,14 +213,27 @@ data <- bind_rows(
   # HMD historical data
   hmd_ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
   hmd_ch_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"), 
-  # BfS for last two years
-  ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous")
+  
+  hmd_es_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
+  hmd_es_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"), 
+  
+  hmd_se_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
+  hmd_se_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"), 
+  
+  # last two years
+  ch_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"),
+  es_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"),
+  se_deaths %>% filter(Year %in% analysis_years) %>% mutate(Type = "Pandemic"),
+  ch_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
+  es_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous"),
+  se_deaths %>% filter(Year %in% previous_years) %>% mutate(Type = "Previous")
 ) %>%  
-  arrange(Year, Age_group) %>% 
+  arrange(Country, Year, Age_group) %>% 
   mutate(Pandemic = ifelse(Year %in% analysis_years, Year, NA)) %>% 
   fill(Pandemic, .direction = "up")
 
-rm(hmd_ch_deaths, ch_deaths)
+rm(hmd_ch_deaths, hmd_es_deaths, hmd_se_deaths,
+   ch_deaths, es_deaths, se_deaths)
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -229,10 +245,11 @@ ggplot(data = data %>% filter(Type == "Previous"),
        aes(x = Age_group, y = Deaths)) + 
   geom_boxplot(aes(colour = Age_group)) +
   geom_line(data = data %>% filter(Type == "Pandemic"), aes(group = Year)) +
-  facet_grid(vars(Pandemic)) + 
-  scale_y_continuous(labels = comma) +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
   scale_color_viridis_d() +
   theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
   xlab("Age group")
 ```
 
@@ -241,10 +258,11 @@ ggplot(data = data %>% filter(Type == "Previous"),
        aes(x = Age_group, y = Deaths)) + 
   geom_line(aes(colour = Age_group, group = Year)) +
   geom_point(data = data %>% filter(Type == "Pandemic"), aes(group = Year)) +
-  facet_grid(vars(Pandemic)) + 
-  scale_y_continuous(labels = comma) +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
   scale_color_viridis_d() +
   theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
   xlab("Age group")
 ```
 
@@ -253,10 +271,11 @@ ggplot(data = data %>% filter(Type == "Previous"),
        aes(x = Age_group, y = Deaths)) + 
   geom_jitter(aes(colour = Age_group, group = Year)) +
   geom_line(data = data %>% filter(Type == "Pandemic"), aes(group = Year)) +
-  facet_grid(vars(Pandemic)) + 
-  scale_y_continuous(labels = comma) +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
   scale_color_viridis_d() +
   theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
   xlab("Age group")
 ```
 
