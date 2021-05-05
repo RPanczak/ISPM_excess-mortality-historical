@@ -236,6 +236,64 @@ rm(hmd_ch_deaths, hmd_es_deaths, hmd_se_deaths,
    ch_deaths, es_deaths, se_deaths)
 ```
 
+## Pops
+
+```{r}
+pop <- bind_rows(
+  
+  read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds") %>% 
+    mutate(Age = ifelse(Age == "110+", 110, Age),
+           Age = as.numeric(Age)) %>% 
+    mutate(Age_group = cut(Age, 
+                           breaks = c(seq(0, 90, 5), 113), 
+                           right=FALSE)
+    ) %>% 
+    group_by(Year, Age_group) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup() %>% 
+    select(Year, Age_group, Population) %>% 
+    mutate(Country = "Switzerland") %>% relocate(Country), 
+  
+  read_rds("data-raw/mortality_org/hmd_es_pop_raw.Rds") %>% 
+    mutate(Age = ifelse(Age == "110+", 110, Age),
+           Age = as.numeric(Age)) %>% 
+    mutate(Age_group = cut(Age, 
+                           breaks = c(seq(0, 90, 5), 113), 
+                           right=FALSE)
+    ) %>% 
+    group_by(Year, Age_group) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup() %>% 
+    select(Year, Age_group, Population) %>% 
+    mutate(Country = "Spain") %>% relocate(Country),
+  
+  read_rds("data-raw/mortality_org/hmd_se_pop_raw.Rds") %>% 
+    mutate(Age = ifelse(Age == "110+", 110, Age),
+           Age = as.numeric(Age)) %>% 
+    mutate(Age_group = cut(Age, 
+                           breaks = c(seq(0, 90, 5), 113), 
+                           right=FALSE)
+    ) %>% 
+    group_by(Year, Age_group) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup() %>% 
+    select(Year, Age_group, Population) %>% 
+    mutate(Country = "Sweden") %>% relocate(Country)
+  
+) %>% 
+  group_by(Country) %>% 
+  mutate(pop_min = min(Population),
+         pop_max = max(Population),
+         pop_scaled = (Population - pop_min) / (pop_max - pop_min)) %>% 
+  ungroup() %>% 
+  select(-pop_min, -pop_max) %>% 
+  mutate(Year = ifelse(Year == 2019, 2020, Year)) %>% 
+  filter(Year %in% analysis_years) %>% 
+  rename(Pandemic = Year)
+
+data %<>% left_join(pop)
+```
+
 <!-- ----------------------------------------------------- -->
 
 # Viz
@@ -243,6 +301,7 @@ rm(hmd_ch_deaths, hmd_es_deaths, hmd_se_deaths,
 ```{r echo=FALSE}
 ggplot(data = data %>% filter(Type == "Previous"),
        aes(x = Age_group, y = Deaths)) + 
+  # geom_boxplot(aes(colour = Age_group, weight = pop_scaled), varwidth = TRUE) +
   geom_boxplot(aes(colour = Age_group)) +
   geom_line(data = data %>% filter(Type == "Pandemic"), aes(group = Year)) +
   facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
@@ -250,7 +309,9 @@ ggplot(data = data %>% filter(Type == "Previous"),
   scale_color_viridis_d() +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90)) +
-  xlab("Age group")
+  xlab("Age group") + labs(colour = "Age")
+
+ggsave("paper/age_groups.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ```{r echo=FALSE}
