@@ -243,13 +243,13 @@ bfs_web_deaths_weekly %<>%
   arrange(Week, Year) %>% 
   group_by(Week) %>% 
   mutate(mean_5y   = slide_dbl(NumberOfDeaths, mean, 
-                               na.rm = TRUE, .before = 5, .complete = TRUE),
+                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
          mean_10y  = slide_dbl(NumberOfDeaths, mean, 
-                               na.rm = TRUE, .before = 10, .complete = TRUE),
+                               na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE),
          median_5y = slide_dbl(NumberOfDeaths, mean, 
-                               na.rm = TRUE, .before = 5, .complete = TRUE),
+                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
          median_10y = slide_dbl(NumberOfDeaths, mean, 
-                                na.rm = TRUE, .before = 10, .complete = TRUE)) %>% 
+                                na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE)) %>% 
   ungroup() %>% 
   arrange(Year, Week) %>%
   filter(Ending >= date_from)
@@ -291,13 +291,13 @@ bfs_web_deaths_monthly %<>%
   arrange(Month, Year) %>% 
   group_by(Month) %>% 
   mutate(mean_5y   = slide_dbl(deaths_month, mean, 
-                               na.rm = TRUE, .before = 5, .complete = TRUE),
+                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
          mean_10y  = slide_dbl(deaths_month, mean, 
-                               na.rm = TRUE, .before = 10, .complete = TRUE),
+                               na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE),
          median_5y = slide_dbl(deaths_month, mean, 
-                               na.rm = TRUE, .before = 5, .complete = TRUE),
+                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
          median_10y = slide_dbl(deaths_month, mean, 
-                                na.rm = TRUE, .before = 10, .complete = TRUE)) %>% 
+                                na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE)) %>% 
   ungroup() %>% 
   arrange(Year, Month) %>% 
   filter(Date >= date_from)
