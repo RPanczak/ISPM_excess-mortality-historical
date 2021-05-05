@@ -38,21 +38,21 @@ mu <- Hmisc::markupSpecs$html
 # Weekly number of deaths, 2010-2019
 
 ```{r include=FALSE}
-weekly_2010_2019 <- read_rds("data/BfS/weekly_2010-2019.Rds") %>% 
+weekly_2010_2019 <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds") %>% 
   mutate(pandemic = 0)
-weekly_2020_2021 <- read_rds("data/BfS/weekly_2020-2021.Rds") %>% 
-  mutate(pandemic = 1)
+weekly_2020_2021 <- read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds") %>% 
+  mutate(pandemic = ifelse(Ending > as.Date("2020-02-25"), 1, 0))
 weekly_2010_2021 <- weekly_2010_2019 %>% 
   bind_rows(weekly_2020_2021)
 
 rm(weekly_2010_2019, weekly_2020_2021)
 ```
 
-Last sixish years
+Last ~two years
 
 ```{r echo=FALSE}
 weekly_2010_2021 %>% 
-  filter(Year >= 2015) %>%
+  filter(Year >= 2019) %>%
   filter(Ending < Sys.Date()) %>% 
   ggplot(aes(x = Ending)) +
   geom_ribbon(aes(ymin = lowerB, ymax = upperB, fill = Age), alpha = 0.1) +
