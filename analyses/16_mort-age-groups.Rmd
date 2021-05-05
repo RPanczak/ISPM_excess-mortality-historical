@@ -142,6 +142,58 @@ se_deaths <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx",
   mutate(Country = "Sweden") %>% relocate(Country)
 ```
 
+### ESP
+
+Yearly totals data from INE  
+
+```{r}
+es_deaths_2019 <- read_delim("data-raw/INE/Spain2019age.csv",
+                        delim = ";",
+                        locale = locale(grouping_mark = "."),
+                        trim_ws = TRUE) %>% 
+  mutate(Year = as.integer(Periodo)) %>% 
+  mutate(Age = word(Edad, 1),
+         Age = str_replace(Age, fixed("Menores"), "0"),
+         Age = as.numeric(Age)
+         ) %>% 
+  mutate(Age_group = cut(Age, 
+                         breaks = c(seq(0, 90, 5), 113), 
+                         # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                         right=FALSE)
+  ) %>% 
+  group_by(Year, Age_group) %>% 
+  summarise(Deaths = sum(Total)) %>% 
+  ungroup() %>% 
+  select(Year, Age_group, Deaths) %>% 
+  mutate(Country = "Spain") %>% relocate(Country)
+
+es_deaths_2020 <- read_delim("data-raw/INE/Spain2020weeklyage.csv",
+                        delim = ";",
+                        locale = locale(grouping_mark = "."),
+                        trim_ws = TRUE) %>% 
+  rename(Edad = `Edad (grupos quinquenales)`) %>% 
+  filter(Edad != "Todas las edades") %>% 
+  filter(Edad != "No consta") %>% 
+  mutate(Year = as.integer(2020)) %>% 
+  mutate(Age = str_replace(Edad, fixed("De "), ""),
+         Age = word(Age, 1),
+         Age = as.numeric(Age)
+         ) %>% 
+    mutate(Age_group = cut(Age, 
+                         breaks = c(seq(0, 90, 5), 113), 
+                         # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+                         right=FALSE)
+  ) %>% 
+  group_by(Year, Age_group) %>% 
+  summarise(Deaths = sum(Total)) %>% 
+  ungroup() %>% 
+  select(Year, Age_group, Deaths) %>% 
+  mutate(Country = "Spain") %>% relocate(Country)
+
+es_deaths <- bind_rows(es_deaths_2019, es_deaths_2020)
+rm(es_deaths_2019, es_deaths_2020)
+```
+
 ## Pandemics 
 
 ```{r}
