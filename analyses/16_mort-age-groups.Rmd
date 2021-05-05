@@ -39,7 +39,7 @@ mu <- Hmisc::markupSpecs$html
 
 # Mortality 
 
-## HMD 
+## HMD for three countries
 
 [The Human Mortality Database](https://www.mortality.org/) `1x1` data.  
 
@@ -50,7 +50,8 @@ Grouping age to 5-year age bands.
 <!-- Grouping age to: `<1, 1-4, 5-19, 20-39, 40-59, 60-79, >=80`.   -->
 
 ```{r include=FALSE}
-hmd_ch_deaths <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
+read_hmd <- function(dataset) {
+  read_rds(dataset) %>% 
   select(-Female, -Male) %>% 
   mutate(Age = ifelse(Age == "110+", "111", Age),
          Age = as.numeric(Age), 
@@ -67,8 +68,16 @@ hmd_ch_deaths <- read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>%
   summarise(Deaths = sum(Total)) %>% 
   ungroup() %>% 
   as_tibble()
+}
 
+hmd_ch_deaths <- read_hmd("data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 # sjmisc::frq(hmd_ch_deaths, Age_group)
+
+hmd_se_deaths <- read_hmd("data-raw/mortality_org/hmd_se_deaths_raw.Rds") 
+# sjmisc::frq(hmd_se_deaths, Age_group)
+
+hmd_es_deaths <- read_hmd("data-raw/mortality_org/hmd_es_deaths_raw.Rds") 
+# sjmisc::frq(hmd_es_deaths, Age_group)
 ```
 
 ## 2019-2020
