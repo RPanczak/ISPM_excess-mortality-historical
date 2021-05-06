@@ -286,9 +286,8 @@ ggsave("paper/four_pndemics_perc.png", dpi = 300, width = 297, height = 210, uni
 
 # Appendix 
 
+```{r eval=FALSE}
 ## Crude
-
-```{r echo=FALSE}
 expected_deaths_monthly %>% 
   ggplot(aes(x = Date, y = deaths)) +
   geom_col() +
@@ -343,11 +342,47 @@ expected_deaths_monthly %>%
   ggtitle("Monthly number of deaths")
 ```
 
-```{r echo=FALSE}
+```{r eval=FALSE}
 expected_deaths_monthly %>% 
   ggplot(aes(x = Date, y = (deaths/pop)*10000, colour = Country)) +
   geom_line() +
   theme_minimal() +
   xlab("") + ylab("Deaths / 10,000 population") +
   ggtitle("Monthly number of deaths")
+```
+
+## Country panel
+
+```{r echo=FALSE}
+extra_labs <- c("Deaths", "Deaths / 10,000", "Population")
+names(extra_labs) <- c("deaths", "deaths_pop", "pop")
+
+expected_deaths_monthly %>% 
+  filter(Country == "Switzerland") %>%
+  select(Date, deaths, pop) %>% 
+  mutate(deaths_pop = (deaths/pop)*10000) %>% 
+  pivot_longer(-Date) %>% 
+  ggplot(aes(x = Date, y = value)) +
+  geom_rect(xmin = as.Date(paste0(1890, "-01-01")),
+            xmax = as.Date(paste0(1890, "-12-31")),
+            ymin = 0, ymax = Inf,
+            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
+  geom_rect(xmin = as.Date(paste0(1918, "-01-01")),
+            xmax = as.Date(paste0(1918, "-12-31")),
+            ymin = 0, ymax = Inf,
+            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
+  geom_rect(xmin = as.Date(paste0(1957, "-01-01")),
+            xmax = as.Date(paste0(1957, "-12-31")),
+            ymin = 0, ymax = Inf,
+            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
+  geom_rect(xmin = as.Date(paste0(2020, "-01-01")),
+            xmax = as.Date(paste0(2020, "-12-31")),
+            ymin = 0, ymax = Inf,
+            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) + 
+  facet_grid(vars(name), scales = "free_y",
+             labeller = labeller(name = extra_labs)) + 
+  geom_line() +
+  theme_minimal() +
+  xlab("") + ylab("Variable count") +
+  ggtitle("Monthly number of deaths, population and deaths per 10,000")
 ```
