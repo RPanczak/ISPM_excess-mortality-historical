@@ -51,9 +51,10 @@ expected_deaths_monthly <- bind_rows(
 write_rds(expected_deaths_monthly, "data/expected_deaths_monthly.Rds")
 haven::write_dta(expected_deaths_monthly, "data/expected_deaths_monthly.dta")
 
-unlink("data/ch_expected_deaths_monthly.Rds") 
-unlink("data/se_expected_deaths_monthly.Rds") 
-unlink("data/es_expected_deaths_monthly.Rds") 
+# unlink("data/ch_expected_deaths_monthly.Rds") 
+# unlink("data/se_expected_deaths_monthly.Rds") 
+# unlink("data/es_expected_deaths_monthly.Rds") 
+
 ```
 
 ```{r}
@@ -66,23 +67,224 @@ expected_deaths_monthly <- read_rds("data/expected_deaths_monthly.Rds") %>%
   ))
 ```
 
-# Figure 1 - all data
+# Figure 1 - diffs
+
+## Monthly 
 
 ```{r echo=FALSE}
-expected_deaths_monthly %>% 
-  mutate(Y = deaths - fit_flu,
-         Difference = ifelse(deaths > fit_flu, "More", "Less")) %>% 
-  ggplot(aes(x = Date)) +
-  geom_col(aes(y = Y, fill = Difference)) +
-  scale_x_date(date_breaks = "10 years", date_labels = "%Y") +
-  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+hline_pandemic <- expected_deaths_monthly %>% 
+  filter(Year == 2020) %>% 
+  group_by(Country) %>% 
+  summarise(yintercept = max(deaths - fit_flu_hc)) %>% 
+  ungroup()
 
+expected_deaths_monthly %>% 
+  mutate(Y = deaths - fit_flu_hc,
+         Difference = ifelse(deaths > fit_flu_hc, "More", "Less")) %>% 
+  ggplot(aes(x = Date)) +
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25) +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = Y, fill = Difference)) +
+  scale_x_date(date_labels = "%Y",
+               breaks = c(as.Date("1860-01-01"), 
+                          as.Date("1890-01-01"),
+                          as.Date("1918-01-01"),
+                          as.Date("1957-01-01"),
+                          as.Date("1968-01-01"),
+                          as.Date("1977-01-01"),
+                          as.Date("2009-01-01"),
+                          as.Date("2020-01-01")),
+               limits = c(as.Date("1860-01-01") - 100, 
+                          as.Date("2020-12-31"))) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   facet_grid(vars(Country), scales = "free_y") + 
   scale_y_continuous(labels = label_number(accuracy = 1L, suffix = "K", scale = 1e-4)) +
-  theme_minimal() +
-  xlab("") + ylab("Difference observed expected") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40"),
+        axis.ticks = element_line()) +
+  xlab("") + ylab("Difference observed - expected") +
+  guides(fill = guide_legend(reverse = TRUE)) +
   ggtitle("Monthly number of deaths")
+
+ggsave("paper/diffs.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
+
+## Yearly 
+
+```{r echo=FALSE}
+hline_pandemic <- expected_deaths_monthly %>% 
+  filter(Year == 2020) %>% 
+  group_by(Country) %>% 
+  summarise(deaths = sum(deaths),
+            fit_flu_hc = sum(fit_flu_hc),
+            yintercept = max(deaths - fit_flu_hc)) %>% 
+  ungroup()
+
+expected_deaths_monthly %>% 
+  group_by(Country, Year) %>% 
+  summarise(deaths = sum(deaths),
+            fit_flu_hc = sum(fit_flu_hc)) %>% 
+  ungroup() %>% 
+  mutate(Y = deaths - fit_flu_hc,
+         Difference = ifelse(deaths > fit_flu_hc, "More", "Less")) %>% 
+  ggplot(aes(x = Year)) +
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25, linetype = "dashed") +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = Y, fill = Difference)) +
+  scale_x_continuous(
+    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
+    limits = c(1860-1, 2020+1)) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  facet_grid(vars(Country), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 1L, suffix = "K", scale = 1e-4)) +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40"),
+        axis.ticks = element_line()) +
+  xlab("") + ylab("Difference observed - expected") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  ggtitle("Yearly number of deaths")
+
+ggsave("paper/diffs_year.png", dpi = 300, width = 297, height = 210, units = "mm")
+```
+
+# Figure 2 - four pandemics
+
+## Absolute
+
+```{r}
+focus_years <- c(1890, 1918, 1957, 2020)
+
+# plot_years <- c(seq(1890 - 1, 1890 + 2),
+#                 seq(1918 - 1, 1918 + 2),
+#                 seq(1957 - 1, 1957 + 2),
+#                 seq(2020 - 1, 2020 + 2))
+
+for(country in unique(expected_deaths_monthly$Country)) { 
+  
+  print(paste0("Plotting ", country))
+  
+  max <- expected_deaths_monthly %>% 
+    filter(Country == country) %>% 
+    filter(!is.na(Pandemic)) %>% 
+    summarise(deaths = max(deaths),
+              lpi_flu_hc = max(lpi_flu_hc),
+              upi_flu_hc = max(upi_flu_hc)) %>% 
+    rowwise() %>% 
+    mutate(max = max(c(deaths, lpi_flu_hc, upi_flu_hc)))
+  
+  print(paste0("Max for x is ", max$max))
+  
+  for(year in focus_years) {
+    
+    print(paste0("    Year ", year))
+    
+    plot_data <- expected_deaths_monthly %>% 
+      filter(Country == country) %>% 
+      filter(Pandemic == year)
+    
+    name <- paste(country, year, sep = "_")
+    
+    if (year == 2020) {
+      my_title = paste0(country, ": ", 
+                        as.character(year - 1), "-", as.character(year))
+    } else {
+      my_title = paste0(country, ": ", 
+                        as.character(year - 1), "-", as.character(year + 2))
+    }
+    
+    plot <- plot_data %>% 
+      ggplot(aes(x = Date)) +
+      geom_rect(xmin = as.Date(paste0(year, "-01-01")),
+                xmax = as.Date(paste0(year, "-12-31")),
+                ymin = -Inf, ymax = Inf, 
+                fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +
+      geom_ribbon(aes(ymin = lpi_flu_hc, ymax = upi_flu_hc), alpha = 0.1) + 
+      geom_line(aes(y = fit_flu_hc), colour = "grey50") +
+      # geom_line(aes(y = median_flu_year), colour = "#2c7bb6") + 
+      geom_line(aes(y = deaths), color = "#d7191c", size = 0.5) + 
+      scale_x_date(limits = c(min(plot_data$Date), max(plot_data$Date)),
+                   date_breaks = "6 months", date_labels = "%b") +
+      xlab("") + 
+      # ylab("Observed, 10y median & predicted deaths") +
+      ylab("Observed & predicted deaths") +
+      # labs(caption = "Excludes extreme years") +
+      ggtitle(my_title) +
+      scale_y_continuous(limits = c(0, max$max),
+                         labels = label_number(accuracy = 0.1, suffix = "K", 
+                                               scale = 1e-4)) +
+      theme_bw() +
+      theme(plot.title = element_text(size = 10),
+            axis.text.x = element_text(size = 8),
+            axis.title.y = element_text(size = 9),
+            axis.text.y = element_text(size = 8))
+    
+    assign(name, plot)
+  }
+}
+
+plot_spacer() + Spain_1918 + Spain_1957 + Spain_2020 +  
+  Sweden_1890 + Sweden_1918 + Sweden_1957 + Sweden_2020 +
+  Switzerland_1890 + Switzerland_1918 + Switzerland_1957 + Switzerland_2020 +
+  plot_layout(widths = rep(c(2, 2, 2, 1), 3)) +
+  plot_layout(ncol = 4) 
+
+ggsave("paper/four_pndemics.png", dpi = 300, width = 297, height = 210, units = "mm")
+```
+
+## Percent
+
+```{r}
+plot_years <- c(seq(1890 - 1, 1890 + 2),
+                seq(1918 - 1, 1918 + 2),
+                seq(1957 - 1, 1957 + 2),
+                seq(2020 - 1, 2020 + 2))
+
+plot_data <- expected_deaths_monthly %>% 
+  filter(Year %in% plot_years) %>% 
+  mutate(Percent = ((deaths - fit_flu_hc) / fit_flu_hc),
+         Difference = ifelse(deaths > fit_flu_hc, "More", "Less")) %>% 
+  group_by(Country, Pandemic) %>% 
+  mutate(time = row_number()) %>% 
+  ungroup()
+
+plot_data %>% 
+  ggplot(aes(x = time)) +
+  geom_hline(yintercept = 0, colour = "grey60") +
+  geom_vline(xintercept = 13, colour = "grey80") +
+  geom_vline(xintercept = 24, colour = "grey80") +
+  geom_rect(xmin = as.Date(paste0(year, "-01-01")),
+            xmax = as.Date(paste0(year, "-12-31")),
+            ymin = -Inf, ymax = Inf,
+            fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +
+  geom_col(aes(y = Percent, fill = Difference), size = 0.5) +
+  facet_grid(vars(Country), vars(Pandemic), scales = "free_x") + 
+  scale_x_continuous(limits = c(min(plot_data$time)-1, max(plot_data$time)+1),
+                     breaks = c(1, 13, 24, 36, 48), 
+                     labels = c("-12m", "Start", "End", "+12m", "+24m")) +
+  xlab("") + 
+  ylab("% above predicted deaths") +
+  ggtitle("Excess deaths as % of observed") +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank(), 
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(), 
+        panel.grid.minor.y = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40")) 
+
+ggsave("paper/four_pndemics_perc.png", dpi = 300, width = 297, height = 210, units = "mm")
+```
+
+# Appendix 
 
 ## Crude
 
@@ -149,91 +351,3 @@ expected_deaths_monthly %>%
   xlab("") + ylab("Deaths / 10,000 population") +
   ggtitle("Monthly number of deaths")
 ```
-
-# Figure 2 - four pandemics
-
-```{r}
-focus_years <- c(1890, 1918, 1957, 2020)
-
-# plot_years <- c(seq(1890 - 1, 1890 + 2),
-#                 seq(1918 - 1, 1918 + 2),
-#                 seq(1957 - 1, 1957 + 2),
-#                 seq(2020 - 1, 2020 + 2))
-
-for(country in unique(expected_deaths_monthly$Country)) { 
-  
-  print(paste0("Plotting ", country))
-  
-  max <- expected_deaths_monthly %>% 
-    filter(Country == country) %>% 
-    filter(!is.na(Pandemic)) %>% 
-    summarise(deaths = max(deaths),
-              lpi = max(lpi),
-              upi = max(upi),
-              median = max(median),
-              lpi_flu = max(lpi_flu),
-              upi_flu = max(upi_flu),
-              median_flu_year = max(median_flu_year)) %>% 
-    rowwise() %>% 
-    mutate(max = max(c(deaths, lpi, upi, median, lpi_flu, upi_flu, median_flu_year)))
-  
-  print(paste0("Max for x is ", max$max))
-  
-  for(year in focus_years) {
-    
-    print(paste0("    Year ", year))
-    
-    plot_data <- expected_deaths_monthly %>% 
-      filter(Country == country) %>% 
-      filter(Pandemic == year)
-    
-    name <- paste(country, year, sep = "_")
-    
-    if (year == 2020) {
-      my_title = paste0(country, ": ", 
-                        as.character(year - 1), "-", as.character(year))
-    } else {
-      my_title = paste0(country, ": ", 
-                        as.character(year - 1), "-", as.character(year + 2))
-    }
-    
-    plot <- plot_data %>% 
-      ggplot(aes(x = Date)) +
-      geom_rect(xmin = as.Date(paste0(year, "-01-01")),
-                xmax = as.Date(paste0(year, "-12-31")),
-                ymin = -Inf, ymax = Inf, 
-                fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +
-      geom_ribbon(aes(ymin = lpi_flu, ymax = upi_flu), alpha = 0.1) + 
-      geom_line(aes(y = fit_flu), colour = "grey50") +
-      # geom_line(aes(y = median_flu_year), colour = "#2c7bb6") + 
-      geom_line(aes(y = deaths), color = "#d7191c", size = 0.5) + 
-      scale_x_date(limits = c(min(plot_data$Date), max(plot_data$Date)),
-                   date_breaks = "6 months", date_labels = "%b") +
-      xlab("") + 
-      # ylab("Observed, 10y median & predicted deaths") +
-      ylab("Observed & predicted deaths") +
-      # labs(caption = "Excludes extreme years") +
-      ggtitle(my_title) +
-      scale_y_continuous(limits = c(0, max$max),
-                         labels = label_number(accuracy = 0.1, suffix = "K", 
-                                               scale = 1e-4)) +
-      theme_minimal() +
-      theme(plot.title = element_text(size = 10),
-            axis.text.x = element_text(size = 8),
-            axis.title.y = element_text(size = 9),
-            axis.text.y = element_text(size = 8))
-    
-    assign(name, plot)
-  }
-}
-
-plot_spacer() + Spain_1918 + Spain_1957 + Spain_2020 +  
-  Sweden_1890 + Sweden_1918 + Sweden_1957 + Sweden_2020 +
-  Switzerland_1890 + Switzerland_1918 + Switzerland_1957 + Switzerland_2020 +
-  plot_layout(widths = rep(c(2, 2, 2, 1), 3)) +
-  plot_layout(ncol = 4)
-
-ggsave("paper/four_pndemics.png", dpi = 300, width = 297, height = 210, units = "mm")
-
-```
-
