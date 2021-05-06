@@ -361,7 +361,6 @@ for (YEAR in year_reg:year_max){
 
 rm(predict, predict_flu_hc, predict_flu, pred_data, reg_data, YEAR)
 write_rds(se_expected_deaths_monthly, "data/se_expected_deaths_monthly.Rds")
-haven::write_dta(se_expected_deaths_monthly, "data/se_expected_deaths_monthly.dta")
 ```
 
 ```{r include=FALSE}
