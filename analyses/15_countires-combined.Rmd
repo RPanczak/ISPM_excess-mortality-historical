@@ -51,10 +51,9 @@ expected_deaths_monthly <- bind_rows(
 write_rds(expected_deaths_monthly, "data/expected_deaths_monthly.Rds")
 haven::write_dta(expected_deaths_monthly, "data/expected_deaths_monthly.dta")
 
-# unlink("data/ch_expected_deaths_monthly.Rds") 
-# unlink("data/se_expected_deaths_monthly.Rds") 
-# unlink("data/es_expected_deaths_monthly.Rds") 
-
+unlink("data/ch_expected_deaths_monthly.Rds")
+unlink("data/se_expected_deaths_monthly.Rds")
+unlink("data/es_expected_deaths_monthly.Rds")
 ```
 
 ```{r}
