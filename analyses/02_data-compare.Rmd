@@ -76,6 +76,7 @@ write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
 
 # ES
 # pop
+# 1975 problem resolved in #45
 hmd_es_pop_raw <- readHMDweb(CNTRY = "ESP", item ="Population" , 
                              username = "r.panczak@gmail.com", password = password,
                              fixup = FALSE) %>% 
@@ -229,14 +230,15 @@ ggplot(hmd_se_deaths, aes(x = Year)) +
   xlab("") + ylab("Yearly number of deaths")
 ```
 <!-- ----------------------------------------------------- -->
+# Switzerland 
 
-# BfS
+## BfS
 
-## Deaths 
+### Deaths 
 
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
-With update from @Kaspar covering missing months between 1886 and 1900!
+With update from @Kaspar **covering missing months between 1886 and 1900**!
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
 bfs_web_raw <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
@@ -308,9 +310,9 @@ ggplot(data = filter(bfs_web_deaths_monthly,
   xlab("") + ylab("Monthly/yearly number of deaths")
 ```
 
-Note different `y` scales! 
+*Note different `y` scales!*
 
-## Pops 
+### Pops 
 
 [Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html)
 
@@ -340,13 +342,11 @@ ggplot(bfs_web_pop_yearly, aes(x = Year)) +
   scale_y_continuous(labels = comma)
 ```
 
-<!-- ----------------------------------------------------- -->
-
-# SNC
+## SNC
 
 SNC aggregated data. Has limitations of only being available since `1971` but has advantage of possibility to split by sex & age groups since we can aggregate individual records to whatever strata we wish to use. 
 
-## Deaths monthly
+### Deaths monthly
 
 ```{r}
 bfs_snc_deaths_monthly <- read_dta("data-raw/SNC/mortCHmonthly.dta") %>% 
@@ -370,7 +370,7 @@ ggplot(bfs_snc_deaths_monthly, aes(x = date, y = deaths_month, colour = interact
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-## Deaths weekly
+### Deaths weekly
 
 ```{r}
 bfs_snc_deaths_weekly <- read_dta("data-raw/SNC/mortCHweely.dta") %>% 
@@ -396,7 +396,7 @@ ggplot(bfs_snc_deaths_weekly, aes(x = week_num, y = deaths_week, colour = year, 
   xlab("") + ylab("Weekly number of deaths")
 ```
 
-## Population
+### Population
 
 ```{r}
 bfs_snc_pop_yearly_mid <- read_dta("data-raw/SNC/staend_wb_jahresmitte_71_18.dta") %>% 
@@ -448,9 +448,7 @@ bfs_snc_pop_yearly_end %>%
   xlab("") + ylab("Yearly population")
 ```
 
-<!-- ----------------------------------------------------- -->
-
-# Russian Flu
+## Russian Flu
 
 ```{r message=FALSE, warning=FALSE}
 extra_1889 <- read_xlsx("data-raw/Kaspar/1889 CH.xlsx") %>% 
@@ -472,11 +470,9 @@ ggplot(extra_1889) +
   xlab("") + ylab("Monthly number of deaths")
 ```
 
-<!-- ----------------------------------------------------- -->
+## Comparison - pops
 
-# Comparison - pops
-
-## BfS web vs BfS SNC
+### BfS web vs BfS SNC
 
 ```{r}
 compare <- full_join(
@@ -494,7 +490,7 @@ Summary of differences between BfS figures (both Jan and Dec) and HMD
 summary(compare$diff)
 ```
 
-## BfS web vs HMD
+### BfS web vs HMD
 
 ```{r}
 compare <- left_join(
@@ -549,7 +545,7 @@ compare %>%
   xlab("") + ylab("Yearly difference in population estimates")
 ```
 
-## BfS SNC vs HMD
+### BfS SNC vs HMD
 
 ```{r}
 compare <- 
@@ -617,11 +613,9 @@ compare %>%
   xlab("") + ylab("Yearly difference in population estimates")
 ```
 
-<!-- ----------------------------------------------------- -->
+## Comparison - deaths
 
-# Comparison - deaths
-
-## Yearly vs. monthly figures
+### Yearly vs. monthly figures
 
 ```{r}
 bfs_web_deaths_monthly %>% 
@@ -636,7 +630,7 @@ bfs_web_deaths_monthly %>%
 
 There are no years where summed monthly data differ from "official" yearly sums.
 
-## Russian Flu vs BfS
+### Russian Flu vs BfS
 
 ```{r}
 compare <- extra_1889 %>% 
@@ -663,7 +657,7 @@ ggplot(compare, aes(x = Date, y = diff)) +
   xlab("") + ylab("Yearly difference in number of deaths")
 ```
 
-## BfS vs HMD
+### BfS vs HMD
 
 ```{r}
 compare <- left_join(
