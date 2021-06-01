@@ -19,17 +19,16 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(knitr, rmdformats, 
-       tidyverse, scales, readxl, haven, janitor, kableExtra)
+p_load(tidyverse, scales, readxl, haven, janitor)
 
 options(max.print = "75")
-opts_chunk$set(cache = FALSE,
-               prompt = FALSE,
-               tidy = FALSE,
-               comment = NA,
-               message = FALSE,
-               warning = FALSE)
-opts_knit$set(width = 75)
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
 ```
@@ -229,6 +228,48 @@ ggplot(hmd_se_deaths, aes(x = Year)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
+
+<!-- ----------------------------------------------------- -->
+# HMD - STMF data series
+
+Short-term Mortality Fluctuations weekly dataset to cover 2020 data
+
+```{r}
+download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
+              destfile = "data-raw/mortality_org/stmf.csv",
+              method = "curl")
+
+download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFmetadata.pdf",
+              destfile = "data-raw/mortality_org/STMFmetadata.pdf",
+              method = "curl")
+
+download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFNote.pdf",
+              destfile = "data-raw/mortality_org/STMFNote.pdf",
+              method = "curl")
+```
+
+```{r}
+stmf <- read_csv("data-raw/mortality_org/stmf.csv", 
+                 col_types = cols(Year = col_integer(), Week = col_integer(), 
+                                  Split = col_integer(), SplitSex = col_integer(), 
+                                  Forecast = col_integer()), 
+                 skip = 1) %>% 
+  filter(CountryCode %in% c("CHE", "ESP", "SWE")) %>% 
+  filter(Sex == "b") %>% 
+  select(CountryCode, Year, Week, DTotal)
+
+View(stmf)
+```
+
+```{r echo=FALSE}
+stmf %>% 
+  filter(Year >= 2020) %>% 
+  ggplot(aes(x = interaction(Year, Week))) +
+  geom_line(aes(y = DTotal, group = CountryCode, color = CountryCode)) +
+  theme_bw() +
+  xlab("") + ylab("Weekly number of deaths")
+```
+
 <!-- ----------------------------------------------------- -->
 # Switzerland 
 
