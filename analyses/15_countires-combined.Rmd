@@ -20,7 +20,7 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(tidyverse, scales, patchwork)
+p_load(tidyverse, scales, patchwork, kableExtra)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -283,6 +283,33 @@ plot_data %>%
 ggsave("paper/four_pndemics_perc.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
+# Table 1
+
+```{r}
+pandemic_year <- c("1890","1918","1957","2020")
+
+table_1 <- expected_deaths_monthly %>%
+  select(Country,Year, deaths, pop, fit_flu_hc) %>%
+  filter(Year %in% pandemic_year)%>%
+  group_by(Year, Country) %>%
+  summarise(Expected_Mortality = round(sum(fit_flu_hc), 0),
+            Deaths_num = sum(deaths),
+            Cum_excess_death = round(sum(deaths)-sum(fit_flu_hc), 0),
+            Percent_excess_death = round((Cum_excess_death/Expected_Mortality)*100, 1))%>%
+  ungroup()
+
+openxlsx::write.xlsx(table_1,"paper/table1.xlsx", row.names = FALSE)
+```
+
+```{r echo=FALSE}
+table_1 %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
+```
+
 # Appendix 
 
 ```{r eval=FALSE}
@@ -351,6 +378,8 @@ expected_deaths_monthly %>%
 ```
 
 ## Country panel
+
+### Switzerland
 
 ```{r echo=FALSE}
 extra_labs <- c("Deaths", "Deaths / 10,000", "Population")
