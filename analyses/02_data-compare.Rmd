@@ -19,7 +19,7 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(tidyverse, scales, readxl, haven, janitor)
+p_load(tidyverse, scales, readxl, haven, janitor, aweek)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -256,7 +256,9 @@ stmf <- read_csv("data-raw/mortality_org/stmf.csv",
                  skip = 1) %>% 
   filter(CountryCode %in% c("CHE", "ESP", "SWE")) %>% 
   filter(Sex == "b") %>% 
-  select(CountryCode, Year, Week, DTotal)
+  select(CountryCode, Year, Week, DTotal) %>% 
+  filter(Year >= 2020) %>% 
+  rename(Deaths = DTotal)
 
 View(stmf)
 ```
@@ -265,9 +267,19 @@ View(stmf)
 stmf %>% 
   filter(Year >= 2020) %>% 
   ggplot(aes(x = interaction(Year, Week))) +
-  geom_line(aes(y = DTotal, group = CountryCode, color = CountryCode)) +
+  geom_line(aes(y = Deaths, group = CountryCode, color = CountryCode)) +
   theme_bw() +
   xlab("") + ylab("Weekly number of deaths")
+```
+
+
+```{r}
+stmf %<>% 
+  mutate(Week2 = get_aweek(week = Week, year = Year, 
+                           start = "Monday", week_start = "Monday"),
+         Week_start = get_date(week = Week, year = Year, 
+                               start = "Monday")) %>% 
+  relocate(Week2, Week_start, .after = Week)
 ```
 
 <!-- ----------------------------------------------------- -->
