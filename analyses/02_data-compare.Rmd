@@ -234,7 +234,7 @@ ggplot(hmd_se_deaths, aes(x = Year)) +
 
 Short-term Mortality Fluctuations weekly dataset to cover 2020 data
 
-```{r}
+```{r eval=FALSE}
 download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
               destfile = "data-raw/mortality_org/stmf.csv",
               method = "curl")
@@ -258,28 +258,24 @@ stmf <- read_csv("data-raw/mortality_org/stmf.csv",
   filter(Sex == "b") %>% 
   select(CountryCode, Year, Week, DTotal) %>% 
   filter(Year >= 2020) %>% 
-  rename(Deaths = DTotal)
-
-View(stmf)
-```
-
-```{r echo=FALSE}
-stmf %>% 
-  filter(Year >= 2020) %>% 
-  ggplot(aes(x = interaction(Year, Week))) +
-  geom_line(aes(y = Deaths, group = CountryCode, color = CountryCode)) +
-  theme_bw() +
-  xlab("") + ylab("Weekly number of deaths")
-```
-
-
-```{r}
-stmf %<>% 
+  rename(Deaths = DTotal) %>%  
   mutate(Week2 = get_aweek(week = Week, year = Year, 
                            start = "Monday", week_start = "Monday"),
          Week_start = get_date(week = Week, year = Year, 
                                start = "Monday")) %>% 
   relocate(Week2, Week_start, .after = Week)
+
+write_rds(stmf, "data/mortality_org/stmf.Rds")
+write_dta(stmf, "data/mortality_org/stmf.dta")
+```
+
+```{r echo=FALSE}
+stmf %>% 
+  filter(Year >= 2020) %>% 
+  ggplot(aes(x = Week_start)) +
+  geom_line(aes(y = Deaths, group = CountryCode, color = CountryCode)) +
+  theme_bw() +
+  xlab("") + ylab("Weekly number of deaths")
 ```
 
 <!-- ----------------------------------------------------- -->
