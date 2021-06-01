@@ -46,13 +46,15 @@ mu <- Hmisc::markupSpecs$html
 #               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv",
 #               method = "curl")
 
-weekly_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";", escape_double = FALSE, 
+weekly_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
+                               escape_double = FALSE, 
                                col_types = cols(CY = col_integer(), 
                                                 Week = col_integer(), 
                                                 Ending = col_date(format = "%d.%m.%Y"), 
                                                 NumberOfDeaths = col_integer(), 
                                                 Expected = col_integer(), 
-                                                lowerB = col_integer(), upperB = col_integer(), 
+                                                lowerB = col_integer(), 
+                                                upperB = col_integer(), 
                                                 Excess = col_integer()), 
                                trim_ws = TRUE) %>% 
   rename(Year = CY) %>% 
@@ -82,7 +84,7 @@ weekly_2010_2019 %>%
 ## Weekly number of deaths, 2020-2021
 
 ```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16744393/master",
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17544965/master",
               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr.csv",
               method = "curl")
 
@@ -91,11 +93,12 @@ weekly_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.csv",
                                col_types = cols(Year = col_integer(), 
                                                 Week = col_integer(), 
                                                 Ending = col_date(format = "%d.%m.%Y"), 
-                                                NoDeaths_EP = col_integer(), 
-                                                Expected = col_integer(), 
-                                                LowerB = col_integer(), UpperB = col_integer(), 
-                                                Diff = col_integer()), 
-                               trim_ws = TRUE) %>% 
+                                                NoDeaths_EP = col_double(), 
+                                                Expected = col_double(), 
+                                                LowerB = col_double(), 
+                                                UpperB = col_double(), 
+                                                Diff = col_double()), 
+                               trim_ws = TRUE, na = c(".")) %>% 
   rename(NumberOfDeaths = NoDeaths_EP,
          lowerB = LowerB, upperB = UpperB,
          Excess = Diff) %>% 
@@ -267,6 +270,39 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
   ungroup() %>% 
   mutate(year = 2019) %>% 
   relocate(year)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Comparing to STMF
+
+```{r}
+bfs_stmf <- left_join(
+  
+  weekly_2020_2021 %>% 
+    filter(Ending <= as.Date("2021-05-23")) %>% 
+    group_by(Year, Week) %>%
+    summarise(NumberOfDeaths = sum(NumberOfDeaths)) %>% 
+    ungroup(),
+  
+  read_rds("data/mortality_org/stmf.Rds") %>% 
+    filter(CountryCode == "CHE")
+  
+) %>% 
+  mutate(diff = NumberOfDeaths - Deaths)
+
+ggplot(bfs_stmf, aes(x = Week_start, y = diff)) + 
+  geom_hline(yintercept = 0, color = "darkorchid") +
+  geom_line() + 
+  theme_bw() +
+  xlab("") + ylab("Weekly difference in number of deaths") 
+
+ggplot(bfs_stmf, aes(x = Week_start, y = diff / NumberOfDeaths)) + 
+  geom_hline(yintercept = 0, color = "darkorchid") +
+  geom_line() + 
+  theme_bw() +
+  xlab("") + ylab("Weekly difference in number of deaths") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
 ```
 
 <!-- ----------------------------------------------------- -->
