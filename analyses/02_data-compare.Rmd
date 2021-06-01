@@ -19,7 +19,8 @@ options(scipen=999)
 set.seed(12345)
 
 library(pacman)
-p_load(tidyverse, scales, readxl, haven, janitor, aweek)
+p_load(tidyverse, scales, readxl, haven, janitor, 
+       aweek, wktmo)
 
 options(max.print = "75")
 knitr::opts_chunk$set(cache = FALSE,
@@ -234,6 +235,8 @@ ggplot(hmd_se_deaths, aes(x = Year)) +
 
 Short-term Mortality Fluctuations weekly dataset to cover 2020 data
 
+## Weekly
+
 ```{r eval=FALSE}
 download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
               destfile = "data-raw/mortality_org/stmf.csv",
@@ -246,9 +249,7 @@ download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFmetadata.pdf"
 download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFNote.pdf",
               destfile = "data-raw/mortality_org/STMFNote.pdf",
               method = "curl")
-```
 
-```{r}
 stmf <- read_csv("data-raw/mortality_org/stmf.csv", 
                  col_types = cols(Year = col_integer(), Week = col_integer(), 
                                   Split = col_integer(), SplitSex = col_integer(), 
@@ -269,6 +270,10 @@ write_rds(stmf, "data/mortality_org/stmf.Rds")
 write_dta(stmf, "data/mortality_org/stmf.dta")
 ```
 
+```{r}
+stmf <- read_rds("data/mortality_org/stmf.Rds")
+```
+
 ```{r echo=FALSE}
 stmf %>% 
   filter(Year >= 2020) %>% 
@@ -276,6 +281,45 @@ stmf %>%
   geom_line(aes(y = Deaths, group = CountryCode, color = CountryCode)) +
   theme_bw() +
   xlab("") + ylab("Weekly number of deaths")
+```
+
+## Monthly
+
+Weeks converted to months using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package. 
+
+```{r}
+stmf_month <- bind_rows(
+  
+  weekToMonth(stmf[stmf$CountryCode == "CHE", ]$Deaths, 
+              datStart = "30-12-2019", wkMethod = "ISO") %>% 
+    as_tibble() %>% 
+    mutate(Country = "Switzerland"),
+  
+  weekToMonth(stmf[stmf$CountryCode == "ESP", ]$Deaths, 
+              datStart = "30-12-2019", wkMethod = "ISO") %>% 
+    as_tibble() %>% 
+    mutate(Country = "Spain"),
+  
+  weekToMonth(stmf[stmf$CountryCode == "SWE", ]$Deaths, 
+              datStart = "30-12-2019", wkMethod = "ISO") %>% 
+    as_tibble() %>% 
+    mutate(Country = "Sweden") 
+  
+) %>% 
+  filter(! yearMonth %in% c("2019-12", "2021-05")) %>% 
+  separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
+  rename(deaths_month = value) %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(Country, Year, Month, Date)
+```
+
+```{r echo=FALSE}
+stmf_month %>% 
+  ggplot(aes(x = Date)) +
+  geom_col(aes(y = deaths_month)) +
+  facet_grid(rows = vars(Country), scales = "free_y") +
+  theme_bw() +
+  xlab("") + ylab("Monthly number of deaths")
 ```
 
 <!-- ----------------------------------------------------- -->
