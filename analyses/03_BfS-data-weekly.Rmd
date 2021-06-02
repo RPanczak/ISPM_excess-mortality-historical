@@ -276,6 +276,8 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
 
 # Comparing to STMF
 
+Untill April all seems to be fine:
+
 ```{r}
 bfs_stmf <- left_join(
   
@@ -293,12 +295,14 @@ bfs_stmf <- left_join(
 
 ggplot(bfs_stmf, aes(x = Week_start, y = diff)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
+  geom_vline(xintercept = as.Date("2021-04-01"), color = "orange") +
   geom_line() + 
   theme_bw() +
   xlab("") + ylab("Weekly difference in number of deaths") 
 
 ggplot(bfs_stmf, aes(x = Week_start, y = diff / NumberOfDeaths)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
+  geom_vline(xintercept = as.Date("2021-04-01"), color = "orange") +
   geom_line() + 
   theme_bw() +
   xlab("") + ylab("Weekly difference in number of deaths") +
