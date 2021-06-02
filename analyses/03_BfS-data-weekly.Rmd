@@ -276,7 +276,7 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
 
 # Comparing to STMF
 
-Untill April all seems to be fine:
+Until April, all seems to be fine:
 
 ```{r}
 bfs_stmf <- left_join(
