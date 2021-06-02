@@ -311,6 +311,9 @@ stmf_month <- bind_rows(
   rename(deaths_month = value) %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Country, Year, Month, Date)
+
+write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
+write_dta(stmf_month, "data/mortality_org/stmf_month.dta")
 ```
 
 ```{r echo=FALSE}
