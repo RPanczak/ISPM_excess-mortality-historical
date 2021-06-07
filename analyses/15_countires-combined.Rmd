@@ -35,17 +35,27 @@ knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
 ```
+
 <!-- ----------------------------------------------------- -->
 
 # Data 
 
 ```{r eval=FALSE, include=FALSE}
+# country specific
+ch_expected_deaths_monthly <- read_rds("data/ch_expected_deaths_monthly.Rds") %>% 
+  mutate(Country = "Switzerland") %>% relocate(Country),
+se_expected_deaths_monthly <- read_rds("data/se_expected_deaths_monthly.Rds") %>% 
+  mutate(Country = "Sweden") %>% relocate(Country),
+es_expected_deaths_monthly <- read_rds("data/es_expected_deaths_monthly.Rds") %>% 
+  mutate(Country = "Spain") %>% relocate(Country)
+
+# toogether
 expected_deaths_monthly <- bind_rows(
-  ch_expected_deaths_monthly <- read_rds("data/ch_expected_deaths_monthly.Rds") %>% 
+  read_rds("data/ch_expected_deaths_monthly.Rds") %>% 
     mutate(Country = "Switzerland") %>% relocate(Country),
-  se_expected_deaths_monthly <- read_rds("data/se_expected_deaths_monthly.Rds") %>% 
+  read_rds("data/se_expected_deaths_monthly.Rds") %>% 
     mutate(Country = "Sweden") %>% relocate(Country),
-  es_expected_deaths_monthly <- read_rds("data/es_expected_deaths_monthly.Rds") %>% 
+  read_rds("data/es_expected_deaths_monthly.Rds") %>% 
     mutate(Country = "Spain") %>% relocate(Country)
 )
 
