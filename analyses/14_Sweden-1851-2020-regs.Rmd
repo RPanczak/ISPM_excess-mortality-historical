@@ -176,7 +176,7 @@ sweden_deaths_monthly %>%
   xlab("") + ylab("Deaths / 100k")
 ```
 
-## 10-year medians
+## 5-year medians
 
 ```{r}
 sweden_deaths_monthly %<>% 
