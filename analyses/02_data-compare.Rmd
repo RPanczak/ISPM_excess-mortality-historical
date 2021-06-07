@@ -394,8 +394,6 @@ bfs_web_deaths_yearly <- read_rds("data/BfS/bfs_web_deaths_yearly.Rds")
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds")
 ```
 
-Yearly deaths for period 1803 to 1876; monthly deaths thereafter.
-
 ```{r echo=FALSE}
 ggplot(data = bfs_web_deaths_monthly, 
        aes(x = Date)) +
