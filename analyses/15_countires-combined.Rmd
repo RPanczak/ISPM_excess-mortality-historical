@@ -351,7 +351,17 @@ expected_deaths_monthly %>%
   ggtitle("Monthly number of deaths")
 ```
 
-## Per population
+```{r eval=FALSE}
+## Per pop
+expected_deaths_monthly %>% 
+  ggplot(aes(x = Date, y = (deaths/pop)*10000, colour = Country)) +
+  geom_line() +
+  theme_minimal() +
+  xlab("") + ylab("Deaths / 10,000 population") +
+  ggtitle("Monthly number of deaths")
+```
+
+## Deaths per population
 
 ```{r echo=FALSE}
 expected_deaths_monthly %>% 
@@ -373,15 +383,6 @@ expected_deaths_monthly %>%
             ymin = 0, ymax = Inf,
             fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) + 
   facet_grid(vars(Country), scales = "free_y") + 
-  geom_line() +
-  theme_minimal() +
-  xlab("") + ylab("Deaths / 10,000 population") +
-  ggtitle("Monthly number of deaths")
-```
-
-```{r eval=FALSE}
-expected_deaths_monthly %>% 
-  ggplot(aes(x = Date, y = (deaths/pop)*10000, colour = Country)) +
   geom_line() +
   theme_minimal() +
   xlab("") + ylab("Deaths / 10,000 population") +
@@ -424,6 +425,65 @@ expected_deaths_monthly %>%
   theme_minimal() +
   xlab("") + ylab("Variable count") +
   ggtitle("Monthly number of deaths, population and deaths per 10,000")
+```
+
+## Impact of extremes
+
+Using 1918 as example of impact.  
+Estimates with extreme year (red) and without (blue).  
+Converge after 5 year smoothing window stops having effect (ie. in 1924).  
+### Figure 
+
+```{r echo=FALSE}
+expected_deaths_monthly %>% 
+  # filter(Country == "Spain") %>% 
+  filter(Year >= 1918 & Year <= 1924) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = deaths), colour = "grey60") + 
+  geom_ribbon(aes(ymin = lpi, ymax = upi), 
+              alpha = 0.1, fill = "#EF8A62") + 
+  geom_line(aes(y = fit), colour = "#EF8A62") +
+  geom_ribbon(aes(ymin = lpi_flu_hc, ymax = upi_flu_hc), 
+              alpha = 0.1, fill = "#67A9CF") + 
+  geom_line(aes(y = fit_flu_hc), colour = "#67A9CF") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y", minor_breaks = NULL) +
+  # coord_cartesian(ylim = c(NA, 100000)) + 
+  xlab("") + ylab("Number of deaths") + 
+  facet_grid(vars(Country), scales = "free_y") + 
+  theme_minimal()
+```
+
+### Table 
+
+Using 1918 as example of impact on estimates from 1919.   
+
+```{r echo=FALSE}
+table_data <- expected_deaths_monthly %>% 
+  # filter(Country == "Spain") %>% 
+  filter(Year >= 1919 & Year <= 1919) %>% 
+  select(Country, Month, deaths, fit, fit_flu_hc) %>% 
+  mutate(fit = round(fit),
+         fit_diff = fit - deaths,
+         fit_flu_hc = round(fit_flu_hc),
+         fit_flu_hc_diff = fit_flu_hc - deaths) %>% 
+  relocate(fit_diff, .after = fit) %>% 
+  relocate(fit_flu_hc_diff, .after = fit_flu_hc)  
+
+table_data%>% 
+  kbl(col.names = c("Country", "Month", "Observed", 
+                    "Predicted", "Difference",
+                    "Predicted", "Difference")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  column_spec(5, color = ifelse(table_data$fit_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  column_spec(7, color = ifelse(table_data$fit_flu_hc_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  row_spec(1, italic = FALSE) %>% 
+  add_header_above(c(" " = 3, "Including 1918" = 2, "Excluding 1918" = 2)) %>%
+  # collapse not working; issue filled on github
+  collapse_rows(columns = 1, valign = "top")
 ```
 
 <!-- ----------------------------------------------------- -->
