@@ -429,7 +429,7 @@ expected_deaths_monthly %>%
 
 ## Impact of extremes
 
-Using 1918 as example of impact.  
+Using 1918 pandemic as an example of impacton estimates from 1919 - 1923.  
 Estimates with extreme year (red) and without (blue).  
 Converge after 5 year smoothing window stops having effect (ie. in 1924).  
 ### Figure 
@@ -455,7 +455,7 @@ expected_deaths_monthly %>%
 
 ### Table 
 
-Using 1918 as example of impact on estimates from 1919.   
+Using 1918 pandemic as an example of impact on estimates from 1919.   
 
 ```{r echo=FALSE}
 table_data <- expected_deaths_monthly %>% 
@@ -485,6 +485,152 @@ table_data%>%
   # collapse not working; issue filled on github
   collapse_rows(columns = 1, valign = "top")
 ```
+
+## Impact of methods
+
+### Fit vs. LPI vs. UPI
+
+```{r echo=FALSE}
+focus_years <- c(1890, 1918, 1957, 2009, 2020)
+
+table_data <- expected_deaths_monthly %>% 
+  filter(Country == "Switzerland") %>%
+  filter(Year %in% focus_years) %>% 
+  group_by(Year) %>% 
+  summarize(deaths = sum(deaths),
+            fit = round(sum(fit)),
+            fit_diff = fit - deaths,
+            lpi = round(sum(lpi)),
+            lpi_diff = lpi - deaths, 
+            upi = round(sum(upi)),
+            upi_diff = upi - deaths) %>% 
+  relocate(lpi_diff, .after = lpi) %>% 
+  relocate(upi_diff, .after = upi)  
+
+table_data%>% 
+  kbl(col.names = c("Year", "Observed", 
+                    "Predicted", "Difference",
+                    "Predicted", "Difference",
+                    "Predicted", "Difference")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  column_spec(4, color = ifelse(table_data$fit_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  column_spec(6, color = ifelse(table_data$lpi_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  column_spec(8, color = ifelse(table_data$upi_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  row_spec(1, italic = FALSE) %>% 
+  add_header_above(c(" " = 2, "Fit" = 2, "LPI" = 2, "UPI" = 2)) %>%
+  # collapse not working; issue filled on github
+  collapse_rows(columns = 1, valign = "top")
+```
+
+### 2015 & 2020
+
+Comparing BfS and our method for two years.  
+
+```{r echo=FALSE}
+focus_years <- c(2010, 2015, 2020)
+```
+
+```{r eval=FALSE,echo=FALSE}
+p_load(aweek, wktmo)
+# in case proper monthly redistribution is needed?
+# !!! unfinished !!!
+# needs 2020...
+bfs_2015 <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds") %>%
+  filter(Year == 2015) %>%
+  select(-Ending) %>%
+  mutate(Starting = get_date(week = Week, year = Year, start = "Monday"))
+
+# ... and 65+
+bfs <- bind_rows(
+  
+  weekToMonth(bfs_2015[bfs_2015$Age == "0-64", ]$NumberOfDeaths,
+              datStart = "29-12-2014", wkMethod = "ISO") 
+  
+) %>% 
+  separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
+  filter(Year %in% focus_years) %>% 
+  rename(deaths_month = value) %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(Year, Month, Date)
+
+p_unload(aweek, wktmo)
+```
+
+```{r echo=FALSE}
+# ignoring first & last week problems
+compare <- bind_rows(
+  
+  bind_rows(
+    read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds"),
+    read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds")) %>% 
+    filter(Year %in% focus_years) %>% 
+    # select(-Ending) %>% 
+    # mutate(
+    #   # Week2 = get_aweek(week = Week, year = Year, 
+    #   #                   start = "Monday", week_start = "Monday"),
+    #   Starting = aweek::get_date(week = Week, year = Year, 
+    #                       start = "Monday")) %>% 
+    mutate(Expected_diff = Expected - NumberOfDeaths,
+           lowerB_diff = lowerB - NumberOfDeaths,
+           upperB_diff = upperB - NumberOfDeaths) %>%
+    group_by(Year) %>% 
+    summarise(NumberOfDeaths = sum(NumberOfDeaths),
+              Expected = sum(Expected),
+              Expected_diff = sum(Expected_diff),
+              lowerB = sum(lowerB), 
+              lowerB_diff = sum(lowerB_diff),
+              upperB = sum(upperB),
+              upperB_diff = sum(upperB_diff)) %>%
+    ungroup() %>% 
+    mutate(Method = "BfS"),
+  
+  expected_deaths_monthly %>% 
+    filter(Country == "Switzerland") %>%
+    filter(Year %in% focus_years) %>% 
+    mutate(Expected_diff = fit - deaths,
+           lowerB_diff = lpi - deaths, 
+           upperB_diff = upi - deaths) %>% 
+    group_by(Year) %>% 
+    summarize(NumberOfDeaths = sum(deaths),
+              Expected = round(sum(fit)),
+              Expected_diff = round(sum(Expected_diff)),
+              lowerB = round(sum(lpi)),
+              lowerB_diff = round(sum(lowerB_diff)), 
+              upperB = round(sum(upi)),
+              upperB_diff = round(sum(upperB_diff))) %>% 
+    ungroup() %>% 
+    mutate(Method = "Our estimates")
+) %>% 
+  relocate(lowerB_diff, .after = lowerB) %>% 
+  relocate(upperB_diff, .after = upperB) %>%
+  relocate(Year, Method) %>% 
+  arrange(Year, Method)
+
+compare %>% 
+  kbl(col.names = c("Year", "Method", "Observed", 
+                    "Predicted", "Difference",
+                    "Predicted", "Difference",
+                    "Predicted", "Difference")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  column_spec(5, color = ifelse(compare$Expected_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  column_spec(7, color = ifelse(compare$lowerB_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  column_spec(9, color = ifelse(compare$upperB_diff > 0, 
+                                "#EF8A62", "#67A9CF")) %>% 
+  row_spec(1, italic = FALSE) %>% 
+  add_header_above(c(" " = 3, "Fit" = 2, "LPI" = 2, "UPI" = 2)) %>%
+  # collapse not working; issue filled on github
+  collapse_rows(columns = 1, valign = "top")
+```
+
 
 <!-- ----------------------------------------------------- -->
 
