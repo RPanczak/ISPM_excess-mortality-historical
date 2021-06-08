@@ -1,5 +1,6 @@
 ---
-title: "Excess mortality: weekly BAG data"
+title: "Excess mortality"
+subtitle: "Weekly BfS data"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -12,8 +13,6 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-
 set.seed(12345)
 options(scipen=999)
 options(max.print = "75")
@@ -23,12 +22,15 @@ p_load(tidyverse, readxl, scales, janitor, kableExtra)
 ```
 
 ```{r knit-setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
 knitr::opts_chunk$set(cache = FALSE,
                       prompt = FALSE,
                       tidy = FALSE,
                       comment = NA,
                       message = FALSE,
                       warning = FALSE)
+
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
@@ -36,9 +38,9 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
-# BfS - "Mortality, causes of death" chapter
+# BfS 
 
-[Overview of data](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.html)
+*Mortality, causes of death* chapter. [Overview of data](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.html).  
 
 ## Weekly number of deaths, 2010-2019
 
@@ -124,7 +126,7 @@ weekly_2020_2021 %>%
   theme_minimal()
 ```
 
-```{r eval=FALSE}
+```{r echo=FALSE,eval=FALSE}
 # projected goes on; with a funny dip at the end?
 weekly_2020_2021 %>% 
   filter(Ending >= as.Date("2020-11-01")) %>% 
@@ -157,87 +159,6 @@ haven::write_dta(excess_2010_2020, "data/BfS/excess_2010_2020.dta")
 ggplot(excess_2010_2020) + 
   geom_col(aes(x = factor(Year), y = Excess_expected)) + 
   theme_minimal() + xlab("") + ylab("Excess deaths")
-```
-
-
-# BfS - "Population" chapter
-
-2019
-canton
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004426.html
-gr
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004450.html
-
-Docs in `ts-q-01.04.02.01.30-APPENDIX.xlsx`
-
-2020 
-canon
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.15464210.html
-gr
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.15464206.html
-
-Docs in `ts-q-01.04.02.01.30-2020-APPENDIX.xlsx`
-
-2021
-canton
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187299.html
-gr
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187304.html
-
-Docs in `ts-q-01.04.02.01.30-2021-APPENDIX.xlsx`
-
-## Deaths per week by 5-year age group, sex and canton
-
-```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/13187299/master",
-              destfile = "data-raw/BfS/weekly_canton_age5_2000-2019.csv", 
-              method = "curl")
-
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/15464210/master",
-              destfile = "data-raw/BfS/weekly_canton_age5_2020.csv", 
-              method = "curl")
-
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17004426/master",
-              destfile = "data-raw/BfS/weekly_canton_age5_2021.csv", 
-              method = "curl")
-```
-
-```{r}
-weekly_canton_age5_2000_2019 <- read_delim("data-raw/BfS/weekly_canton_age5_2000-2019.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
-
-weekly_canton_age5_2020 <- read_delim("data-raw/BfS/weekly_canton_age5_2020.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
-
-weekly_canton_age5_2021 <- read_delim("data-raw/BfS/weekly_canton_age5_2021.csv", ";", escape_double = FALSE, col_types = cols(OBS_VALUE = col_integer()), trim_ws = TRUE)
-```
-
-<!-- ----------------------------------------------------- -->
-
-# BfS - MOMO
-
-BfS [Mortality monitoring (MOMO)](https://www.experimental.bfs.admin.ch/expstat/en/home/innovative-methods/momo.html) 
-
-## Deaths in NUTS2-regions, age group 0 - 64 years, 2020-2021
-
-```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584743/master",
-              destfile = "data-raw/BfS/momo_nuts_0-64_2020-2021.csv", 
-              method = "curl")
-```
-
-## Deaths in NUTS2-regions, age group 65 years and older, 2020-2021
-
-```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584737/master",
-              destfile = "data-raw/BfS/momo_nuts_65_2020-2021.csv", 
-              method = "curl")
-```
-
-## Weekly deaths 2020-2021 for 26 cantons and 2 age groups
-
-```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584735/master",
-              destfile = "data-raw/BfS/momo_canton_age-bin_2020-2021.csv", 
-              method = "curl")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -275,7 +196,7 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
 
 <!-- ----------------------------------------------------- -->
 
-# Comparing to STMF
+# Comparing BfS to STMF (weekly)
 
 Until April, all seems to be fine:
 
@@ -288,8 +209,8 @@ bfs_stmf <- left_join(
     summarise(NumberOfDeaths = sum(NumberOfDeaths)) %>% 
     ungroup(),
   
-  read_rds("data/mortality_org/stmf.Rds") %>% 
-    filter(CountryCode == "CHE")
+  read_rds("data/mortality_org/stmf_weekly.Rds") %>% 
+    filter(Country == "Switzerland")
   
 ) %>% 
   mutate(diff = NumberOfDeaths - Deaths)
@@ -299,14 +220,14 @@ ggplot(bfs_stmf, aes(x = Week_start, y = diff)) +
   geom_vline(xintercept = as.Date("2021-04-01"), color = "orange") +
   geom_line() + 
   theme_bw() +
-  xlab("") + ylab("Weekly difference in number of deaths") 
+  xlab("") + ylab("Weekly absolute difference in number of deaths") 
 
 ggplot(bfs_stmf, aes(x = Week_start, y = diff / NumberOfDeaths)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
   geom_vline(xintercept = as.Date("2021-04-01"), color = "orange") +
   geom_line() + 
   theme_bw() +
-  xlab("") + ylab("Weekly difference in number of deaths") +
+  xlab("") + ylab("Weekly % difference in number of deaths") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))
 ```
 
