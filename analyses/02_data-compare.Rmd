@@ -1,5 +1,6 @@
 ---
-title: "Excess mortality: data preparation"
+title: "Excess mortality"
+subtitle: "Data preparation"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -11,10 +12,9 @@ editor_options:
   chunk_output_type: console
 ---
 
+<!-- ----------------------------------------------------- -->
 
 ```{r setup, include = FALSE}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-
 set.seed(12345)
 options(scipen=999)
 options(max.print = "75")
@@ -27,6 +27,8 @@ p_load(tidyverse, magrittr, janitor, scales,
 ```
 
 ```{r knit-setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
 knitr::opts_chunk$set(cache = FALSE,
                       prompt = FALSE,
                       tidy = FALSE,
@@ -40,7 +42,7 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
-# HMD
+# HMD - historical data
 
 [The Human Mortality Database](https://www.mortality.org/) data. 
 
@@ -243,8 +245,13 @@ Short-term Mortality Fluctuations weekly dataset to cover 2020 data
 
 ```{r eval=FALSE}
 download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
-              destfile = "data-raw/mortality_org/stmf.csv",
+              destfile = "data-raw/mortality_org/stmf_weekly.csv",
               method = "curl")
+
+zip(zipfile = "data-raw/mortality_org/stmf_weekly", 
+    files = "data-raw/mortality_org/stmf_weekly.csv")
+
+file.remove("data-raw/mortality_org/stmf_weekly.csv")
 
 download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFmetadata.pdf",
               destfile = "data-raw/mortality_org/STMFmetadata.pdf",
@@ -254,13 +261,13 @@ download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFNote.pdf",
               destfile = "data-raw/mortality_org/STMFNote.pdf",
               method = "curl")
 
-stmf <- read_csv("data-raw/mortality_org/stmf.csv", 
-                 col_types = cols(Year = col_integer(), 
-                                  Week = col_integer(), 
-                                  Split = col_integer(), 
-                                  SplitSex = col_integer(), 
-                                  Forecast = col_integer()), 
-                 skip = 1) %>% 
+stmf_weekly <- read_csv("data-raw/mortality_org/stmf_weekly.zip", 
+                        col_types = cols(Year = col_integer(), 
+                                         Week = col_integer(), 
+                                         Split = col_integer(), 
+                                         SplitSex = col_integer(), 
+                                         Forecast = col_integer()), 
+                        skip = 1) %>% 
   filter(CountryCode %in% c("CHE", "ESP", "SWE")) %>% 
   filter(Sex == "b") %>% 
   select(CountryCode, Year, Week, DTotal) %>% 
@@ -269,74 +276,95 @@ stmf <- read_csv("data-raw/mortality_org/stmf.csv",
                            start = "Monday", week_start = "Monday"),
          Week_start = get_date(week = Week, year = Year, 
                                start = "Monday")) %>% 
-  relocate(Week2, Week_start, .after = Week)
+  relocate(Week2, Week_start, .after = Week) %>% 
+  mutate(Country = case_when(
+    CountryCode == "CHE" ~ "Switzerland",
+    CountryCode == "ESP" ~ "Spain",
+    CountryCode == "SWE" ~ "Sweden"
+  )) %>%  select(-CountryCode) %>% relocate(Country)
 
-write_rds(stmf, "data/mortality_org/stmf.Rds")
-write_dta(stmf, "data/mortality_org/stmf.dta")
+write_rds(stmf_weekly, "data/mortality_org/stmf_weekly.Rds")
+write_dta(stmf_weekly, "data/mortality_org/stmf_weekly.dta")
 ```
 
 ```{r}
-stmf <- read_rds("data/mortality_org/stmf.Rds")
+stmf_weekly <- read_rds("data/mortality_org/stmf_weekly.Rds")
 ```
 
 ```{r echo=FALSE}
-stmf %>% 
+stmf_weekly %>% 
   filter(Year >= 2020) %>% 
   ggplot(aes(x = Week_start)) +
-  geom_line(aes(y = Deaths, group = CountryCode, color = CountryCode)) +
+  geom_line(aes(y = Deaths, group = Country, color = Country)) +
   theme_bw() +
   xlab("") + ylab("Weekly number of deaths")
 ```
 
 ## Monthly
 
-Weeks converted to months using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package. 
+Weekly data converted to monthly using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package. 
 
 ```{r}
-stmf %<>% 
-  filter(Year == 2020)
-
-stmf_month <- bind_rows(
+stmf_monthly <- bind_rows(
   
-  weekToMonth(stmf[stmf$CountryCode == "CHE", ]$Deaths, 
-              datStart = "30-12-2019", wkMethod = "ISO") %>% 
+  weekToMonth(stmf_weekly[stmf_weekly$Country == "Switzerland", ]$Deaths, 
+              datStart = "03-01-2000", wkMethod = "ISO") %>% 
     as_tibble() %>% 
     mutate(Country = "Switzerland"),
   
-  weekToMonth(stmf[stmf$CountryCode == "ESP", ]$Deaths, 
-              datStart = "30-12-2019", wkMethod = "ISO") %>% 
+  weekToMonth(stmf_weekly[stmf_weekly$Country == "Spain", ]$Deaths, 
+              datStart = "03-01-2000", wkMethod = "ISO") %>% 
     as_tibble() %>% 
     mutate(Country = "Spain"),
   
-  weekToMonth(stmf[stmf$CountryCode == "SWE", ]$Deaths, 
-              datStart = "30-12-2019", wkMethod = "ISO") %>% 
+  weekToMonth(stmf_weekly[stmf_weekly$Country == "Sweden", ]$Deaths, 
+              datStart = "03-01-2000", wkMethod = "ISO") %>% 
     as_tibble() %>% 
     mutate(Country = "Sweden") 
   
 ) %>% 
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
-  filter(Year == 2020) %>% 
   rename(deaths_month = value) %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Country, Year, Month, Date)
 
-write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
-write_dta(stmf_month, "data/mortality_org/stmf_month.dta")
+write_rds(stmf_monthly, "data/mortality_org/stmf_monthly.Rds")
+write_dta(stmf_monthly, "data/mortality_org/stmf_monthly.dta")
 ```
 
 ```{r echo=FALSE}
-stmf_month %>% 
+stmf_monthly %>% 
+  # filter(Date != as.Date("2021-05-01")) %>% 
+  filter(Year >= 2020) %>% 
   ggplot(aes(x = Date)) +
-  geom_col(aes(y = deaths_month)) +
-  facet_grid(rows = vars(Country), scales = "free_y") +
+  geom_line(aes(y = deaths_month, group = Country, color = Country)) +
   theme_bw() +
   xlab("") + ylab("Monthly number of deaths")
 ```
 
-## Yearly
+## Yearly totals
+
+Conversions are not perfect!  
+
+Example of 2020 totals derived from weekly data:
 
 ```{r}
-stmf_month %>% 
+stmf_weekly %>% 
+  filter(Year == 2020) %>% 
+  group_by(Country) %>% 
+  summarise(deaths_year = round(sum(Deaths))) %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
+```
+
+And from monthly data:
+
+```{r}
+stmf_monthly %>% 
+  filter(Year == 2020) %>% 
   group_by(Country) %>% 
   summarise(deaths_year = round(sum(deaths_month))) %>% 
   kbl() %>%
@@ -360,7 +388,7 @@ With important update from @Kaspar **covering missing months between 1886 and 19
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
 bfs_web_deaths_yearly <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
-                         skip = 2, na = "...") %>% 
+                                   skip = 2, na = "...") %>% 
   remove_empty() %>% 
   clean_names() %>% 
   rename(year = x1) %>% 
@@ -370,6 +398,9 @@ bfs_web_deaths_yearly <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-10
   rename(Year = year) %>% 
   select(Year, todesfalle_total) %>% 
   rename(deaths_year = todesfalle_total)
+
+write_rds(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.Rds")
+write_dta(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.dta")
 
 bfs_web_deaths_monthly <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx") %>% 
   remove_empty() %>% 
@@ -384,9 +415,6 @@ bfs_web_deaths_monthly <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2
 
 write_rds(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.Rds")
 write_dta(bfs_web_deaths_monthly, "data/BfS/bfs_web_deaths_monthly.dta")
-
-write_rds(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.Rds")
-write_dta(bfs_web_deaths_yearly, "data/BfS/bfs_web_deaths_yearly.dta")
 ```
 
 ```{r include=FALSE}
@@ -406,7 +434,7 @@ ggplot(data = bfs_web_deaths_monthly,
 
 [Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html)
 
-```{r}
+```{r eval=FALSE}
 bfs_web_pop_yearly <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx", 
                                 na = "...", skip = 1) %>% 
   remove_empty(c("rows", "cols")) %>%
@@ -422,6 +450,10 @@ bfs_web_pop_yearly <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx",
 
 write_rds(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.Rds")
 write_dta(bfs_web_pop_yearly, "data/BfS/bfs_web_pop_yearly.dta")
+```
+
+```{r include=FALSE}
+bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds")
 ```
 
 ```{r echo=FALSE}
@@ -527,6 +559,38 @@ Timeline of differences between BfS figures and HMD
 
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Year, y = diff)) +
+  geom_hline(yintercept = 0, colour = "lightblue") +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in number of deaths")
+```
+
+### BfS vs STMF
+
+Comparing monthly figures - see above for week <> month issues!  
+
+```{r}
+compare <- inner_join(
+  bfs_web_deaths_monthly %>% 
+    rename(deaths_bfs = deaths_month),
+  stmf_monthly %>% 
+    filter(Country == "Switzerland") %>% 
+    rename(deaths_stmf = deaths_month) 
+) %>% 
+  mutate(diff = deaths_bfs - deaths_stmf)
+```
+
+Summary of differences between BfS figures and STMF
+
+```{r}
+summary(compare$diff)
+```
+
+Timeline of differences between BfS figures and STMF
+
+```{r echo=FALSE}
+ggplot(compare, aes(x = Date, y = diff)) +
+  geom_hline(yintercept = 0, colour = "lightblue") +
   geom_line() +
   theme_bw() +
   xlab("") + ylab("Yearly difference in number of deaths")
