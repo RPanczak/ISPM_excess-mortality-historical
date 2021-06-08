@@ -1,5 +1,6 @@
 ---
-title: "Excess mortality: 2010-2020 weekly & monthly BfS data & regression approach"
+title: "Excess mortality"
+subtitle: "2010-2020 weekly vs. monthly BfS data"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -11,24 +12,28 @@ editor_options:
   chunk_output_type: console
 ---
 
+<!-- ----------------------------------------------------- -->
 
 ```{r setup, include = FALSE}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-
-options(scipen=999)
 set.seed(12345)
+options(scipen=999)
+options(max.print = "75")
 
 library(pacman)
 p_load(tidyverse, lubridate, scales, magrittr,
        slider, ciTools)
+```
 
-options(max.print = "75")
+```{r knit-setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
 knitr::opts_chunk$set(cache = FALSE,
                       prompt = FALSE,
                       tidy = FALSE,
                       comment = NA,
                       message = FALSE,
                       warning = FALSE)
+
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
@@ -52,19 +57,19 @@ date_max <- ymd(paste0(as.character(year), "-12-31"))
 # to extend
 # date_max <- ymd(paste0(as.character(year + 1), "-03-01"))
 
-# definitions of pandemic years
-# 1919 only spring so maybe out?
-# choose 1957 or 1958!
-# not sure 1968 1969
+flu_years_hc <- c(1890, 1918, 2020)
 
-flu_years <- c(1890, 
-               1918, 1919, 
-               1957, 1958, 
-               1968, 1969, 
-               1977, 1978, 1979, 
-               2009, 
-               2010, 
-               2020)
+flu_years_hc_affected <- c(seq(1890 + 1, 1890 + 10),
+                           seq(1918 + 1, 1918 + 10))
+
+flu_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
+
+flu_years_affected <- c(flu_years_hc_affected,
+                        seq(1957 + 1, 1957 + 10),
+                        seq(1968 + 1, 1968 + 10),
+                        seq(1977 + 1, 1977 + 10),
+                        seq(2009 + 1, 2009 + 10))
+
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -95,10 +100,10 @@ bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds"
             Expected = sum(Expected)) %>% 
   ungroup() %>% 
   mutate(Excess_expected = NumberOfDeaths - Expected,
-         si_one = sin(2*pi*Week/52.18),
-         si_two = sin(4*pi*Week/52.18),
-         co_one = cos(2*pi*Week/52.18),
-         co_two = cos(4*pi*Week/52.18)) %>% 
+         si_one = sin(2*pi*Week/(365.25/7)),
+         si_two = sin(2*pi*Week/((365.25/2)/7)),
+         co_one = cos(2*pi*Week/(365.25/7)),
+         co_two = cos(2*pi*Week/((365.25/2)/7))) %>% 
   mutate(Time = row_number()) %>% 
   relocate(Time)
 ```
@@ -174,7 +179,6 @@ Prepared in `02.Rmd`.
 
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
   filter(Year >= 2010) %>% 
-  select(-deaths_year) %>% 
   # left_join(bfs_web_pop_yearly) %>% 
   # mutate(flu_year = ifelse(Year %in% flu_years, 1, 0),
   #        not = 1 - flu_year) %>% 
@@ -234,7 +238,7 @@ bfs_web_deaths_monthly %>%
   xlab("") + ylab("Deaths")
 ```
 
-## 5- & 10-year medians
+## 5-year mean and medians
 
 ### Weekly 
 
@@ -243,13 +247,11 @@ bfs_web_deaths_weekly %<>%
   arrange(Week, Year) %>% 
   group_by(Week) %>% 
   mutate(mean_5y   = slide_dbl(NumberOfDeaths, mean, 
-                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
-         mean_10y  = slide_dbl(NumberOfDeaths, mean, 
-                               na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE),
-         median_5y = slide_dbl(NumberOfDeaths, mean, 
-                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
-         median_10y = slide_dbl(NumberOfDeaths, mean, 
-                                na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE)) %>% 
+                               na.rm = TRUE, .complete = TRUE,
+                               .before = 5, .after = -1),
+         median_5y = slide_dbl(NumberOfDeaths, median, 
+                               na.rm = TRUE, .complete = TRUE,
+                               .before = 5, .after = -1)) %>% 
   ungroup() %>% 
   arrange(Year, Week) %>%
   filter(Ending >= date_from)
@@ -269,7 +271,7 @@ bfs_web_deaths_weekly %>%
   theme_minimal()
 ```
 
-**PS:** Notice the gap on week 53 (end 2015 / beg 2016)!
+**PS:** Notice the gap on week 53 (end 2015 / beg 2016) illustrating **problem of week 53**!
 
 ```{r echo=FALSE}
 bfs_web_deaths_weekly %>% 
@@ -277,7 +279,6 @@ bfs_web_deaths_weekly %>%
   ggplot(aes(x = Ending)) +
   geom_line(aes(y = NumberOfDeaths), colour = "grey40") + 
   geom_line(aes(y = Expected), colour = "#beaed4") + 
-  geom_line(aes(y = mean_10y), alpha = 0.5, size = 1, colour = "firebrick") + 
   geom_line(aes(y = median_5y), colour = "firebrick") + 
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") +
@@ -291,13 +292,11 @@ bfs_web_deaths_monthly %<>%
   arrange(Month, Year) %>% 
   group_by(Month) %>% 
   mutate(mean_5y   = slide_dbl(deaths_month, mean, 
-                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
-         mean_10y  = slide_dbl(deaths_month, mean, 
-                               na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE),
-         median_5y = slide_dbl(deaths_month, mean, 
-                               na.rm = TRUE, .before = 5, .after = -1, .complete = TRUE),
-         median_10y = slide_dbl(deaths_month, mean, 
-                                na.rm = TRUE, .before = 10, .after = -1, .complete = TRUE)) %>% 
+                               na.rm = TRUE, .complete = TRUE,
+                               .before = 5, .after = -1),
+         median_5y = slide_dbl(deaths_month, median, 
+                               na.rm = TRUE, .complete = TRUE,
+                               .before = 5, .after = -1)) %>% 
   ungroup() %>% 
   arrange(Year, Month) %>% 
   filter(Date >= date_from)
@@ -310,7 +309,7 @@ bfs_web_deaths_monthly %>%
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), alpha = 0.005, inherit.aes = FALSE) +
   geom_line(aes(y = deaths_month), colour = "grey40") + 
-  geom_line(aes(y = mean_5y), colour = "firebrick") + 
+  geom_line(aes(y = median_5y), colour = "firebrick") + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   xlab("") +
   theme_minimal()
@@ -321,8 +320,7 @@ bfs_web_deaths_monthly %>%
   filter(Year >= year & Year <= year) %>%
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths_month), colour = "grey40") + 
-  geom_line(aes(y = median_10y), alpha = 0.5, size = 1, colour = "firebrick") + 
-  geom_line(aes(y = mean_5y), colour = "firebrick") + 
+  geom_line(aes(y = median_5y), colour = "firebrick") + 
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") +
   theme_minimal()
@@ -390,11 +388,13 @@ bfs_web_deaths_monthly %>%
 
 ```{r}
 reg_deaths_weekly <- bfs_web_deaths_weekly %>% 
+  filter(Year >= 2015) %>% 
   filter(Year <= year_reg) 
 
 pred_deaths_weekly <- bfs_web_deaths_weekly # %>% filter(Year > year_reg)
 
 reg_deaths_monthly <- bfs_web_deaths_monthly %>% 
+  filter(Year >= 2015) %>% 
   filter(Year <= year_reg)
 
 pred_deaths_monthly <- bfs_web_deaths_monthly # %>% filter(Year > year_reg)
@@ -408,7 +408,10 @@ summary(mz_weekly <- glm(NumberOfDeaths ~ Week +
                          family = "poisson", data = reg_deaths_weekly))
 
 pred_deaths_weekly %<>%
-  add_pi(mz_weekly, names = c("mz_lpi", "mz_upi"), yhatName = "mz_fit", nSims = 20000) %>% 
+  add_pi(mz_weekly, 
+         names = c("mz_lpi", "mz_upi"), 
+         yhatName = "mz_fit", 
+         nSims = 20000) %>% 
   as_tibble()
 ```
 
@@ -440,12 +443,12 @@ pred_deaths_weekly %>%
   filter(Year >= year) %>% 
   ggplot(aes(x = Ending)) +
   geom_line(aes(y = NumberOfDeaths), color = "#beaed4", size = 1) + 
-  geom_line(aes(y = median_10y), colour = "firebrick") + 
+  geom_line(aes(y = median_5y), colour = "firebrick") + 
   geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
   geom_line(aes(y = mz_fit)) +
   scale_y_continuous(labels = comma) +
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
-  xlab("") + ylab("Observed, 10y median & predicted deaths") +
+  xlab("") + ylab("Observed, 5y median & predicted deaths") +
   theme_minimal()
 ```
 
@@ -456,9 +459,11 @@ summary(mz_monthly <- glm(deaths_month ~ Month +
                             si_one + si_two + co_one + co_two, 
                           family = "poisson", data = reg_deaths_monthly))
 
-
 pred_deaths_monthly %<>%
-  add_pi(mz_monthly, names = c("mz_lpi", "mz_upi"), yhatName = "mz_fit", nSims = 20000) %>% 
+  add_pi(mz_monthly, 
+         names = c("mz_lpi", "mz_upi"), 
+         yhatName = "mz_fit", 
+         nSims = 20000) %>% 
   as_tibble()
 ```
 
@@ -481,11 +486,11 @@ pred_deaths_monthly %>%
   ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
   geom_line(aes(y = mz_fit)) +
-  geom_line(aes(y = median_10y), colour = "firebrick") + 
+  geom_line(aes(y = median_5y), colour = "firebrick") + 
   geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
   scale_y_continuous(labels = comma) +
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
-  xlab("") + ylab("Observed, 10y median & predicted deaths") +
+  xlab("") + ylab("Observed, 5y median & predicted deaths") +
   theme_minimal()
 ```
 
@@ -493,19 +498,29 @@ pred_deaths_monthly %>%
 
 # Comparing excess deaths totals
 
+BfS estimates:
+
 ```{r}
 excess_deaths %>% 
   filter(Year == year)
+```
 
+Estimated from weekly data:
+
+```{r}
 pred_deaths_weekly %>% 
   filter(Year == year) %>% 
   summarise(NumberOfDeaths = sum(NumberOfDeaths), 
             deaths_pred_weekly = sum(mz_fit),
             Excess = round(NumberOfDeaths - deaths_pred_weekly))
+```
 
+Estimated from monthly data:
+
+```{r}
 pred_deaths_monthly %>% 
   filter(Year == year) %>% 
-    summarise(NumberOfDeaths = sum(deaths_month), 
+  summarise(NumberOfDeaths = sum(deaths_month), 
             deaths_pred_monthly = sum(mz_fit),
             Excess = round(NumberOfDeaths - deaths_pred_monthly))
 ```
