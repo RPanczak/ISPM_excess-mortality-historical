@@ -35,6 +35,7 @@ knitr::opts_chunk$set(cache = FALSE,
                       comment = NA,
                       message = FALSE,
                       warning = FALSE)
+
 knitr::opts_knit$set(width = 75)
 
 mu <- Hmisc::markupSpecs$html
@@ -44,7 +45,9 @@ mu <- Hmisc::markupSpecs$html
 
 # HMD - historical data
 
-[The Human Mortality Database](https://www.mortality.org/) data. 
+[The Human Mortality Database](https://www.mortality.org/) data.  
+
+Available on yearly resolution only but for one year age bands & separate by sex.  
 
 ```{r eval=FALSE}
 p_load(HMDHFDplus)
@@ -70,16 +73,6 @@ hmd_ch_deaths_raw <- readHMDweb(CNTRY = "CHE", item = "Deaths_1x1",
 write_rds(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 write_dta(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.dta")
 
-hmd_ch_deaths <- hmd_ch_deaths_raw %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(deaths_year = sum(Total)) %>% 
-  ungroup() %>% 
-  as_tibble()
-
-write_rds(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.Rds")
-write_dta(hmd_ch_deaths, "data/mortality_org/hmd_ch_deaths.dta")
-
 # ES
 # pop
 # 1975 problem resolved in #45
@@ -103,15 +96,6 @@ hmd_es_deaths_raw <- readHMDweb(CNTRY = "ESP", item = "Deaths_1x1",
 write_rds(hmd_es_deaths_raw, "data-raw/mortality_org/hmd_es_deaths_raw.Rds")
 write_dta(hmd_es_deaths_raw, "data-raw/mortality_org/hmd_es_deaths_raw.dta")
 
-hmd_es_deaths <- hmd_es_deaths_raw %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(deaths_year = sum(Total)) %>% 
-  as_tibble()
-
-write_rds(hmd_es_deaths, "data/mortality_org/hmd_es_deaths.Rds")
-write_dta(hmd_es_deaths, "data/mortality_org/hmd_es_deaths.dta")
-
 # SE
 # pop
 hmd_se_pop_raw <- readHMDweb(CNTRY = "SWE", item ="Population" , 
@@ -131,41 +115,74 @@ hmd_se_deaths_raw <- readHMDweb(CNTRY = "SWE", item = "Deaths_1x1",
 write_rds(hmd_se_deaths_raw, "data-raw/mortality_org/hmd_se_deaths_raw.Rds")
 write_dta(hmd_se_deaths_raw, "data-raw/mortality_org/hmd_se_deaths_raw.dta")
 
-hmd_se_deaths <- hmd_se_deaths_raw %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(deaths_year = sum(Total)) %>% 
-  as_tibble()
-
-write_rds(hmd_se_deaths, "data/mortality_org/hmd_se_deaths.Rds")
-write_dta(hmd_se_deaths, "data/mortality_org/hmd_se_deaths.dta")
-
 p_unload(HMDHFDplus)
 ```
 
-## Deaths CH
+## Yearly deaths CH
 
 ```{r include=FALSE}
-hmd_ch_deaths <- read_rds("data/mortality_org/hmd_ch_deaths.Rds")
+hmd_ch_deaths_year <- 
+  read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
+  select(Year, Total) %>% 
+  group_by(Year) %>% 
+  summarise(deaths_year = sum(Total)) %>% 
+  ungroup() %>% 
+  as_tibble()
+
+write_rds(hmd_ch_deaths_year, "data/mortality_org/hmd_ch_deaths_year.Rds")
+write_dta(hmd_ch_deaths_year, "data/mortality_org/hmd_ch_deaths_year.dta")
 ```
 
-Available only yearly but for one year age bands & separate by sex. Time from `r min(hmd_ch_deaths$Year)` to `r max(hmd_ch_deaths$Year)`.
+Available from `r min(hmd_ch_deaths_year$Year)` to `r max(hmd_ch_deaths_year$Year)`.
 
 ```{r echo=FALSE}
-ggplot(hmd_ch_deaths, aes(x = Year)) +
+ggplot(hmd_ch_deaths_year, aes(x = Year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-## Pops CH
+## Yearly deaths CH - with age & sex structure
+
+```{r include=FALSE}
+hmd_ch_deaths_age_sex <- 
+  read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
+  select(-Total) %>% 
+  as_tibble()
+
+write_rds(hmd_ch_deaths_age_sex, "data/mortality_org/hmd_ch_deaths_age_sex.Rds")
+write_dta(hmd_ch_deaths_age_sex, "data/mortality_org/hmd_ch_deaths_age_sex.dta")
+```
+
+```{r echo=FALSE}
+hmd_ch_deaths_age_sex %>% 
+  filter(Year == 1876 | Year == 2018) %>% 
+  select(Year, Age, Female, Male) %>% 
+  rename(year = Year, age = Age) %>% 
+  pivot_longer(c("Female", "Male"), names_to = "sex") %>% 
+  mutate(age = if_else(age == "110+", "110", age)) %>% 
+  mutate(age = as.numeric(age)) %>% 
+  mutate(age_cat = cut(age, seq(0, 110, 10), include.lowest = TRUE)) %>% 
+  group_by(year, sex, age_cat) %>% 
+  summarise(pop = sum(value)) %>% 
+  ungroup() %>% 
+  ggplot(mapping = aes(x = ifelse(test = sex == "Male", yes = -pop, no = pop), 
+                       y = age_cat, fill = sex)) +
+  geom_col(width = 1) +
+  lemon::scale_x_symmetric(labels = abs) +
+  labs(x = "Population", y = "Age at death") +
+  facet_grid(vars(year)) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Set1")
+```
+
+## Yearly pops CH
 
 Similarly, population data is aggregated by year. 
 
 ```{r include=FALSE}
-hmd_ch_pop_raw <- read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds")
-
-hmd_ch_pop_year <- hmd_ch_pop_raw %>% 
+hmd_ch_pop_year <- 
+  read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds") %>% 
   select(Year, Total) %>% 
   group_by(Year) %>% 
   summarise(pop_year = sum(Total)) %>% 
@@ -182,58 +199,74 @@ ggplot(hmd_ch_pop_year, aes(x = Year)) +
   scale_y_continuous(labels = comma)
 ```
 
-Advantage of data is availability of age bands (1 year!)
-
-```{r echo=FALSE}
-hmd_ch_pop_raw %>% 
-  filter(Year == 1876 | Year == 2019) %>% 
-  select(Year, Age, Female, Male) %>% 
-  rename(year = Year, age = Age) %>% 
-  pivot_longer(c("Female", "Male"), names_to = "sex") %>% 
-  mutate(age = if_else(age == "110+", "110", age)) %>% 
-  mutate(age = as.numeric(age)) %>% 
-  mutate(age_cat = cut(age, seq(0, 110, 5), include.lowest = TRUE)) %>% 
-  group_by(year, sex, age_cat) %>% 
-  summarise(pop = sum(value)) %>% 
-  ungroup() %>% 
-  ggplot(mapping = aes(x = ifelse(test = sex == "Male", yes = -pop, no = pop), 
-                       y = age_cat, fill = sex)) +
-  geom_col(width = 1) +
-  lemon::scale_x_symmetric(labels = abs) +
-  labs(x = "Population", y = "Age") +
-  facet_grid(vars(year)) +
-  theme_bw() +
-  scale_fill_brewer(palette = "Set1")
-```
-
-## Deaths ES
+## Yearly deaths ES
 
 ```{r include=FALSE}
-hmd_es_deaths <- read_rds("data/mortality_org/hmd_es_deaths.Rds")
+hmd_es_deaths_year <- 
+  read_rds("data-raw/mortality_org/hmd_es_deaths_raw.Rds") %>% 
+  select(Year, Total) %>% 
+  group_by(Year) %>% 
+  summarise(deaths_year = sum(Total)) %>% 
+  as_tibble()
+
+write_rds(hmd_es_deaths_year, "data/mortality_org/hmd_es_deaths_year.Rds")
+write_dta(hmd_es_deaths_year, "data/mortality_org/hmd_es_deaths_year.dta")
 ```
 
-Available yearly from `r min(hmd_es_deaths$Year)` to `r max(hmd_es_deaths$Year)`.
+Available yearly from `r min(hmd_es_deaths_year$Year)` to `r max(hmd_es_deaths_year$Year)`.
 
 ```{r echo=FALSE}
-ggplot(hmd_es_deaths, aes(x = Year)) +
+ggplot(hmd_es_deaths_year, aes(x = Year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-## Deaths SE
+## Yearly deaths ES - with age & sex structure
 
 ```{r include=FALSE}
-hmd_se_deaths <- read_rds("data/mortality_org/hmd_se_deaths.Rds")
+hmd_es_deaths_age_sex <- 
+  read_rds("data-raw/mortality_org/hmd_es_deaths_raw.Rds") %>% 
+  select(-Total) %>% 
+  as_tibble()
+
+write_rds(hmd_es_deaths_age_sex, "data/mortality_org/hmd_es_deaths_age_sex.Rds")
+write_dta(hmd_es_deaths_age_sex, "data/mortality_org/hmd_es_deaths_age_sex.dta")
 ```
 
-Available yearly from `r min(hmd_se_deaths$Year)` to `r max(hmd_se_deaths$Year)`.
+## Yearly deaths SE
+
+```{r include=FALSE}
+hmd_se_deaths_year <- 
+  read_rds("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% 
+  select(Year, Total) %>% 
+  group_by(Year) %>% 
+  summarise(deaths_year = sum(Total)) %>% 
+  as_tibble()
+
+write_rds(hmd_se_deaths_year, "data/mortality_org/hmd_se_deaths_year.Rds")
+write_dta(hmd_se_deaths_year, "data/mortality_org/hmd_se_deaths_year.dta")
+```
+
+Available yearly from `r min(hmd_se_deaths_year$Year)` to `r max(hmd_se_deaths_year$Year)`.
 
 ```{r echo=FALSE}
-ggplot(hmd_se_deaths, aes(x = Year)) +
+ggplot(hmd_se_deaths_year, aes(x = Year)) +
   geom_line(aes(y = deaths_year)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
+```
+
+## Yearly deaths SE - with age & sex structure
+
+```{r include=FALSE}
+hmd_se_deaths_age_sex <- 
+  read_rds("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% 
+  select(-Total) %>% 
+  as_tibble()
+
+write_rds(hmd_se_deaths_age_sex, "data/mortality_org/hmd_se_deaths_age_sex.Rds")
+write_dta(hmd_se_deaths_age_sex, "data/mortality_org/hmd_se_deaths_age_sex.dta")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -544,7 +577,7 @@ There are no years where summed monthly data differ from "official" yearly sums.
 compare <- left_join(
   bfs_web_deaths_yearly %>% 
     rename(deaths_year_bfs = deaths_year), 
-  hmd_ch_deaths %>% 
+  hmd_ch_deaths_year %>% 
     rename(deaths_year_hmd = deaths_year)) %>% 
   mutate(diff = deaths_year_bfs - deaths_year_hmd)
 ```
