@@ -16,7 +16,7 @@ editor_options:
 
 ```{r setup, include = FALSE}
 set.seed(12345)
-options(scipen=999)
+options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
@@ -46,11 +46,10 @@ mu <- Hmisc::markupSpecs$html
 ```{r}
 year <- 2020
 
-year_from <- year - 10
+year_from <- year - 5
 date_from <- ymd(paste0(as.character(year_from), "-01-01"))
 
-year_reg <- year - 1
-date_reg <- ymd(paste0(as.character(year_reg), "-01-01"))
+year_to <- year - 1
 
 date_min <- ymd(paste0(as.character(year), "-01-01"))
 date_max <- ymd(paste0(as.character(year), "-12-31"))
@@ -69,7 +68,6 @@ flu_years_affected <- c(flu_years_hc_affected,
                         seq(1968 + 1, 1968 + 10),
                         seq(1977 + 1, 1977 + 10),
                         seq(2009 + 1, 2009 + 10))
-
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -87,23 +85,26 @@ knitr::include_graphics(path)
 
 # Data 
 
-## Weekly number of deaths, 2010-2020
+## Weekly number of deaths
 
 Prepared in `03.Rmd`.  Collapsing age groups. 
 
 ```{r}
 bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds")  %>% 
+  filter(Year >= year_from) %>% 
+  filter(Year <= year) %>% 
   bind_rows(read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds") %>%
-              filter(Ending <= date_max)) %>% 
+              filter(Year >= year_from) %>% 
+              filter(Year <= year)) %>% 
   group_by(Year, Week, Ending) %>% 
   summarise(NumberOfDeaths = sum(NumberOfDeaths),
             Expected = sum(Expected)) %>% 
   ungroup() %>% 
   mutate(Excess_expected = NumberOfDeaths - Expected,
          si_one = sin(2*pi*Week/(365.25/7)),
-         si_two = sin(2*pi*Week/((365.25/2)/7)),
+         si_two = sin(2*pi*Week/(365.25/2/7)),
          co_one = cos(2*pi*Week/(365.25/7)),
-         co_two = cos(2*pi*Week/((365.25/2)/7))) %>% 
+         co_two = cos(2*pi*Week/(365.25/2/7))) %>% 
   mutate(Time = row_number()) %>% 
   relocate(Time)
 ```
@@ -112,7 +113,6 @@ bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds"
 
 ```{r}
 bfs_web_deaths_weekly %>% 
-  filter(Year >= 2018) %>% 
   select(si_one, co_one) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -124,7 +124,6 @@ bfs_web_deaths_weekly %>%
 
 ```{r}
 bfs_web_deaths_weekly %>% 
-  filter(Year >= 2018) %>% 
   select(si_two, co_two) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -136,7 +135,6 @@ bfs_web_deaths_weekly %>%
 
 ```{r echo=FALSE}
 bfs_web_deaths_weekly %>% 
-  filter(Year <= year) %>% 
   ggplot(aes(x = Ending)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), 
@@ -153,11 +151,12 @@ bfs_web_deaths_weekly %>%
 
 ## Yearly totals of excess deaths
 
-Calculated from weekly BfS data aggregating `NumberOfDeaths` and `Expected` (not `uperB`!).
+Calculated from weekly BfS data aggregating `NumberOfDeaths` and `Expected` (**not `uperB`!**).  
+
+Inherits small issues around aggregation of weekly data into years!  
 
 ```{r}
 excess_deaths <- bfs_web_deaths_weekly %>% 
-  filter(Year >= year_from) %>% 
   mutate(Excess_expected = NumberOfDeaths - Expected) %>% 
   group_by(Year) %>% 
   summarise(Excess_expected = sum(Excess_expected)) %>% 
@@ -170,7 +169,7 @@ ggplot(excess_deaths) +
   theme_minimal() + xlab("") + ylab("Excess deaths")
 ```
 
-## Monthly number of deaths, 2010-2020
+## Monthly number of deaths
 
 Prepared in `02.Rmd`.  
 
@@ -178,7 +177,8 @@ Prepared in `02.Rmd`.
 # bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds")
 
 bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
-  filter(Year >= 2010) %>% 
+  filter(Year >= year_from) %>% 
+  filter(Year <= year) %>% 
   # left_join(bfs_web_pop_yearly) %>% 
   # mutate(flu_year = ifelse(Year %in% flu_years, 1, 0),
   #        not = 1 - flu_year) %>% 
@@ -199,7 +199,6 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
 
 ```{r}
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 2018) %>% 
   select(si_one, co_one) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -211,7 +210,6 @@ bfs_web_deaths_monthly %>%
 
 ```{r}
 bfs_web_deaths_monthly %>% 
-  filter(Year >= 2018) %>% 
   select(si_two, co_two) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -223,7 +221,6 @@ bfs_web_deaths_monthly %>%
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year <= year) %>% 
   ggplot(aes(x = Date)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), 
@@ -271,11 +268,11 @@ bfs_web_deaths_weekly %>%
   theme_minimal()
 ```
 
-**PS:** Notice the gap on week 53 (end 2015 / beg 2016) illustrating **problem of week 53**!
+There will be small gap on *[week 53](https://en.wikipedia.org/wiki/ISO_week_date)* (end 2015 / beg 2016) illustrating **problem of week 53**!
 
 ```{r echo=FALSE}
 bfs_web_deaths_weekly %>% 
-  filter(Year >= year & Year <= year) %>%
+  filter(Year == year) %>%
   ggplot(aes(x = Ending)) +
   geom_line(aes(y = NumberOfDeaths), colour = "grey40") + 
   geom_line(aes(y = Expected), colour = "#beaed4") + 
@@ -317,66 +314,12 @@ bfs_web_deaths_monthly %>%
 
 ```{r echo=FALSE}
 bfs_web_deaths_monthly %>% 
-  filter(Year >= year & Year <= year) %>%
+  filter(Year == year) %>%
   ggplot(aes(x = Date)) +
   geom_line(aes(y = deaths_month), colour = "grey40") + 
   geom_line(aes(y = median_5y), colour = "firebrick") + 
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") +
-  theme_minimal()
-```
-
-<!-- ----------------------------------------------------- -->
-
-# Seasonality
-
-### Weekly data
-
-```{r}
-dcmp <- bfs_web_deaths_monthly %>%
-  tsibble::as_tsibble(index = Time) %>% 
-  filter(Year < year) %>% 
-  fabletools::model(feasts::STL(deaths_month ~ season(window = Inf)))
-
-# fabletools::components(dcmp)
-fabletools::components(dcmp) %>% 
-  autoplot()
-```
-
-### Monthly data
-
-```{r}
-dcmp <- bfs_web_deaths_monthly %>%
-  tsibble::as_tsibble(index = Time) %>% 
-  filter(Year < year) %>% 
-  fabletools::model(feasts::STL(deaths_month ~ season(window = Inf)))
-
-# fabletools::components(dcmp)
-fabletools::components(dcmp) %>% 
-  autoplot()
-```
-
-<!-- ----------------------------------------------------- -->
-
-# Outcome
-
-### Weekly data
-
-```{r echo=FALSE}
-bfs_web_deaths_weekly %>% 
-  filter(Year <= year_reg) %>% 
-  ggplot(aes(NumberOfDeaths)) +
-  geom_histogram(binwidth = 10) +
-  theme_minimal()
-```
-
-### Monthly data
-
-```{r echo=FALSE}
-bfs_web_deaths_monthly %>% 
-  filter(Year <= year_reg) %>% 
-  ggplot(aes(deaths_month)) +
-  geom_histogram(binwidth = 50) +
   theme_minimal()
 ```
 
@@ -388,16 +331,24 @@ bfs_web_deaths_monthly %>%
 
 ```{r}
 reg_deaths_weekly <- bfs_web_deaths_weekly %>% 
-  filter(Year >= 2015) %>% 
-  filter(Year <= year_reg) 
+  # mutate(NumberOfDeaths = as.integer(NumberOfDeaths)) %>% 
+  filter(Year >= year_from) %>% 
+  filter(Year <= year_to) 
 
-pred_deaths_weekly <- bfs_web_deaths_weekly # %>% filter(Year > year_reg)
+pred_deaths_weekly <- bfs_web_deaths_weekly %>% 
+  mutate(NumberOfDeaths = as.integer(NumberOfDeaths)) %>% 
+  # filter(Year >= year_from)
+  filter(Year == year)
 
 reg_deaths_monthly <- bfs_web_deaths_monthly %>% 
-  filter(Year >= 2015) %>% 
-  filter(Year <= year_reg)
+  # mutate(deaths_month = as.integer(deaths_month)) %>% 
+  filter(Year >= year_from) %>%
+  filter(Year <= year_to)
 
-pred_deaths_monthly <- bfs_web_deaths_monthly # %>% filter(Year > year_reg)
+pred_deaths_monthly <- bfs_web_deaths_monthly %>% 
+  # mutate(deaths_month = as.integer(deaths_month)) %>% 
+  # filter(Year >= year_from)
+  filter(Year == year)
 ```
 
 ## Weekly data
@@ -405,7 +356,8 @@ pred_deaths_monthly <- bfs_web_deaths_monthly # %>% filter(Year > year_reg)
 ```{r}
 summary(mz_weekly <- glm(NumberOfDeaths ~ Week + 
                            si_one + si_two + co_one + co_two, 
-                         family = "poisson", data = reg_deaths_weekly))
+                         family = "poisson", 
+                         data = reg_deaths_weekly))
 
 pred_deaths_weekly %<>%
   add_pi(mz_weekly, 
@@ -413,16 +365,6 @@ pred_deaths_weekly %<>%
          yhatName = "mz_fit", 
          nSims = 20000) %>% 
   as_tibble()
-```
-
-```{r eval=FALSE, include=FALSE}
-ggplot(pred_deaths_weekly, aes(x = Ending)) +
-  geom_ribbon(aes(ymin = mz_lci, ymax = mz_uci), alpha = 0.1) + 
-  geom_line(aes(y = mz_fit)) +
-  geom_line(aes(y = NumberOfDeaths), color = "#beaed4", size = 1) + 
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  xlab("") + ylab("Observed, mean & predicted deaths") +
-  theme_minimal()
 ```
 
 ```{r echo=FALSE}
@@ -457,7 +399,8 @@ pred_deaths_weekly %>%
 ```{r}
 summary(mz_monthly <- glm(deaths_month ~ Month + 
                             si_one + si_two + co_one + co_two, 
-                          family = "poisson", data = reg_deaths_monthly))
+                          family = "poisson", 
+                          data = reg_deaths_monthly))
 
 pred_deaths_monthly %<>%
   add_pi(mz_monthly, 
