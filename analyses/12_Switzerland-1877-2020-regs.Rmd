@@ -1,5 +1,6 @@
 ---
-title: "Excess mortality: 1877-2020 monthly BfS data & regression approach"
+title: "Excess mortality"
+subtitle: "1877-2020 monthly BfS data & regression approach"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -17,7 +18,7 @@ editor_options:
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 set.seed(12345)
-options(scipen=999)
+options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)

@@ -473,5 +473,3 @@ pred_deaths_month %>%
 # Computing Environment
 
 `r mu$session()`
-
-

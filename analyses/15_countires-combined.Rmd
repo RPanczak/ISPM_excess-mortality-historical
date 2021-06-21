@@ -1,5 +1,6 @@
 ---
-title: "Excess mortality: combining three countries"
+title: "Excess mortality"
+subtitle: "Combining three countries"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -17,7 +18,7 @@ editor_options:
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 set.seed(12345)
-options(scipen=999)
+options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
@@ -432,6 +433,7 @@ expected_deaths_monthly %>%
 Using 1918 pandemic as an example of impacton estimates from 1919 - 1923.  
 Estimates with extreme year (red) and without (blue).  
 Converge after 5 year smoothing window stops having effect (ie. in 1924).  
+
 ### Figure 
 
 ```{r echo=FALSE}
