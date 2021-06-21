@@ -1,0 +1,116 @@
+---
+title: "Excess mortality: HMD & country data"
+subtitle: "Comparing methods"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+<!-- ----------------------------------------------------- -->
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+set.seed(12345)
+options(scipen = 999)
+options(max.print = "75")
+
+library(pacman)
+p_load(tidyverse, scales, magrittr)
+```
+
+```{r knit-setup, include = FALSE}
+knitr::opts_chunk$set(cache = FALSE,
+                      prompt = FALSE,
+                      tidy = FALSE,
+                      comment = NA,
+                      message = FALSE,
+                      warning = FALSE)
+
+knitr::opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Data
+
+## Raws and estimates
+
+Starting point is mortality data for CH.  
+
+Data until 2019 from BfS online sources; 2020 from STMF.  
+
+```{r}
+deaths_monthly <- bind_rows(
+  read_rds("data/BfS/bfs_deaths_month.Rds") %>% 
+    filter(Year < 2020) %>% 
+    mutate(source = "BfS"),
+  
+  read_rds("data/mortality_org/stmf_month.Rds") %>% 
+    filter(Country == "Switzerland") %>% 
+    filter(Year == 2020) %>% 
+    select(-Country) %>% 
+    mutate(source = "STMF")
+)
+```
+
+## Our estimates
+
+Adding estimates from our method
+
+```{r}
+deaths_monthly %<>%  left_join( 
+  read_rds("data/ch_expected_deaths_monthly.Rds") %>% 
+    select(Year, Month, Date, median_flu_year_hc, fit_flu_hc, lpi_flu_hc, upi_flu_hc)
+)
+```
+
+## Years
+
+```{r}
+year_from <- min(deaths_monthly$Year)
+
+year_reg <- year_from + 10
+
+year_max <- 2020
+
+year_smooth <- 5
+```
+
+## Pandemics 
+
+```{r}
+pandemic_years <- c(1890, 1918, 1957, 2020)
+
+analysis_years <- c(seq(1890 - 10, 1890),
+                    seq(1918 - 10, 1918),
+                    seq(1957 - 10, 1957),
+                    seq(2020 - 10, 2020))
+
+previous_years <- c(seq(1890 - 10, 1890 - 1),
+                    seq(1918 - 10, 1918 - 1),
+                    seq(1957 - 10, 1957 - 1),
+                    seq(2020 - 10, 2020 - 1))
+
+previous <- pandemic_years - 1
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Other methods 
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
+
+
