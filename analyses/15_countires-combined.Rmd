@@ -110,7 +110,7 @@ expected_deaths_monthly %>%
                           as.Date("2020-12-31"))) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   facet_grid(vars(Country), scales = "free_y") + 
-  scale_y_continuous(labels = label_number(accuracy = 1L, suffix = "K", scale = 1e-4)) +
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         panel.background = element_blank(), 
