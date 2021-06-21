@@ -22,7 +22,7 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, readxl, janitor, lubridate, scales, magrittr, slider)
+p_load(tidyverse, scales)
 ```
 
 ```{r knit-setup, include = FALSE}
@@ -76,7 +76,9 @@ hmd_ch_deaths <- read_hmd("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>%
 # sjmisc::frq(hmd_ch_deaths, Age_group)
 
 hmd_se_deaths <- read_hmd("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% 
-  mutate(Country = "Sweden") %>% relocate(Country)
+  mutate(Country = "Sweden") %>% relocate(Country) %>% 
+  # Sweden is one year ahead of the pack!
+  filter(Year != 2019)
 # sjmisc::frq(hmd_se_deaths, Age_group)
 
 hmd_es_deaths <- read_hmd("data-raw/mortality_org/hmd_es_deaths_raw.Rds") %>% 
@@ -161,10 +163,7 @@ previous_years <- c(seq(1890 - 10, 1890 - 1),
                     seq(1957 - 10, 1957 - 1),
                     seq(2020 - 10, 2020 - 1))
 
-previous_years <- c(seq(1890 - 10, 1890 - 1),
-                    seq(1918 - 10, 1918 - 1),
-                    seq(1957 - 10, 1957 - 1),
-                    seq(2020 - 10, 2020 - 1))
+previous <- pandemic_years - 1
 ```
 
 ```{r echo=FALSE}
@@ -246,7 +245,7 @@ pop <- bind_rows(
          pop_scaled = (Population - pop_min) / (pop_max - pop_min)) %>% 
   ungroup() %>% 
   select(-pop_min, -pop_max) %>% 
-  mutate(Year = ifelse(Year == 2019, 2020, Year)) %>% 
+  mutate(Year = ifelse(Year == 2019 & Country != "Sweden", 2020, Year)) %>%
   filter(Year %in% analysis_years) %>% 
   rename(Pandemic = Year)
 
@@ -257,6 +256,8 @@ rm(pop)
 <!-- ----------------------------------------------------- -->
 
 # Vizualizations
+
+## Pandemics compared to last 10 years
 
 ```{r echo=FALSE}
 ggplot(data = data %>% filter(Type == "Previous"),
@@ -299,6 +300,55 @@ ggplot(data = data %>% filter(Type == "Previous"),
   theme(axis.text.x = element_text(angle = 90)) +
   xlab("Age group")
 ```
+
+## Pandemics compared to last year
+
+```{r}
+data_year <- left_join(
+  
+  data %>% 
+    filter(Type == "Pandemic") %>% 
+    select(-Year, - Type) %>% 
+    rename(Deaths_pandemic = Deaths),
+  
+  data %>% 
+    filter(Year %in% previous) %>% 
+    select(-Year, - Type) %>% 
+    rename(Deaths_previous = Deaths)
+  
+) %>% 
+  mutate(Exc = Deaths_pandemic - Deaths_previous,
+         Exc_perc = (Deaths_pandemic - Deaths_previous) / Deaths_previous)
+```
+
+### Absolute
+
+```{r}
+ggplot(data = data_year,
+       aes(x = Age_group, y = Exc)) + 
+  geom_col() +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Age group") + 
+  ylab("Absolute difference in deaths to previous year")
+```
+
+### Relative
+
+```{r}
+ggplot(data = data_year,
+       aes(x = Age_group, y = Exc_perc)) + 
+  geom_col() +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic)) + 
+  scale_y_continuous(labels = percent) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Age group") + 
+  ylab("% difference in deaths to previous year")
+```
+
 
 <!-- ----------------------------------------------------- -->
 
