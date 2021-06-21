@@ -69,13 +69,13 @@ deaths_monthly %<>%
 ## Years
 
 ```{r}
+year_smooth <- 5
+
 year_from <- min(deaths_monthly$Year)
 
-year_reg <- year_from + 10
+year_reg <- year_from + year_smooth
 
 year_max <- 2020
-
-year_smooth <- 5
 ```
 
 ## Pandemics
@@ -83,15 +83,15 @@ year_smooth <- 5
 ```{r}
 flu_years_hc <- c(1918, 2020)
 
-flu_years_hc_affected <- c(seq(1918 + 1, 1918 + 10))
+flu_years_hc_affected <- c(seq(1918 + 1, 1918 + year_smooth))
 
 flu_years <- c(1918, 1957, 1968, 1977, 2009, 2020)
 
 flu_years_affected <- c(flu_years_hc_affected,
-                        seq(1957 + 1, 1957 + 10),
-                        seq(1968 + 1, 1968 + 10),
-                        seq(1977 + 1, 1977 + 10),
-                        seq(2009 + 1, 2009 + 10))
+                        seq(1957 + 1, 1957 + year_smooth),
+                        seq(1968 + 1, 1968 + year_smooth),
+                        seq(1977 + 1, 1977 + year_smooth),
+                        seq(2009 + 1, 2009 + year_smooth))
 ```
 
 ## Other vars
@@ -213,34 +213,6 @@ deaths_monthly %>%
   geom_line(aes(y = median_flu_year_hc), colour = "orange") +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   xlab("") +
-  theme_minimal()
-```
-
-## Seasonality
-
-```{r}
-dcmp <- deaths_monthly %>%
-  mutate(Time = row_number()) %>% 
-  tsibble::as_tsibble(index = Time) %>% 
-  fabletools::model(feasts::STL((Deaths/Population)*100000 ~ season(window = Inf)))
-
-# fabletools::components(dcmp)
-
-fabletools::components(dcmp) %>% 
-  autoplot()
-```
-
-```{r echo=FALSE}
-rm(dcmp)
-```
-
-## Outcome
-
-```{r echo=FALSE}
-deaths_monthly %>% 
-  ggplot(aes(Deaths)) +
-  geom_histogram(binwidth = 50) +
-  xlab("Number of deaths") + ylab("Monthly deaths") +
   theme_minimal()
 ```
 
