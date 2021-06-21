@@ -50,7 +50,7 @@ se_expected_deaths_monthly <- read_rds("data/se_expected_deaths_monthly.Rds") %>
 es_expected_deaths_monthly <- read_rds("data/es_expected_deaths_monthly.Rds") %>% 
   mutate(Country = "Spain") %>% relocate(Country)
 
-# toogether
+# together
 expected_deaths_monthly <- bind_rows(
   read_rds("data/ch_expected_deaths_monthly.Rds") %>% 
     mutate(Country = "Switzerland") %>% relocate(Country),
@@ -187,11 +187,17 @@ for(country in unique(expected_deaths_monthly$Country)) {
               lpi_flu_hc = max(lpi_flu_hc),
               upi_flu_hc = max(upi_flu_hc)) %>% 
     rowwise() %>% 
-    mutate(max = max(c(deaths, lpi_flu_hc, upi_flu_hc)))
+    mutate(max = max(c(deaths, lpi_flu_hc, upi_flu_hc))) %>% 
+    ungroup()
   
   print(paste0("Max for x is ", max$max))
   
   for(year in focus_years) {
+    
+    # skip Spain oldest - no data
+    if(year == 1890 & country == "Spain") {
+      next
+    }
     
     print(paste0("    Year ", year))
     
@@ -208,7 +214,10 @@ for(country in unique(expected_deaths_monthly$Country)) {
       my_title = paste0(country, ": ", 
                         as.character(year - 1), "-", as.character(year + 2))
     }
-    
+  
+    # sync breaks across plots
+    my_breaks = plot_data$Date[seq(1, nrow(plot_data), 6)]
+  
     plot <- plot_data %>% 
       ggplot(aes(x = Date)) +
       geom_rect(xmin = as.Date(paste0(year, "-01-01")),
@@ -219,8 +228,7 @@ for(country in unique(expected_deaths_monthly$Country)) {
       geom_line(aes(y = fit_flu_hc), colour = "grey50") +
       # geom_line(aes(y = median_flu_year), colour = "#2c7bb6") + 
       geom_line(aes(y = deaths), color = "#d7191c", size = 0.5) + 
-      scale_x_date(limits = c(min(plot_data$Date), max(plot_data$Date)),
-                   date_breaks = "6 months", date_labels = "%b") +
+      scale_x_date(breaks = my_breaks, date_labels = "%b") +
       xlab("") + 
       # ylab("Observed, 10y median & predicted deaths") +
       ylab("Observed & predicted deaths") +
@@ -488,7 +496,7 @@ table_data%>%
   collapse_rows(columns = 1, valign = "top")
 ```
 
-## Impact of methods
+## Impact of fit vs CI
 
 ### Fit vs. LPI vs. UPI
 
