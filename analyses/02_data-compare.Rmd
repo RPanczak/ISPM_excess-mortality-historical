@@ -16,7 +16,7 @@ editor_options:
 
 ```{r setup, include = FALSE}
 set.seed(12345)
-options(scipen=999)
+options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
@@ -123,21 +123,20 @@ p_unload(HMDHFDplus)
 ```{r include=FALSE}
 hmd_ch_deaths_year <- 
   read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(deaths_year = sum(Total)) %>% 
-  ungroup() %>% 
-  as_tibble()
-
-write_rds(hmd_ch_deaths_year, "data/mortality_org/hmd_ch_deaths_year.Rds")
-write_dta(hmd_ch_deaths_year, "data/mortality_org/hmd_ch_deaths_year.dta")
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  group_by(Year) %>%
+  summarise(Deaths = sum(Total)) %>%
+  ungroup() %>%
+  mutate(Country = "Switzerland") %>% relocate(Country) 
 ```
 
 Available from `r min(hmd_ch_deaths_year$Year)` to `r max(hmd_ch_deaths_year$Year)`.
 
 ```{r echo=FALSE}
-ggplot(hmd_ch_deaths_year, aes(x = Year)) +
-  geom_line(aes(y = deaths_year)) +
+hmd_ch_deaths_year %>% 
+  ggplot(aes(x = Year)) +
+  geom_line(aes(y = Deaths)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
@@ -147,53 +146,63 @@ ggplot(hmd_ch_deaths_year, aes(x = Year)) +
 ```{r include=FALSE}
 hmd_ch_deaths_age_sex <- 
   read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% 
-  select(-Total) %>% 
-  as_tibble()
-
-write_rds(hmd_ch_deaths_age_sex, "data/mortality_org/hmd_ch_deaths_age_sex.Rds")
-write_dta(hmd_ch_deaths_age_sex, "data/mortality_org/hmd_ch_deaths_age_sex.dta")
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  mutate(Country = "Switzerland") %>% relocate(Country) 
 ```
 
 ```{r echo=FALSE}
 hmd_ch_deaths_age_sex %>% 
   filter(Year == 1876 | Year == 2018) %>% 
   select(Year, Age, Female, Male) %>% 
-  rename(year = Year, age = Age) %>% 
-  pivot_longer(c("Female", "Male"), names_to = "sex") %>% 
-  mutate(age = if_else(age == "110+", "110", age)) %>% 
-  mutate(age = as.numeric(age)) %>% 
-  mutate(age_cat = cut(age, seq(0, 110, 10), include.lowest = TRUE)) %>% 
-  group_by(year, sex, age_cat) %>% 
+  pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
+  mutate(Age_cat = cut(Age, seq(0, 110, 10), 
+                       include.lowest = TRUE)) %>% 
+  group_by(Year, Sex, Age_cat) %>% 
   summarise(pop = sum(value)) %>% 
   ungroup() %>% 
-  ggplot(mapping = aes(x = ifelse(test = sex == "Male", yes = -pop, no = pop), 
-                       y = age_cat, fill = sex)) +
+  ggplot(mapping = aes(x = ifelse(test = Sex == "Male", 
+                                  yes = -pop, no = pop), 
+                       y = Age_cat, fill = Sex)) +
   geom_col(width = 1) +
   lemon::scale_x_symmetric(labels = abs) +
   labs(x = "Population", y = "Age at death") +
-  facet_grid(vars(year)) +
+  facet_grid(vars(Year)) +
   theme_bw() +
   scale_fill_brewer(palette = "Set1")
 ```
 
 ## Yearly pops CH
 
-Similarly, population data is aggregated by year. 
+Similarly, population data is available with 1y age bands by year. 
 
 ```{r include=FALSE}
 hmd_ch_pop_year <- 
   read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds") %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(pop_year = sum(Total)) %>% 
-  as_tibble()
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  select(Year, Total) %>%
+  group_by(Year) %>%
+  summarise(Population = sum(Total)) %>%
+  mutate(Country = "Switzerland") %>% relocate(Country) 
 
 write_rds(hmd_ch_pop_year, "data/mortality_org/hmd_ch_pop_year.Rds")
+
+hmd_ch_pop_age_sex <- 
+  read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds") %>% 
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  mutate(Country = "Switzerland") %>% relocate(Country) 
+
+write_rds(hmd_ch_pop_age_sex, "data/mortality_org/hmd_ch_pop_age_sex.Rds")
 ```
 
+Yearly totals, ignoring age
+
 ```{r echo=FALSE}
-ggplot(hmd_ch_pop_year, aes(x = Year)) +
-  geom_line(aes(y = pop_year/1000000)) +
+hmd_ch_pop_year  %>% 
+  ggplot(aes(x = Year)) +
+  geom_line(aes(y = Population/1000000)) +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]") +
   scale_y_continuous(labels = comma)
@@ -204,20 +213,20 @@ ggplot(hmd_ch_pop_year, aes(x = Year)) +
 ```{r include=FALSE}
 hmd_es_deaths_year <- 
   read_rds("data-raw/mortality_org/hmd_es_deaths_raw.Rds") %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(deaths_year = sum(Total)) %>% 
-  as_tibble()
-
-write_rds(hmd_es_deaths_year, "data/mortality_org/hmd_es_deaths_year.Rds")
-write_dta(hmd_es_deaths_year, "data/mortality_org/hmd_es_deaths_year.dta")
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  select(Year, Total) %>%
+  group_by(Year) %>%
+  summarise(Deaths = sum(Total)) %>%
+  mutate(Country = "Spain") %>% relocate(Country) 
 ```
 
 Available yearly from `r min(hmd_es_deaths_year$Year)` to `r max(hmd_es_deaths_year$Year)`.
 
 ```{r echo=FALSE}
-ggplot(hmd_es_deaths_year, aes(x = Year)) +
-  geom_line(aes(y = deaths_year)) +
+hmd_es_deaths_year %>% 
+  ggplot(aes(x = Year)) +
+  geom_line(aes(y = Deaths)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
@@ -227,11 +236,9 @@ ggplot(hmd_es_deaths_year, aes(x = Year)) +
 ```{r include=FALSE}
 hmd_es_deaths_age_sex <- 
   read_rds("data-raw/mortality_org/hmd_es_deaths_raw.Rds") %>% 
-  select(-Total) %>% 
-  as_tibble()
-
-write_rds(hmd_es_deaths_age_sex, "data/mortality_org/hmd_es_deaths_age_sex.Rds")
-write_dta(hmd_es_deaths_age_sex, "data/mortality_org/hmd_es_deaths_age_sex.dta")
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  mutate(Country = "Spain") %>% relocate(Country) 
 ```
 
 ## Yearly deaths SE
@@ -239,20 +246,20 @@ write_dta(hmd_es_deaths_age_sex, "data/mortality_org/hmd_es_deaths_age_sex.dta")
 ```{r include=FALSE}
 hmd_se_deaths_year <- 
   read_rds("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% 
-  select(Year, Total) %>% 
-  group_by(Year) %>% 
-  summarise(deaths_year = sum(Total)) %>% 
-  as_tibble()
-
-write_rds(hmd_se_deaths_year, "data/mortality_org/hmd_se_deaths_year.Rds")
-write_dta(hmd_se_deaths_year, "data/mortality_org/hmd_se_deaths_year.dta")
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  select(Year, Total) %>%
+  group_by(Year) %>%
+  summarise(Deaths = sum(Total)) %>%
+  mutate(Country = "Sweden") %>% relocate(Country) 
 ```
 
 Available yearly from `r min(hmd_se_deaths_year$Year)` to `r max(hmd_se_deaths_year$Year)`.
 
 ```{r echo=FALSE}
-ggplot(hmd_se_deaths_year, aes(x = Year)) +
-  geom_line(aes(y = deaths_year)) +
+hmd_se_deaths_year %>% 
+  ggplot(aes(x = Year)) +
+  geom_line(aes(y = Deaths)) +
   theme_bw() +
   xlab("") + ylab("Yearly number of deaths")
 ```
@@ -262,11 +269,25 @@ ggplot(hmd_se_deaths_year, aes(x = Year)) +
 ```{r include=FALSE}
 hmd_se_deaths_age_sex <- 
   read_rds("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% 
-  select(-Total) %>% 
+  mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
+  mutate(Age = as.numeric(Age)) %>% 
+  mutate(Country = "Sweden") %>% relocate(Country) %>% 
   as_tibble()
+```
 
-write_rds(hmd_se_deaths_age_sex, "data/mortality_org/hmd_se_deaths_age_sex.Rds")
-write_dta(hmd_se_deaths_age_sex, "data/mortality_org/hmd_se_deaths_age_sex.dta")
+```{r}
+hmd_deaths_age_sex <- bind_rows(hmd_ch_deaths_age_sex, hmd_es_deaths_age_sex, hmd_se_deaths_age_sex)
+
+rm(hmd_ch_deaths_age_sex, hmd_es_deaths_age_sex, hmd_se_deaths_age_sex)
+
+write_rds(hmd_deaths_age_sex, "data/mortality_org/hmd_deaths_age_sex.Rds")
+write_dta(hmd_deaths_age_sex, "data/mortality_org/hmd_deaths_age_sex.dta")
+
+hmd_deaths_year <- bind_rows(
+  hmd_ch_deaths_year, hmd_es_deaths_year, hmd_se_deaths_year)
+
+write_rds(hmd_deaths_year, "data/mortality_org/hmd_deaths_year.Rds")
+write_dta(hmd_deaths_year, "data/mortality_org/hmd_deaths_year.dta")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -412,7 +433,7 @@ stmf_monthly %>%
 
 ## BfS
 
-### Deaths 
+### Monthly deaths 
 
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
@@ -461,6 +482,28 @@ ggplot(data = bfs_web_deaths_monthly,
   geom_line(aes(y = deaths_month)) +
   theme_bw() +
   xlab("") + ylab("Monthly number of deaths")
+```
+
+### Yearly deaths CH - with age & sex structure
+
+```{r}
+bfs_deaths_age_sex <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
+                               col_types = cols(KalJahr = col_integer(),
+                                                Alter = col_integer(),
+                                                COUNT = col_integer()), 
+                               trim_ws = TRUE) %>% 
+  rename(Year = KalJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
+  mutate(Country = "Switzerland") %>% relocate(Country)
+
+# bfs_deaths_age_sex %<>% 
+#   mutate(Age_group = cut(Age, 
+#                          breaks = c(seq(0, 90, 5), 113), 
+#                          # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
+#                          right=FALSE)
+#   ) %>% 
+#   group_by(Year, Sex, Age_group) %>% 
+#   summarise(Deaths = sum(Deaths)) %>% 
+#   ungroup() 
 ```
 
 ### Pops 
@@ -556,7 +599,7 @@ compare %>%
 
 ## Comparison - deaths
 
-### Yearly vs. monthly figures
+### Yearly vs. monthly BfS figures
 
 ```{r}
 bfs_web_deaths_monthly %>% 
@@ -569,7 +612,7 @@ bfs_web_deaths_monthly %>%
   nrow()
 ```
 
-There are no years where summed monthly data differ from "official" yearly sums.
+There are no years where summed  monthly data differ from "official" yearly sums.
 
 ### BfS vs HMD
 
