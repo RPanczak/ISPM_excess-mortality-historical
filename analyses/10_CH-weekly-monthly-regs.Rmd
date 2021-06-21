@@ -90,10 +90,10 @@ knitr::include_graphics(path)
 Prepared in `03.Rmd`.  Collapsing age groups. 
 
 ```{r}
-bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds")  %>% 
+bfs_deaths_week <- read_rds("data/BfS/bfs_deaths_week_2010-2019.Rds")  %>% 
   filter(Year >= year_from) %>% 
   filter(Year <= year) %>% 
-  bind_rows(read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds") %>%
+  bind_rows(read_rds("data/BfS/bfs_deaths_week_2020-2021.Rds") %>%
               filter(Year >= year_from) %>% 
               filter(Year <= year)) %>% 
   group_by(Year, Week, Ending) %>% 
@@ -112,7 +112,7 @@ bfs_web_deaths_weekly <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds"
 4 harmonic variables  
 
 ```{r}
-bfs_web_deaths_weekly %>% 
+bfs_deaths_week %>% 
   select(si_one, co_one) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -123,7 +123,7 @@ bfs_web_deaths_weekly %>%
 ```
 
 ```{r}
-bfs_web_deaths_weekly %>% 
+bfs_deaths_week %>% 
   select(si_two, co_two) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -134,7 +134,7 @@ bfs_web_deaths_weekly %>%
 ```
 
 ```{r echo=FALSE}
-bfs_web_deaths_weekly %>% 
+bfs_deaths_week %>% 
   ggplot(aes(x = Ending)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), 
@@ -156,7 +156,7 @@ Calculated from weekly BfS data aggregating `NumberOfDeaths` and `Expected` (**n
 Inherits small issues around aggregation of weekly data into years!  
 
 ```{r}
-excess_deaths <- bfs_web_deaths_weekly %>% 
+excess_deaths <- bfs_deaths_week %>% 
   mutate(Excess_expected = NumberOfDeaths - Expected) %>% 
   group_by(Year) %>% 
   summarise(Excess_expected = sum(Excess_expected)) %>% 
@@ -174,12 +174,12 @@ ggplot(excess_deaths) +
 Prepared in `02.Rmd`.  
 
 ```{r}
-# bfs_web_pop_yearly <- read_rds("data/BfS/bfs_web_pop_yearly.Rds")
+# bfs_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds")
 
-bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>% 
+bfs_deaths_month <- read_rds("data/BfS/bfs_deaths_month.Rds") %>% 
   filter(Year >= year_from) %>% 
   filter(Year <= year) %>% 
-  # left_join(bfs_web_pop_yearly) %>% 
+  # left_join(bfs_pop_year) %>% 
   # mutate(flu_year = ifelse(Year %in% flu_years, 1, 0),
   #        not = 1 - flu_year) %>% 
   mutate(
@@ -190,15 +190,15 @@ bfs_web_deaths_monthly <- read_rds("data/BfS/bfs_web_deaths_monthly.Rds") %>%
   mutate(Time = row_number()) %>% 
   relocate(Time)
 
-# with(bfs_web_deaths_monthly, table(flu_year, not))
+# with(bfs_deaths_month, table(flu_year, not))
 
-# rm(bfs_web_pop_yearly)
+# rm(bfs_pop_year)
 ```
 
 4 harmonic variables
 
 ```{r}
-bfs_web_deaths_monthly %>% 
+bfs_deaths_month %>% 
   select(si_one, co_one) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -209,7 +209,7 @@ bfs_web_deaths_monthly %>%
 ```
 
 ```{r}
-bfs_web_deaths_monthly %>% 
+bfs_deaths_month %>% 
   select(si_two, co_two) %>% 
   mutate(row = row_number()) %>% 
   pivot_longer(-row) %>% 
@@ -220,7 +220,7 @@ bfs_web_deaths_monthly %>%
 ```
 
 ```{r echo=FALSE}
-bfs_web_deaths_monthly %>% 
+bfs_deaths_month %>% 
   ggplot(aes(x = Date)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), 
@@ -228,7 +228,7 @@ bfs_web_deaths_monthly %>%
   geom_rect(aes(xmin = date_from, xmax = date_min, 
                 ymin = -Inf, ymax = Inf), 
             fill = "#fdc086", alpha = 0.01, inherit.aes = FALSE) +
-  geom_line(aes(y = deaths_month)) + 
+  geom_line(aes(y = Deaths    )) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_y_continuous(labels = comma) +
   theme_minimal() + 
@@ -240,7 +240,7 @@ bfs_web_deaths_monthly %>%
 ### Weekly 
 
 ```{r}
-bfs_web_deaths_weekly %<>% 
+bfs_deaths_week %<>% 
   arrange(Week, Year) %>% 
   group_by(Week) %>% 
   mutate(mean_5y   = slide_dbl(NumberOfDeaths, mean, 
@@ -255,7 +255,7 @@ bfs_web_deaths_weekly %<>%
 ```
 
 ```{r echo=FALSE}
-bfs_web_deaths_weekly %>% 
+bfs_deaths_week %>% 
   filter(Year >= year - 5 & Year <= year) %>%
   ggplot(aes(x = Ending)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
@@ -271,7 +271,7 @@ bfs_web_deaths_weekly %>%
 There will be small gap on *[week 53](https://en.wikipedia.org/wiki/ISO_week_date)* (end 2015 / beg 2016) illustrating **problem of week 53**!
 
 ```{r echo=FALSE}
-bfs_web_deaths_weekly %>% 
+bfs_deaths_week %>% 
   filter(Year == year) %>%
   ggplot(aes(x = Ending)) +
   geom_line(aes(y = NumberOfDeaths), colour = "grey40") + 
@@ -285,13 +285,13 @@ bfs_web_deaths_weekly %>%
 ### Monthly 
 
 ```{r}
-bfs_web_deaths_monthly %<>% 
+bfs_deaths_month %<>% 
   arrange(Month, Year) %>% 
   group_by(Month) %>% 
-  mutate(mean_5y   = slide_dbl(deaths_month, mean, 
+  mutate(mean_5y   = slide_dbl(Deaths    , mean, 
                                na.rm = TRUE, .complete = TRUE,
                                .before = 5, .after = -1),
-         median_5y = slide_dbl(deaths_month, median, 
+         median_5y = slide_dbl(Deaths    , median, 
                                na.rm = TRUE, .complete = TRUE,
                                .before = 5, .after = -1)) %>% 
   ungroup() %>% 
@@ -300,12 +300,12 @@ bfs_web_deaths_monthly %<>%
 ```
 
 ```{r echo=FALSE}
-bfs_web_deaths_monthly %>% 
+bfs_deaths_month %>% 
   filter(Year >= year - 5 & Year <= year) %>%
   ggplot(aes(x = Date)) +
   geom_rect(aes(xmin = date_min, xmax = date_max, 
                 ymin = -Inf, ymax = Inf), alpha = 0.005, inherit.aes = FALSE) +
-  geom_line(aes(y = deaths_month), colour = "grey40") + 
+  geom_line(aes(y = Deaths    ), colour = "grey40") + 
   geom_line(aes(y = median_5y), colour = "firebrick") + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   xlab("") +
@@ -313,10 +313,10 @@ bfs_web_deaths_monthly %>%
 ```
 
 ```{r echo=FALSE}
-bfs_web_deaths_monthly %>% 
+bfs_deaths_month %>% 
   filter(Year == year) %>%
   ggplot(aes(x = Date)) +
-  geom_line(aes(y = deaths_month), colour = "grey40") + 
+  geom_line(aes(y = Deaths    ), colour = "grey40") + 
   geom_line(aes(y = median_5y), colour = "firebrick") + 
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") +
@@ -330,23 +330,23 @@ bfs_web_deaths_monthly %>%
 ## Data
 
 ```{r}
-reg_deaths_weekly <- bfs_web_deaths_weekly %>% 
+reg_deaths_weekly <- bfs_deaths_week %>% 
   # mutate(NumberOfDeaths = as.integer(NumberOfDeaths)) %>% 
   filter(Year >= year_from) %>% 
   filter(Year <= year_to) 
 
-pred_deaths_weekly <- bfs_web_deaths_weekly %>% 
+pred_deaths_weekly <- bfs_deaths_week %>% 
   mutate(NumberOfDeaths = as.integer(NumberOfDeaths)) %>% 
   # filter(Year >= year_from)
   filter(Year == year)
 
-reg_deaths_monthly <- bfs_web_deaths_monthly %>% 
-  # mutate(deaths_month = as.integer(deaths_month)) %>% 
+reg_deaths_month <- bfs_deaths_month %>% 
+  # mutate(Deaths     = as.integer(Deaths    )) %>% 
   filter(Year >= year_from) %>%
   filter(Year <= year_to)
 
-pred_deaths_monthly <- bfs_web_deaths_monthly %>% 
-  # mutate(deaths_month = as.integer(deaths_month)) %>% 
+pred_deaths_month <- bfs_deaths_month %>% 
+  # mutate(Deaths     = as.integer(Deaths    )) %>% 
   # filter(Year >= year_from)
   filter(Year == year)
 ```
@@ -367,7 +367,7 @@ pred_deaths_weekly %<>%
   as_tibble()
 ```
 
-```{r echo=FALSE}
+```{r eval=FALSE}
 pred_deaths_weekly %>% 
   ggplot(aes(x = Ending)) +
   geom_line(aes(y = NumberOfDeaths), color = "#beaed4", size = 0.5) + 
@@ -397,26 +397,26 @@ pred_deaths_weekly %>%
 ## Monthly data
 
 ```{r}
-summary(mz_monthly <- glm(deaths_month ~ Month + 
+summary(mz_month <- glm(Deaths     ~ Month + 
                             si_one + si_two + co_one + co_two, 
                           family = "poisson", 
-                          data = reg_deaths_monthly))
+                          data = reg_deaths_month))
 
-pred_deaths_monthly %<>%
-  add_pi(mz_monthly, 
+pred_deaths_month %<>%
+  add_pi(mz_month, 
          names = c("mz_lpi", "mz_upi"), 
          yhatName = "mz_fit", 
          nSims = 20000) %>% 
   as_tibble()
 ```
 
-```{r echo=FALSE}
-pred_deaths_monthly %>% 
+```{r eval=FALSE}
+pred_deaths_month %>% 
   ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
   geom_line(aes(y = mz_fit)) +
   geom_line(aes(y = median_5y), colour = "firebrick") + 
-  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
+  geom_line(aes(y = Deaths    ), color = "#beaed4", size = 1) + 
   scale_y_continuous(labels = comma) +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   xlab("") + ylab("Observed, 5y median & predicted deaths") +
@@ -424,13 +424,13 @@ pred_deaths_monthly %>%
 ```
 
 ```{r echo=FALSE}
-pred_deaths_monthly %>% 
+pred_deaths_month %>% 
   filter(Year >= year) %>% 
   ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymin = mz_lpi, ymax = mz_upi), alpha = 0.1) + 
   geom_line(aes(y = mz_fit)) +
   geom_line(aes(y = median_5y), colour = "firebrick") + 
-  geom_line(aes(y = deaths_month), color = "#beaed4", size = 1) + 
+  geom_line(aes(y = Deaths    ), color = "#beaed4", size = 1) + 
   scale_y_continuous(labels = comma) +
   scale_x_date(date_breaks = "2 months", date_labels = "%b") +
   xlab("") + ylab("Observed, 5y median & predicted deaths") +
@@ -461,11 +461,11 @@ pred_deaths_weekly %>%
 Estimated from monthly data:
 
 ```{r}
-pred_deaths_monthly %>% 
+pred_deaths_month %>% 
   filter(Year == year) %>% 
-  summarise(NumberOfDeaths = sum(deaths_month), 
-            deaths_pred_monthly = sum(mz_fit),
-            Excess = round(NumberOfDeaths - deaths_pred_monthly))
+  summarise(NumberOfDeaths = sum(Deaths    ), 
+            deaths_pred_month = sum(mz_fit),
+            Excess = round(NumberOfDeaths - deaths_pred_month))
 ```
 
 <!-- ----------------------------------------------------- -->

@@ -12,9 +12,11 @@ editor_options:
   chunk_output_type: console
 ---
 
+<!-- ----------------------------------------------------- -->
+
 ```{r setup, include = FALSE}
 set.seed(12345)
-options(scipen=999)
+options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
@@ -49,7 +51,7 @@ mu <- Hmisc::markupSpecs$html
 #               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv",
 #               method = "curl")
 
-weekly_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
+week_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
                                escape_double = FALSE, 
                                col_types = cols(CY = col_integer(), 
                                                 Week = col_integer(), 
@@ -63,18 +65,18 @@ weekly_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
   rename(Year = CY) %>% 
   filter(!is.na(Year))
 
-write_rds(weekly_2010_2019, "data/BfS/bfs_web_deaths_weekly_2010-2019.Rds")
-haven::write_dta(weekly_2010_2019, "data/BfS/bfs_web_deaths_weekly_2010-2019.dta")
+write_rds(week_2010_2019, "data/BfS/bfs_deaths_week_2010-2019.Rds")
+haven::write_dta(week_2010_2019, "data/BfS/bfs_deaths_week_2010-2019.dta")
 ```
 
 ```{r include=FALSE}
-weekly_2010_2019 <- read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds") 
+week_2010_2019 <- read_rds("data/BfS/bfs_deaths_week_2010-2019.Rds") 
 ```
 
-Last five years
+Last five years with two age groups
 
 ```{r echo=FALSE}
-weekly_2010_2019 %>% 
+week_2010_2019 %>% 
   filter(Year >= 2015) %>% 
   ggplot(aes(x = Ending)) +
   # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
@@ -91,7 +93,12 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17544965/mast
               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr.csv",
               method = "curl")
 
-weekly_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.csv", 
+zip(zipfile = "data-raw/BfS/ts-e-14.03.04.03-wr.zip", 
+    files = "data-raw/BfS/ts-e-14.03.04.03-wr.csv")
+
+file.remove("data-raw/BfS/ts-e-14.03.04.03-wr.csv")
+
+week_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.zip", 
                                ";", escape_double = FALSE, 
                                col_types = cols(Year = col_integer(), 
                                                 Week = col_integer(), 
@@ -107,16 +114,16 @@ weekly_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.csv",
          Excess = Diff) %>% 
   filter(!is.na(Year))
 
-write_rds(weekly_2020_2021, "data/BfS/bfs_web_deaths_weekly_2020-2021.Rds")
-haven::write_dta(weekly_2020_2021, "data/BfS/bfs_web_deaths_weekly_2020-2021.dta")
+write_rds(week_2020_2021, "data/BfS/bfs_deaths_week_2020-2021.Rds")
+haven::write_dta(week_2020_2021, "data/BfS/bfs_deaths_week_2020-2021.dta")
 ```
 
 ```{r include=FALSE}
-weekly_2020_2021 <- read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds")
+week_2020_2021 <- read_rds("data/BfS/bfs_deaths_week_2020-2021.Rds")
 ```
 
 ```{r echo=FALSE}
-weekly_2020_2021 %>% 
+week_2020_2021 %>% 
   filter(Ending < Sys.Date()) %>% 
   ggplot(aes(x = Ending)) +
   # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
@@ -128,7 +135,7 @@ weekly_2020_2021 %>%
 
 ```{r echo=FALSE,eval=FALSE}
 # projected goes on; with a funny dip at the end?
-weekly_2020_2021 %>% 
+week_2020_2021 %>% 
   filter(Ending >= as.Date("2020-11-01")) %>% 
   ggplot(aes(x = Ending)) +
   # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
@@ -141,8 +148,8 @@ weekly_2020_2021 %>%
 ## Yearly totals of excess deaths
 
 ```{r}
-excess_2010_2020 <- weekly_2010_2019 %>% 
-  bind_rows(weekly_2020_2021 %>% filter(Ending <= as.Date("2020-12-31"))) %>% 
+excess_2010_2020 <- week_2010_2019 %>% 
+  bind_rows(week_2020_2021 %>% filter(Ending <= as.Date("2020-12-31"))) %>% 
   mutate(Excess_expected = NumberOfDeaths - Expected) %>% 
   # mutate(Excess_upperB = NumberOfDeaths - upperB) %>% 
   # group_by(Year, Age) %>% 
@@ -196,20 +203,20 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
 
 <!-- ----------------------------------------------------- -->
 
-# Comparing BfS to STMF (weekly)
+# Comparing BfS to STMF (week)
 
-Until April, all seems to be fine:
+Until April, all seems to be fine, except some end of the year correction (?):
 
 ```{r}
 bfs_stmf <- left_join(
   
-  weekly_2020_2021 %>% 
+  week_2020_2021 %>% 
     filter(Ending <= as.Date("2021-05-23")) %>% 
     group_by(Year, Week) %>%
     summarise(NumberOfDeaths = sum(NumberOfDeaths)) %>% 
     ungroup(),
   
-  read_rds("data/mortality_org/stmf_weekly.Rds") %>% 
+  read_rds("data/mortality_org/stmf_week.Rds") %>% 
     filter(Country == "Switzerland")
   
 ) %>% 
