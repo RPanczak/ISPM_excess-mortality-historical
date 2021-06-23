@@ -42,13 +42,11 @@ mu <- Hmisc::markupSpecs$html
 
 Alternative sources. Not needed so left **UNFINISHED** in terms of processing as placeholder for documenting links and names...  
 
-2019 
+2000 
 canton
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004426.html
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187299.html
 gr
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17004450.html
-
-Docs in `ts-q-01.04.02.01.30-APPENDIX.xlsx`
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187304.html
 
 2020 
 canon
@@ -56,15 +54,13 @@ https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.asse
 gr
 https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.15464206.html
 
-Docs in `ts-q-01.04.02.01.30-2020-APPENDIX.xlsx`
 
 2021
 canton
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187299.html
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17824512.html
 gr
-https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13187304.html
+https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.17824512.html
 
-Docs in `ts-q-01.04.02.01.30-2021-APPENDIX.xlsx`
 
 ## Deaths per week by 5-year age group, sex and canton
 
@@ -101,24 +97,24 @@ BfS [Mortality monitoring (MOMO)](https://www.experimental.bfs.admin.ch/expstat/
 ## Deaths in NUTS2-regions, age group 0 - 64 years, 2020-2021
 
 ```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584743/master",
-              destfile = "data-raw/BfS/momo_nuts_0-64_2020-2021.csv", 
+download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/17824489/master",
+              destfile = "data-raw/BfS/MOMO/ts-d-14.03.04.04-wr.csv", 
               method = "curl")
 ```
 
 ## Deaths in NUTS2-regions, age group 65 years and older, 2020-2021
 
 ```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584737/master",
-              destfile = "data-raw/BfS/momo_nuts_65_2020-2021.csv", 
+download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/17824507/master",
+              destfile = "data-raw/BfS/MOMO/ts-d-14.03.04.05-wr.csv", 
               method = "curl")
 ```
 
 ## Weekly deaths 2020-2021 for 26 cantons and 2 age groups
 
 ```{r eval=FALSE}
-download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/16584735/master",
-              destfile = "data-raw/BfS/momo_canton_age-bin_2020-2021.csv", 
+download.file(url = "https://www.experimental.bfs.admin.ch/bfsstatic/dam/assets/17824492/master",
+              destfile = "data-raw/BfS/MOMO/ts-d-14.03.04.06-wr.csv", 
               method = "curl")
 ```
 

@@ -89,7 +89,7 @@ week_2010_2019 %>%
 ## Weekly number of deaths, 2020-2021
 
 ```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17544965/master",
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17824496/master",
               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr.csv",
               method = "curl")
 

@@ -1,0 +1,142 @@
+---
+title: "Excess mortality: BAG COVID-19 data"
+author: "Radek Panczak"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    highlight: pygments
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+options(scipen=999)
+set.seed(12345)
+
+library(pacman)
+p_load(knitr, rmdformats, 
+       tidyverse, scales, readxl, haven, janitor, kableExtra)
+
+options(max.print = "75")
+opts_chunk$set(cache = FALSE,
+               prompt = FALSE,
+               tidy = FALSE,
+               comment = NA,
+               message = FALSE,
+               warning = FALSE)
+opts_knit$set(width = 75)
+
+mu <- Hmisc::markupSpecs$html
+```
+
+<!-- ----------------------------------------------------- -->
+
+# BAG 1
+
+BAG [Coronavirus: Situation in Switzerland](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html#-1680104524) 
+
+## Deaths
+
+```{r eval=FALSE}
+download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/aktuelle-ausbrueche-pandemien/2019-nCoV/covid-19-basisdaten-fallzahlen.csv.download.csv/Data%20on%20laboratory%20findings%20and%20deaths.csv",
+              destfile = "data-raw/BAG/Data on laboratory findings and deaths.csv", 
+              method = "curl")
+
+zip(zipfile = "data-raw/BAG/Data on laboratory findings and deaths", 
+    files = "data-raw/BAG/Data on laboratory findings and deaths.csv")
+
+file.remove("data-raw/BAG/Data on laboratory findings and deaths.csv")
+
+deaths_cases <- read_delim("data-raw/BAG/Data on laboratory findings and deaths.zip", 
+                           delim = ";",
+                           col_names = TRUE, 
+                           col_types = cols_only(
+                             fall_dt = col_date(),
+                             ktn = col_character(),
+                             akl = col_character(),
+                             sex = col_integer(),
+                             fallklasse_3 = col_integer(),
+                             pttoddat = col_date(),
+                             pttod_1 = col_integer())) %>% 
+  mutate(sex = factor(sex, labels = c("Men", "Women", "Unknown"))) %>% 
+  mutate(akl = factor(akl)) %>% 
+  rename(canton = ktn,
+         age_group = akl,
+         deaths = pttod_1, 
+         cases = fallklasse_3) 
+
+# write_rds(deaths_cases, "data/BAG/deaths_cases.rds")
+
+deaths <- deaths_cases %>% 
+  filter(!is.na(pttoddat)) %>% 
+  select(-fall_dt, -cases) %>% 
+  arrange(pttoddat, canton, sex, age_group) %>% 
+  mutate(weekend = chron::is.weekend(pttoddat))
+
+write_rds(deaths, "data/BAG/deaths.rds")
+```
+
+```{r}
+deaths <- read_rds("data/BAG/deaths.rds")
+```
+
+## Pops
+
+```{r}
+download.file(url = "https://www.bag.admin.ch/dam/bag/en/dokumente/mt/k-und-i/aktuelle-ausbrueche-pandemien/2019-nCoV/covid-19-basisdaten-bevoelkerungszahlen.xlsx.download.xlsx/Population_Size_BFS.xlsx",
+              destfile = "data-raw/BAG/Population_Size_BFS.xlsx", 
+              method = "curl")
+
+population <- read_excel("data-raw/BAG/Population_Size_BFS.xlsx") %>% 
+  rename(canton = Kanton,
+         age_group = Alterklasse,
+         sex = Geschlecht) 
+
+write_rds(population, "data/BAG/population.rds")
+```
+
+```{r}
+population <- read_rds("data/BAG/population.rds")
+```
+
+<!-- ----------------------------------------------------- -->
+
+# BAG 2 
+
+[COVID-⁠19 Switzerland](https://www.covid19.admin.ch/en/epidemiologic/death)
+
+```{r eval=FALSE}
+download.file(url = "https://www.covid19.admin.ch/api/data/20210324-lu7j46iy/downloads/sources-csv.zip",
+              destfile = "data-raw/BAG/bag-covid-pack.zip",
+              method = "curl")
+
+exdir = paste0("./data-raw/BAG/", Sys.Date())
+dir.create(exdir)
+
+unzip("data-raw/BAG/bag-covid-pack.zip", exdir = exdir) 
+
+file.remove("./data-raw/BAG/bag-covid-pack.zip")
+```
+
+```{r}
+exdir = paste0("./data-raw/BAG/", Sys.Date())
+
+Death_geoRegion <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion.csv"))
+
+Death_geoRegion_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_w.csv"))
+
+Death_geoRegion_AKL10_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_AKL10_w.csv"))
+
+Death_geoRegion_sex_w <- read_csv(paste0(exdir, "/data/COVID19Death_geoRegion_sex_w.csv"))
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
