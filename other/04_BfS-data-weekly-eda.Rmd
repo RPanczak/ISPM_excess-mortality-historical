@@ -43,22 +43,18 @@ mu <- Hmisc::markupSpecs$html
 # Weekly number of deaths, 2010-2019
 
 ```{r include=FALSE}
-weekly_2020_2021 <- 
-  
-  weekly_2010_2021 <- bind_rows(
-    read_rds("data/BfS/bfs_web_deaths_weekly_2010-2019.Rds") %>% 
-      mutate(pandemic = 0),
-    
-    read_rds("data/BfS/bfs_web_deaths_weekly_2020-2021.Rds") %>% 
-      mutate(pandemic = ifelse(Ending > as.Date("2020-02-25"), 1, 0))
-    
-  )
+week_2010_2021 <- bind_rows(
+  read_rds("data/BfS/bfs_deaths_week_2010-2019.Rds"), 
+  read_rds("data/BfS/bfs_deaths_week_2020-2021.Rds")
+) %>% 
+  filter(!is.na(NumberOfDeaths)) %>% 
+  mutate(pandemic = ifelse(Ending > as.Date("2020-02-25"), 1, 0))
 ```
 
 Last ~two years
 
 ```{r echo=FALSE}
-weekly_2010_2021 %>% 
+week_2010_2021 %>% 
   filter(Year >= 2019) %>%
   filter(Ending < Sys.Date()) %>% 
   ggplot(aes(x = Ending)) +
@@ -76,7 +72,7 @@ weekly_2010_2021 %>%
 Only 65+ deaths!
 
 ```{r}
-weekly <- weekly_2010_2021 %>% 
+weekly <- week_2010_2021 %>% 
   filter(Age == "65+",
          !is.na(NumberOfDeaths)) %>% 
   as_tsibble(index = Ending)
