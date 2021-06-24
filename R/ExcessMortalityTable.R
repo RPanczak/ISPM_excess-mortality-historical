@@ -2,7 +2,7 @@ library(dplyr)
 library(openxlsx)
 
 
-data_mort <- readRDS("C:/Users/kmatth/Dropbox/SpanischeGrippe/ExcessMortality/expected_deaths_monthly.RdS")
+data_mort <- readRDS("data/expected_deaths_monthly.RdS")
 head(data_mort)
 
 pandemic_year <- c("1890","1918","1957","2020")
@@ -17,7 +17,7 @@ table_mort <- as.data.frame(data_mort) %>%
            Percent_excess_death=round((Cum_excess_death/Expected_Mortality)*100,1))%>%
   ungroup()
 
-write.xlsx(table_mort,"C:/Users/kmatth/Dropbox/SpanischeGrippe/ExcessMortality/Excess_Mortalty.xlsx", row.names=FALSE)
+write.xlsx(table_mort,"res/Excess_Mortalty_table.xlsx", row.names=FALSE)
 
 # 
 # table_mort_month <- as.data.frame(data_mort) %>%
