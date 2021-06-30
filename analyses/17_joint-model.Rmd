@@ -96,6 +96,21 @@ deaths_yearly_age_sex <- read_rds("data/mortality_org/hmd_deaths_age_sex.Rds") %
 #   ungroup()
 ```
 
+## Yearly pops with age breakdown
+
+```{r}
+pop_yearly_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
+  filter((Year >= 1913 & Year <= 1919))
+
+# # if pivot? or age cats? are needed
+# pop_yearly_age_sex %<>% 
+#   pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
+#   mutate(Age_cat = cut(Age, seq(0, 110, 10), 
+#                        include.lowest = TRUE)) %>% 
+#   group_by(Year, Sex, Age_cat) %>% 
+#   summarise(Population = sum(value)) %>% 
+#   ungroup()
+```
 
 <!-- ----------------------------------------------------- -->
 
