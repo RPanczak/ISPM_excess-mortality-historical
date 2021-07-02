@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="generator" content="pandoc" />
+
+        <meta name="author" content="Radek Panczak" />
+    
+        <meta name="date" content="2021-07-02" />
+    
+    <title>Excess mortality</title>
+
+        <script src="19_Comparison_week_month_files/header-attrs-2.9/header-attrs.js"></script>
+        <script src="19_Comparison_week_month_files/jquery-1.11.3/jquery.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="19_Comparison_week_month_files/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+        <script src="19_Comparison_week_month_files/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+        <script src="19_Comparison_week_month_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+        <script src="19_Comparison_week_month_files/navigation-1.1/tabsets.js"></script>
+        <script src="19_Comparison_week_month_files/navigation-1.1/codefolding.js"></script>
+        <link href="19_Comparison_week_month_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+        <script src="19_Comparison_week_month_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+        <link href="19_Comparison_week_month_files/robobook-0.1/robobook.css" rel="stylesheet" />
+        <link href="19_Comparison_week_month_files/robobook-0.1/robobook_fonts_embed.css" rel="stylesheet" />
+        <script src="19_Comparison_week_month_files/robobook-0.1/robobook.js"></script>
+        <script src="19_Comparison_week_month_files/kePrint-0.0.1/kePrint.js"></script>
+        <link href="19_Comparison_week_month_files/lightable-0.0.1/lightable.css" rel="stylesheet" />
+    
+    
+    
+    
+    <!-- tabsets -->
+    <script>
+      $(document).ready(function () {
+	  window.buildTabsets("toc");
+      });
+      $(document).ready(function () {
+	  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+	      $(this).parent().toggleClass('nav-tabs-open')
+	  });
+      });
+    </script>
+
+    <!-- code folding -->
+        <script>
+      $(document).ready(function () {
+	  	  	  window.initializeCodeFolding("show" === "show");
+	        });
+    </script>
+    
+    <!-- code download -->
+    
+    <!-- tabsets dropdown -->
+
+    <style type="text/css">
+      .tabset-dropdown > .nav-tabs {
+	  display: inline-table;
+	  max-height: 500px;
+	  min-height: 44px;
+	  overflow-y: auto;
+	  background: white;
+	  border: 1px solid #ddd;
+	  border-radius: 4px;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+	  content: "&#xe258;";
+	  border: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+	  content: "";
+	  font-family: 'Glyphicons Halflings';
+	  display: inline-block;
+	  padding: 10px;
+	  border-right: 1px solid #ddd;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li.active {
+	  display: block;
+      }
+
+      .tabset-dropdown > .nav-tabs > li.active a {
+  	  padding: 0 15px !important;
+      }
+
+      .tabset-dropdown > .nav-tabs > li > a,
+      .tabset-dropdown > .nav-tabs > li > a:focus,
+      .tabset-dropdown > .nav-tabs > li > a:hover {
+	  border: none;
+	  display: inline-block;
+	  border-radius: 4px;
+	  background-color: transparent;
+      }
+      
+      .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+	  display: block;
+	  float: none;
+      }
+      
+      .tabset-dropdown > .nav-tabs > li {
+	  display: none;
+	  margin-left: 0 !important;
+      }
+    </style>
+    
+</head>
+
+<body class="preload">
+
+   	
+            <!-- robobook start -->   
+   <div class="book with-summary">
+      <div class="book-summary">
+        <ul>
+          <li class="title">Excess mortality</li>
+          <li class="divider"></li>
+        </ul>
+        <nav role="navigation" id="toc">
+          <ul>
+          <li><a href="#explanation">Explanation</a></li>
+          <li><a href="#switzerland">Switzerland</a></li>
+          <li><a href="#sweden">Sweden</a></li>
+          <li><a href="#spain">Spain</a></li>
+          </ul>
+        </nav>
+        <ul class="authors">
+          <li class="divider"></li>
+                                <li><span><i class="glyphicon glyphicon-user"></i> Radek Panczak</span></li>
+                                         <li><span><i class="glyphicon glyphicon-calendar"></i> 2021-07-02</span></li>
+                  </ul>     
+      </div>
+      <div class="book-body fixed">
+        <div class="body-inner">
+            <a class="btn pull-left js-toolbar-action toggle-sidebar" aria-label="Toggle Sidebar" title="Toggle Sidebar" href="#">
+              <span class="glyphicon glyphicon-menu-hamburger"></span>
+            </a>
+            <div class="page-inner">
+              <section id="content" class="normal">
+      
+      <div class="btn-group pull-right">
+     <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+     <ul class="dropdown-menu" style="min-width: 50px;">
+	    	    <li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+	    <li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+	    	    	         </ul>
+   </div>
+   
+        
+      <h1 class="title">Excess mortality</h1>
+         <h1 class="subtitle">2010-2020 Comparison of monthly and weekly data</h1>
+   
+        
+
+   
+      
+   
+<!-- Don't indent these lines or it will mess pre blocks indentation --> 
+<!-- ----------------------------------------------------- -->
+<!-- ----------------------------------------------------- -->
+<div id="explanation" class="section level1">
+<h1>Explanation</h1>
+<p>There are differences between months and weeks. Months go exactly to 31.December, whereas calendar weeks go into the new year. 2015 and 2020 had even 53 calendar weeks, instead of 52. Which means, the KW 1 of the 2020 started on 30.12.2019 and KW 53 ended on 03.01.2021,i.e. 5 days did not actually belong to the year 2020. Calendar weeks are based on a DIN standard. But since we want to represent years, I would take the calculation with months.There we have then in any case always the 01.01. - 31.12. in it and no fluctuations of the days by the DIN norm of the calendar weeks.</p>
+<p>Because of these differences, even the reported death rates of months and years vary. As said, for calendar weeks, 5 more days are counted. And if the reported death numbers are already different, then the expected numbers are as well.I can’t make any statement right now about the method, whether the calculation differs, because we already assume a different basis at the beginning.</p>
+</div>
+<div id="switzerland" class="section level1">
+<h1>Switzerland</h1>
+<table class=" lightable-material lightable-striped lightable-hover" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; width: auto !important; ">
+<thead>
+<tr>
+<th style="text-align:right;">
+Year
+</th>
+<th style="text-align:right;">
+Expected_Mortality_m
+</th>
+<th style="text-align:right;">
+Expected_Mortality_w
+</th>
+<th style="text-align:right;">
+Deaths_m
+</th>
+<th style="text-align:right;">
+Deaths_w
+</th>
+<th style="text-align:right;">
+Diff_death
+</th>
+<th style="text-align:right;">
+Diff_Excess_Mortality
+</th>
+<th style="text-align:right;">
+Percent_excess_mortality_m
+</th>
+<th style="text-align:right;">
+Percent_excess_mortality_w
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+2010
+</td>
+<td style="text-align:right;">
+90021
+</td>
+<td style="text-align:right;">
+89678
+</td>
+<td style="text-align:right;">
+90051
+</td>
+<td style="text-align:right;">
+89843
+</td>
+<td style="text-align:right;">
+208
+</td>
+<td style="text-align:right;">
+-135
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2011
+</td>
+<td style="text-align:right;">
+89652
+</td>
+<td style="text-align:right;">
+89422
+</td>
+<td style="text-align:right;">
+89482
+</td>
+<td style="text-align:right;">
+89127
+</td>
+<td style="text-align:right;">
+355
+</td>
+<td style="text-align:right;">
+125
+</td>
+<td style="text-align:right;">
+-0.2
+</td>
+<td style="text-align:right;">
+-0.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2012
+</td>
+<td style="text-align:right;">
+88909
+</td>
+<td style="text-align:right;">
+88664
+</td>
+<td style="text-align:right;">
+91539
+</td>
+<td style="text-align:right;">
+90985
+</td>
+<td style="text-align:right;">
+554
+</td>
+<td style="text-align:right;">
+309
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2013
+</td>
+<td style="text-align:right;">
+90739
+</td>
+<td style="text-align:right;">
+90344
+</td>
+<td style="text-align:right;">
+89919
+</td>
+<td style="text-align:right;">
+89674
+</td>
+<td style="text-align:right;">
+245
+</td>
+<td style="text-align:right;">
+-150
+</td>
+<td style="text-align:right;">
+-0.9
+</td>
+<td style="text-align:right;">
+-0.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2014
+</td>
+<td style="text-align:right;">
+91075
+</td>
+<td style="text-align:right;">
+90614
+</td>
+<td style="text-align:right;">
+88479
+</td>
+<td style="text-align:right;">
+88178
+</td>
+<td style="text-align:right;">
+301
+</td>
+<td style="text-align:right;">
+-160
+</td>
+<td style="text-align:right;">
+-2.9
+</td>
+<td style="text-align:right;">
+-2.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2015
+</td>
+<td style="text-align:right;">
+89373
+</td>
+<td style="text-align:right;">
+90885
+</td>
+<td style="text-align:right;">
+89935
+</td>
+<td style="text-align:right;">
+91580
+</td>
+<td style="text-align:right;">
+-1645
+</td>
+<td style="text-align:right;">
+-133
+</td>
+<td style="text-align:right;">
+0.6
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2016
+</td>
+<td style="text-align:right;">
+89743
+</td>
+<td style="text-align:right;">
+89564
+</td>
+<td style="text-align:right;">
+89080
+</td>
+<td style="text-align:right;">
+88548
+</td>
+<td style="text-align:right;">
+532
+</td>
+<td style="text-align:right;">
+353
+</td>
+<td style="text-align:right;">
+-0.7
+</td>
+<td style="text-align:right;">
+-1.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2017
+</td>
+<td style="text-align:right;">
+88612
+</td>
+<td style="text-align:right;">
+88260
+</td>
+<td style="text-align:right;">
+89690
+</td>
+<td style="text-align:right;">
+89403
+</td>
+<td style="text-align:right;">
+287
+</td>
+<td style="text-align:right;">
+-65
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+1.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2018
+</td>
+<td style="text-align:right;">
+89411
+</td>
+<td style="text-align:right;">
+88997
+</td>
+<td style="text-align:right;">
+89692
+</td>
+<td style="text-align:right;">
+89414
+</td>
+<td style="text-align:right;">
+278
+</td>
+<td style="text-align:right;">
+-136
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2019
+</td>
+<td style="text-align:right;">
+89709
+</td>
+<td style="text-align:right;">
+89381
+</td>
+<td style="text-align:right;">
+86179
+</td>
+<td style="text-align:right;">
+85936
+</td>
+<td style="text-align:right;">
+243
+</td>
+<td style="text-align:right;">
+-85
+</td>
+<td style="text-align:right;">
+-3.9
+</td>
+<td style="text-align:right;">
+-3.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2020
+</td>
+<td style="text-align:right;">
+86136
+</td>
+<td style="text-align:right;">
+87725
+</td>
+<td style="text-align:right;">
+95411
+</td>
+<td style="text-align:right;">
+96949
+</td>
+<td style="text-align:right;">
+-1538
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+10.8
+</td>
+<td style="text-align:right;">
+10.5
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="sweden" class="section level1">
+<h1>Sweden</h1>
+<table class=" lightable-material lightable-striped lightable-hover" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; width: auto !important; ">
+<thead>
+<tr>
+<th style="text-align:right;">
+Year
+</th>
+<th style="text-align:right;">
+Expected_Mortality_m
+</th>
+<th style="text-align:right;">
+Expected_Mortality_w
+</th>
+<th style="text-align:right;">
+Deaths_m
+</th>
+<th style="text-align:right;">
+Deaths_w
+</th>
+<th style="text-align:right;">
+Diff_death
+</th>
+<th style="text-align:right;">
+Diff_Excess_Mortality
+</th>
+<th style="text-align:right;">
+Percent_excess_mortality_m
+</th>
+<th style="text-align:right;">
+Percent_excess_mortality_w
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+2010
+</td>
+<td style="text-align:right;">
+90021
+</td>
+<td style="text-align:right;">
+89678
+</td>
+<td style="text-align:right;">
+90051
+</td>
+<td style="text-align:right;">
+89843
+</td>
+<td style="text-align:right;">
+208
+</td>
+<td style="text-align:right;">
+-135
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2011
+</td>
+<td style="text-align:right;">
+89652
+</td>
+<td style="text-align:right;">
+89422
+</td>
+<td style="text-align:right;">
+89482
+</td>
+<td style="text-align:right;">
+89127
+</td>
+<td style="text-align:right;">
+355
+</td>
+<td style="text-align:right;">
+125
+</td>
+<td style="text-align:right;">
+-0.2
+</td>
+<td style="text-align:right;">
+-0.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2012
+</td>
+<td style="text-align:right;">
+88909
+</td>
+<td style="text-align:right;">
+88664
+</td>
+<td style="text-align:right;">
+91539
+</td>
+<td style="text-align:right;">
+90985
+</td>
+<td style="text-align:right;">
+554
+</td>
+<td style="text-align:right;">
+309
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2013
+</td>
+<td style="text-align:right;">
+90739
+</td>
+<td style="text-align:right;">
+90344
+</td>
+<td style="text-align:right;">
+89919
+</td>
+<td style="text-align:right;">
+89674
+</td>
+<td style="text-align:right;">
+245
+</td>
+<td style="text-align:right;">
+-150
+</td>
+<td style="text-align:right;">
+-0.9
+</td>
+<td style="text-align:right;">
+-0.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2014
+</td>
+<td style="text-align:right;">
+91075
+</td>
+<td style="text-align:right;">
+90614
+</td>
+<td style="text-align:right;">
+88479
+</td>
+<td style="text-align:right;">
+88178
+</td>
+<td style="text-align:right;">
+301
+</td>
+<td style="text-align:right;">
+-160
+</td>
+<td style="text-align:right;">
+-2.9
+</td>
+<td style="text-align:right;">
+-2.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2015
+</td>
+<td style="text-align:right;">
+89373
+</td>
+<td style="text-align:right;">
+90885
+</td>
+<td style="text-align:right;">
+89935
+</td>
+<td style="text-align:right;">
+91580
+</td>
+<td style="text-align:right;">
+-1645
+</td>
+<td style="text-align:right;">
+-133
+</td>
+<td style="text-align:right;">
+0.6
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2016
+</td>
+<td style="text-align:right;">
+89743
+</td>
+<td style="text-align:right;">
+89564
+</td>
+<td style="text-align:right;">
+89080
+</td>
+<td style="text-align:right;">
+88548
+</td>
+<td style="text-align:right;">
+532
+</td>
+<td style="text-align:right;">
+353
+</td>
+<td style="text-align:right;">
+-0.7
+</td>
+<td style="text-align:right;">
+-1.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2017
+</td>
+<td style="text-align:right;">
+88612
+</td>
+<td style="text-align:right;">
+88260
+</td>
+<td style="text-align:right;">
+89690
+</td>
+<td style="text-align:right;">
+89403
+</td>
+<td style="text-align:right;">
+287
+</td>
+<td style="text-align:right;">
+-65
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+1.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2018
+</td>
+<td style="text-align:right;">
+89411
+</td>
+<td style="text-align:right;">
+88997
+</td>
+<td style="text-align:right;">
+89692
+</td>
+<td style="text-align:right;">
+89414
+</td>
+<td style="text-align:right;">
+278
+</td>
+<td style="text-align:right;">
+-136
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2019
+</td>
+<td style="text-align:right;">
+89709
+</td>
+<td style="text-align:right;">
+89381
+</td>
+<td style="text-align:right;">
+86179
+</td>
+<td style="text-align:right;">
+85936
+</td>
+<td style="text-align:right;">
+243
+</td>
+<td style="text-align:right;">
+-85
+</td>
+<td style="text-align:right;">
+-3.9
+</td>
+<td style="text-align:right;">
+-3.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2020
+</td>
+<td style="text-align:right;">
+86136
+</td>
+<td style="text-align:right;">
+87725
+</td>
+<td style="text-align:right;">
+95411
+</td>
+<td style="text-align:right;">
+96949
+</td>
+<td style="text-align:right;">
+-1538
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+10.8
+</td>
+<td style="text-align:right;">
+10.5
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="spain" class="section level1">
+<h1>Spain</h1>
+<table class=" lightable-material lightable-striped lightable-hover" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; width: auto !important; ">
+<thead>
+<tr>
+<th style="text-align:right;">
+Year
+</th>
+<th style="text-align:right;">
+Expected_Mortality_m
+</th>
+<th style="text-align:right;">
+Expected_Mortality_w
+</th>
+<th style="text-align:right;">
+Deaths_m
+</th>
+<th style="text-align:right;">
+Deaths_w
+</th>
+<th style="text-align:right;">
+Diff_death
+</th>
+<th style="text-align:right;">
+Diff_Excess_Mortality
+</th>
+<th style="text-align:right;">
+Percent_excess_mortality_m
+</th>
+<th style="text-align:right;">
+Percent_excess_mortality_w
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+2010
+</td>
+<td style="text-align:right;">
+378595
+</td>
+<td style="text-align:right;">
+376908
+</td>
+<td style="text-align:right;">
+380335
+</td>
+<td style="text-align:right;">
+379188
+</td>
+<td style="text-align:right;">
+1147
+</td>
+<td style="text-align:right;">
+-540
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+0.6
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2011
+</td>
+<td style="text-align:right;">
+381277
+</td>
+<td style="text-align:right;">
+380008
+</td>
+<td style="text-align:right;">
+386035
+</td>
+<td style="text-align:right;">
+384854
+</td>
+<td style="text-align:right;">
+1181
+</td>
+<td style="text-align:right;">
+-88
+</td>
+<td style="text-align:right;">
+1.2
+</td>
+<td style="text-align:right;">
+1.3
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2012
+</td>
+<td style="text-align:right;">
+379810
+</td>
+<td style="text-align:right;">
+378915
+</td>
+<td style="text-align:right;">
+401114
+</td>
+<td style="text-align:right;">
+398739
+</td>
+<td style="text-align:right;">
+2375
+</td>
+<td style="text-align:right;">
+1480
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+5.2
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2013
+</td>
+<td style="text-align:right;">
+394145
+</td>
+<td style="text-align:right;">
+392643
+</td>
+<td style="text-align:right;">
+388711
+</td>
+<td style="text-align:right;">
+387254
+</td>
+<td style="text-align:right;">
+1457
+</td>
+<td style="text-align:right;">
+-45
+</td>
+<td style="text-align:right;">
+-1.4
+</td>
+<td style="text-align:right;">
+-1.4
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2014
+</td>
+<td style="text-align:right;">
+394623
+</td>
+<td style="text-align:right;">
+392458
+</td>
+<td style="text-align:right;">
+393785
+</td>
+<td style="text-align:right;">
+392255
+</td>
+<td style="text-align:right;">
+1530
+</td>
+<td style="text-align:right;">
+-635
+</td>
+<td style="text-align:right;">
+-0.2
+</td>
+<td style="text-align:right;">
+-0.1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2015
+</td>
+<td style="text-align:right;">
+398062
+</td>
+<td style="text-align:right;">
+404959
+</td>
+<td style="text-align:right;">
+420122
+</td>
+<td style="text-align:right;">
+427851
+</td>
+<td style="text-align:right;">
+-7729
+</td>
+<td style="text-align:right;">
+-832
+</td>
+<td style="text-align:right;">
+5.5
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2016
+</td>
+<td style="text-align:right;">
+417855
+</td>
+<td style="text-align:right;">
+416392
+</td>
+<td style="text-align:right;">
+408332
+</td>
+<td style="text-align:right;">
+406128
+</td>
+<td style="text-align:right;">
+2204
+</td>
+<td style="text-align:right;">
+741
+</td>
+<td style="text-align:right;">
+-2.3
+</td>
+<td style="text-align:right;">
+-2.5
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2017
+</td>
+<td style="text-align:right;">
+418512
+</td>
+<td style="text-align:right;">
+416895
+</td>
+<td style="text-align:right;">
+421995
+</td>
+<td style="text-align:right;">
+420589
+</td>
+<td style="text-align:right;">
+1406
+</td>
+<td style="text-align:right;">
+-211
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+<td style="text-align:right;">
+0.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2018
+</td>
+<td style="text-align:right;">
+434055
+</td>
+<td style="text-align:right;">
+432259
+</td>
+<td style="text-align:right;">
+425298
+</td>
+<td style="text-align:right;">
+423994
+</td>
+<td style="text-align:right;">
+1304
+</td>
+<td style="text-align:right;">
+-492
+</td>
+<td style="text-align:right;">
+-2.0
+</td>
+<td style="text-align:right;">
+-1.9
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2019
+</td>
+<td style="text-align:right;">
+437314
+</td>
+<td style="text-align:right;">
+435890
+</td>
+<td style="text-align:right;">
+416095
+</td>
+<td style="text-align:right;">
+414914
+</td>
+<td style="text-align:right;">
+1181
+</td>
+<td style="text-align:right;">
+-243
+</td>
+<td style="text-align:right;">
+-4.9
+</td>
+<td style="text-align:right;">
+-4.8
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2020
+</td>
+<td style="text-align:right;">
+422875
+</td>
+<td style="text-align:right;">
+431622
+</td>
+<td style="text-align:right;">
+491345
+</td>
+<td style="text-align:right;">
+497820
+</td>
+<td style="text-align:right;">
+-6475
+</td>
+<td style="text-align:right;">
+2272
+</td>
+<td style="text-align:right;">
+16.2
+</td>
+<td style="text-align:right;">
+15.3
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+   
+   
+           </section>
+  </div>
+  </div>
+  </div>
+  </div>
+      
+      
+
+  <script>
+    $(document).ready(function () {
+
+		// add bootstrap table styles to pandoc tables
+	$('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+		
+ 		
+	    });
+  </script>
+
+
+
+    <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+	document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+  
+</body>
+</html>
