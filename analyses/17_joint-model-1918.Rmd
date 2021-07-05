@@ -1,6 +1,6 @@
 ---
-title: "Excess mortality: HMD & country data"
-subtitle: "Joint modelling example"
+title: "Excess mortality joint modelling"
+subtitle: "Example of 1918 & 1919"
 author: "Julien Riou & Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -322,23 +322,25 @@ This is where I stopped for now. We can discuss extensions, in particular:
 
 # Comparison of expected deaths from different solutions
 
+## Monthly expected
+
 ```{r}
 compare = bind_rows(
   bind_cols(1:12, 
             expected_1918$pred_total_deaths$Deaths, 
-            rep("obs", 12)),
+            rep("0 obs", 12)),
   bind_cols(1:12,
             expected_1918$pred_total_deaths$pred, 
-            rep("serfling", 12)),
+            rep("1 serfling", 12)),
   bind_cols(1:12,
             expected_1918_stan$pred_total_deaths$pred, 
-            rep("stan", 12)),
+            rep("2 stan", 12)),
   bind_cols(1:12,
             expected_1918_nb_stan$pred_total_deaths$pred, 
-            rep("nb_stan", 12)),
+            rep("3 nb_stan", 12)),
   bind_cols(1:12,
             expected_1918_age_nb_stan$pred_total_deaths$pred, 
-            rep("age_nb_stan", 12))
+            rep("4 age_nb_stan", 12))
 ) %>% 
   rename(Month = `...1`,
          Estimate = `...2`,
@@ -349,8 +351,81 @@ compare %>%
   geom_line()
 
 compare %>% 
-  filter(Model != "obs") %>% 
+  filter(Model != "0 obs") %>% 
   ggplot(aes(x = Month, y = Estimate, col = Model, group = Model)) +
   geom_line()
 ```
 
+
+## Monthly comparison of excess from old approach
+
+```{r}
+classic = read_rds("data/ch_expected_deaths_monthly.Rds") %>% 
+  filter(Year == 1918) %>% 
+  mutate(excess_classic = Deaths - fit) %>% 
+  select(Month, Deaths, excess_classic) %>% 
+  bind_cols(age = expected_1918_age_nb_stan$pred_total_deaths$pred) %>% 
+  mutate(excess_age = Deaths - age)
+
+classic %>% 
+  ggplot(aes(x = Month)) +
+  geom_line(aes(x = Month, y = excess_classic), col = "black", size = 2, alpha = .5) +
+  geom_line(aes(x = Month, y = excess_age), col = "red", size = .5) +
+  ylab("Excess deaths")
+
+classic %>% 
+  ggplot(aes(x = Month)) +
+  geom_col(aes(x = Month, y = excess_classic - excess_age)) +
+  ylab("Excess deaths diff")
+
+classic %>% 
+  ggplot(aes(x = Month)) +
+  geom_col(aes(x = Month, y = (excess_classic - excess_age) / excess_classic)) +
+  ylab("Excess deaths % diff")
+
+classic %>% 
+select(Month, starts_with("excess_"))
+```
+
+
+## Yearly total with precision
+
+```{r}
+compare_year = bind_rows(
+  
+  bind_cols("1 Observed", 
+            NA_real_, sum(expected_1918$pred_total_deaths$Deaths), NA_real_),
+  
+  bind_cols("2 Classic", 
+            NA_real_, sum(classic$excess_classic), NA_real_),
+  
+  bind_cols("3 stan", 
+            expected_1918_stan$pred_total_deaths$excess_year_lower[1], 
+            expected_1918_stan$pred_total_deaths$excess_year[1],
+            expected_1918_stan$pred_total_deaths$excess_year_upper[1]),
+  
+  bind_cols("4 nb_stan", 
+            expected_1918_nb_stan$pred_total_deaths$excess_year_lower[1], 
+            expected_1918_nb_stan$pred_total_deaths$excess_year[1],
+            expected_1918_nb_stan$pred_total_deaths$excess_year_upper[1]),
+  
+  bind_cols("5 age_nb_stan", 
+            expected_1918_age_nb_stan$pred_total_deaths$excess_year_lower[1], 
+            expected_1918_age_nb_stan$pred_total_deaths$excess_year[1],
+            expected_1918_age_nb_stan$pred_total_deaths$excess_year_upper[1]),
+  
+) %>% 
+  rename(Model = `...1`,
+         LCI = `...2`,
+         Estimate = `...3`,
+         UCI = `...4`)
+
+compare_year %>% 
+  filter(Model != "1 Observed") %>% 
+  ggplot(aes(x = Model, y = Estimate)) +
+  geom_col() +
+  geom_linerange(aes(ymin = LCI, ymax = UCI)) 
+
+compare_year %>% 
+  filter(Model != "1 Observed")
+```
