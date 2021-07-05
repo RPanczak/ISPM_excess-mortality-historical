@@ -203,7 +203,9 @@ p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx",
 
 <!-- ----------------------------------------------------- -->
 
-# Comparing BfS to STMF (week)
+# Comparing BfS to STMF
+
+Data from 2020 onwards, weekly resolution.  
 
 Until April, all seems to be fine, except some end of the year correction (?):
 
