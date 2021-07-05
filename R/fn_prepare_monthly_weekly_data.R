@@ -7,7 +7,7 @@ deaths_data <- read_rds("data/mortality_org/stmf_week.Rds") %>%
   filter(!Year == 2021)
 }
   else {
-  deaths_data<- read_rds("data/mortality_org/stmf_month.Rds") %>%
+  deaths_data <- read_rds("data/mortality_org/stmf_month.Rds") %>%
   filter(Country == Country.data) %>%
   filter(!Year == 2021)
 }

@@ -6,7 +6,7 @@ date: "`r Sys.Date()`"
 output:
   rmdformats::robobook:
     code_folding: show
-    self_contained: no
+    self_contained: yes
     highlight: pygments
 editor_options: 
   chunk_output_type: console
