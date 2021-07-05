@@ -7,7 +7,7 @@
 # prior_intercept=10
 # p=0.99
 
-fn_global_serfling_stan = function(pred_year, monthly_data, ignore_year=NULL, prior=10, prior_intercept=10) {
+fn_global_serfling_stan = function(pred_year, monthly_data, ignore_year=NULL, prior=10, prior_intercept=10, p=0.99) {
   require(rstan)
   options(mc.cores = parallel::detectCores())
   # format

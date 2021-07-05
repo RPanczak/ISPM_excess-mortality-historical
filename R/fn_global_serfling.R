@@ -1,6 +1,6 @@
 # function for the global Serfling model
 
-fn_global_serfling = function(pred_year, monthly_data, ignore_year = NULL) {
+fn_global_serfling = function(pred_year, monthly_data, ignore_year = NULL, p=0.99) {
   # compute periodic component
   monthly_data %<>% dplyr::mutate(si_one = sin(2*pi*Month/12),
                         si_two = sin(4*pi*Month/12),
@@ -19,6 +19,6 @@ fn_global_serfling = function(pred_year, monthly_data, ignore_year = NULL) {
            family = poisson(link="log"))
   # get prediction
   pp = dplyr::filter(monthly_data, Year == pred_year)
-  pp = bind_cols(pp,boot_pi(mm, pp, 1000, 0.99))
+  pp = bind_cols(pp,boot_pi(mm, pp, 1000, p))
   return(list(model=mm,pred_total_deaths=pp))
 }
