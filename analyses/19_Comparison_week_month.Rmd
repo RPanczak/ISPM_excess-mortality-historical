@@ -48,7 +48,7 @@ ES <- fn_comparison_monthly_weekly("Spain")
 
 There are differences between months and weeks. Months go exactly to 31.December, whereas calendar weeks go into the new year. 2015 and 2020 had even 53 calendar weeks, instead of 52.  Which means, the KW 1 of the 2020 started on 30.12.2019 and KW 53 ended on 03.01.2021,i.e. 5 days did not actually belong to the year 2020. Calendar weeks are based on a DIN standard. But since we want to represent years, I would take the calculation with months.There we have then in any case always the 01.01. - 31.12. in it and no fluctuations of the days by the DIN norm of the calendar weeks.
 
-Because of these differences, even the reported death rates of months and years vary. As said, for calendar weeks, 5 more days are counted. And if the reported death numbers are already different, then the expected numbers are as well.I can't make any statement right now about the method, whether the calculation differs, because we already assume a different basis at the beginning. 
+Because of these differences, even the reported death rates of months and weeks vary. As said, for calendar weeks, 5 more days are counted. And if the reported death numbers are already different, then the expected numbers are as well.I can't make any statement right now about the method, whether the calculation differs, because we already assume a different basis at the beginning. 
 
 # Switzerland 
 
