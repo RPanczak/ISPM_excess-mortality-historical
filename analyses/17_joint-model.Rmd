@@ -16,6 +16,9 @@ editor_options:
 
 ```{r setup, include = FALSE}
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
+# install.packages(c(“StanHeaders”, “rstan”), type = “source”)
+
 library(pacman)
 p_load(tidyverse, 
        lubridate, 
@@ -24,13 +27,14 @@ p_load(tidyverse,
        doParallel, 
        foreach, 
        rstan)
-file.sources = list.files(path="R",pattern="fn_",full.names = TRUE)
+
+file.sources = list.files(path="../R",pattern="fn_",full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
 set.seed(12345)
 options(scipen = 999)
 theme_set(theme_minimal())
-registerDoParallel(cores = 4)
+registerDoParallel(cores = parallel::detectCores())
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 ```
@@ -53,7 +57,6 @@ mu <- Hmisc::markupSpecs$html
 ## Population data 
 
 ```{r}
-
 bfs_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>% 
   filter((Year >= 1913 & Year <= 1919)) %>% 
   mutate(Population = round((pop_jan + pop_dec) / 2)) %>% 
@@ -74,7 +77,6 @@ bfs_pop_year_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>
   dplyr::mutate(Age_cat=factor(Age_cat)) %>%
   ungroup()  %>%
   mutate(Population=round(Population))
-
 ```
 
 
@@ -91,32 +93,13 @@ deaths_monthly <-
 deaths_monthly %<>% 
   left_join(bfs_pop_year) 
 
+rm(bfs_pop_year)
+
 ggplot(deaths_monthly) +
   geom_line(aes(x=Date,y=Deaths/Population*1000), colour="darkgrey") +
-  geom_point(aes(x=Date,y=Deaths/Population*1000), colour="darkgrey", fill="white", shape=21, size = 1.8) +
+  geom_point(aes(x=Date,y=Deaths/Population*1000), colour="darkgrey", fill="white", shape=21, size=1.8) +
   labs(x="Time", y="Deaths per 1,000 population")
 ```
-
-<!-- We also add an indicator for the year 1918 because of the influenza pandemic. -->
-<!-- This will allow us to ignore this year when estimating expected mortality for the -->
-<!-- following years (1919-1923). -->
-
-<!-- ```{r} -->
-<!-- flu_years_hc <- c(1918) -->
-<!-- flu_years_hc_affected <- seq(1918 + 1, 1918 + 5) -->
-
-<!-- deaths_monthly %<>%  -->
-<!--   mutate(flu_year_hc = ifelse(Year %in% flu_years_hc, 1, 0), -->
-<!--          flu_year_hc_affected = ifelse(Year %in% flu_years_hc_affected, 1, 0), -->
-<!--          deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, Deaths)) %>%  -->
-<!--   mutate(Deaths = as.integer(round(Deaths))) %>%  -->
-<!--   mutate(Population = as.integer(round(Population))) -->
-
-<!-- ggplot(deaths_monthly) + -->
-<!--   geom_col(aes(x=Date,y=Deaths,fill=as.factor(flu_year_hc))) + -->
-<!--   scale_fill_discrete(guide=FALSE) -->
-<!-- rm(bfs_pop_year, flu_years_hc, flu_years_hc_affected) -->
-<!-- ``` -->
 
 ## Yearly deaths by sex and age group
 
@@ -140,9 +123,11 @@ deaths_yearly_age_sex %<>%
   ungroup() %>%
   left_join(bfs_pop_year_age_sex)
 
+rm(bfs_pop_year_age_sex)
+
 ggplot(deaths_yearly_age_sex) +
   geom_line(aes(x=Year,y=Deaths/Population*1000,colour=Age_cat)) +
-  geom_point(aes(x=Year,y=Deaths/Population*1000,colour=Age_cat), fill="white", shape=21, size = 1.8) +
+  geom_point(aes(x=Year,y=Deaths/Population*1000,colour=Age_cat), fill="white", shape=21, size=1.8) +
   labs(x="Time", y="Deaths per 1,000 population") +
   facet_wrap(~Sex,ncol=1) +
   scale_y_log10()
@@ -168,21 +153,16 @@ pop_yearly_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>%
 
 # Total monthly deaths
 
-We first model total mortality per month. We use a Serfling model, a
-Poisson regression model with a periodic component. To estimate the
-expected mortality on each month of year $t$, we fit the model on the
-previous five years and compute monthly point estimates of couts of deaths
-together with 99% prediction intervals (see function `fn_boot_pi.R`).
+We first model total mortality per month. We use a Serfling model, a Poisson regression model with a periodic component. To estimate the expected mortality on each month of year $t$, we fit the model on the previous five years and compute monthly point estimates of counts of deaths together with 99% prediction intervals (see function `fn_boot_pi.R`).
 
 ## Expected total monthly deaths for 1918
 
-Ŵe start with 1918, using data from 1913-1917.
+We start with 1918, using data from 1913-1917.
 
 ```{r}
 expected_1918 = fn_global_serfling(1918, deaths_monthly)
 
 fn_plot_global_serfling(expected_1918, title="Expected deaths for 1918", ylim=c(0,12000))
-
 ```
 
 ## Expected total monthly deaths for 1919
@@ -193,21 +173,17 @@ Now for 1919, using data from 1914-1918.
 expected_1919 = fn_global_serfling(1919, deaths_monthly)
 
 fn_plot_global_serfling(expected_1919, title="Expected deaths for 1919", ylim=c(0,12000))
-
 ```
 
 ## Expected total monthly deaths for 1919, ignoring 1918
 
-We repeat the analysis for 1919, excluding the year 1918 because of exceptional mortality
-due to the flu pandemic.
+We repeat the analysis for 1919, excluding the year 1918 because of exceptional mortality due to the flu pandemic.
 
 ```{r}
 expected_1919_without_1918 = fn_global_serfling(1919, deaths_monthly, ignore_year = 1918)
 
 fn_plot_global_serfling(expected_1919_without_1918, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
-
 ```
-
 
 
 # Total monthly deaths, Stan version
@@ -220,8 +196,8 @@ We replicate the previous analysis in Stan.
 expected_1918_stan = fn_global_serfling_stan(1918, deaths_monthly)
 
 fn_plot_global_serfling(expected_1918, title="Expected deaths for 1918", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1918_stan, title="Expected deaths for 1918", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1918_stan, title="Expected deaths for 1918 (stan)", ylim=c(0,12000))
 ```
 
 ## Expected total monthly deaths for 1919
@@ -230,8 +206,8 @@ fn_plot_global_serfling(expected_1918_stan, title="Expected deaths for 1918", yl
 expected_1919_stan = fn_global_serfling_stan(1919, deaths_monthly)
 
 fn_plot_global_serfling(expected_1919, title="Expected deaths for 1919", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1919_stan, title="Expected deaths for 1919", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1919_stan, title="Expected deaths for 1919 (stan)", ylim=c(0,12000))
 ```
 
 ## Expected total monthly deaths for 1919, ignoring 1918
@@ -240,18 +216,17 @@ fn_plot_global_serfling(expected_1919_stan, title="Expected deaths for 1919", yl
 expected_1919_without_1918_stan = fn_global_serfling_stan(1919, deaths_monthly, ignore_year = 1918)
 
 fn_plot_global_serfling(expected_1919_without_1918, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1919_without_1918_stan, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1919_without_1918_stan, title="Expected deaths for 1919, ignoring 1918 (stan)", ylim=c(0,12000))
 ```
-
 
 
 # Total monthly deaths, Stan and negative binomial version
 
 We observe too narrow prediction intervals with the Stan implementation. 
 It's unclear to me why, I have an intuition that the bootstrap actually
-accounts for overdispersion? A simple solution is to use a negative binomial
-likelihood instead of the Poisson in the Stan implementation.
+accounts for overdispersion? 
+A simple solution is to use a negative binomial likelihood instead of the Poisson in the Stan implementation.
 
 ## Expected total monthly deaths for 1918
 
@@ -259,8 +234,8 @@ likelihood instead of the Poisson in the Stan implementation.
 expected_1918_nb_stan = fn_global_serfling_nb_stan(1918, deaths_monthly)
 
 fn_plot_global_serfling(expected_1918, title="Expected deaths for 1918", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1918_nb_stan, title="Expected deaths for 1918", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1918_nb_stan, title="Expected deaths for 1918 (nb, stan)", ylim=c(0,12000))
 ```
 
 ## Expected total monthly deaths for 1919
@@ -269,8 +244,8 @@ fn_plot_global_serfling(expected_1918_nb_stan, title="Expected deaths for 1918",
 expected_1919_nb_stan = fn_global_serfling_nb_stan(1919, deaths_monthly)
 
 fn_plot_global_serfling(expected_1919, title="Expected deaths for 1919", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1919_nb_stan, title="Expected deaths for 1919", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1919_nb_stan, title="Expected deaths for 1919 (nb, stan)", ylim=c(0,12000))
 ```
 
 ## Expected total monthly deaths for 1919, ignoring 1918
@@ -278,32 +253,29 @@ fn_plot_global_serfling(expected_1919_nb_stan, title="Expected deaths for 1919",
 ```{r}
 expected_1919_without_1918_nb_stan = fn_global_serfling_nb_stan(1919, deaths_monthly, ignore_year = 1918)
 
-fn_plot_global_serfling(expected_1919_without_1918, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1919_without_1918_nb_stan, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
+fn_plot_global_serfling(expected_1919_without_1918, title="Expected deaths for 1919, ignoring 1918 (stan)", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1919_without_1918_nb_stan, title="Expected deaths for 1919, ignoring 1918 (nb, stan)", ylim=c(0,12000))
 ```
 
 Now the prediction intervals seem larger. I'm not sure why, I don't understand how the 
 bootstrap really works in that context, maybe we can discuss?
 
 
-
 # Total monthly deaths by age group
 
 Anyway, now is the implementation by age group. In a first model, every age group has
-a different intercept (alpha) for mortality, but then the evolution by year (linear trend)
-and by month (sinusoidals) is the same (so beta_year and beta_periodic are the same). 
-We estimate the number of deaths in each age group for each year and each month (latent variable), 
-then sum by month and year to fit to the total deaths per month (with a negative binomial) and sum by
-age group and year to fit to the yearly deaths by age group (with a multinomial).
+a different intercept (alpha) for mortality, but then the evolution by year (linear trend) and by month (sinusoidals) is the same (so `beta_year` and `beta_periodic` are the same). 
+We estimate the number of deaths in each age group for each year and each month (latent variable), then sum by month and year to fit to the total deaths per month (with a negative binomial) and sum by age group and year to fit to the yearly deaths by age group (with a multinomial).
 
 ## Expected total monthly deaths for 1918
 
 ```{r}
 expected_1918_age_nb_stan = fn_age_serfling_nb_stan(1918, deaths_monthly, deaths_yearly_age_sex)
 
-fn_plot_global_serfling(expected_1918_nb_stan, title="Expected deaths for 1918", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1918_age_nb_stan, title="Expected deaths for 1918", ylim=c(0,12000))
+fn_plot_global_serfling(expected_1918_nb_stan, title="Expected deaths for 1918 (nb, stan)", ylim=c(0,12000))
+
+fn_plot_global_serfling(expected_1918_age_nb_stan, title="Expected deaths for 1918 (nb, age, stan)", ylim=c(0,12000))
 ```
 
 In addition to before, we can now examine expected deaths (and compute excess) by age group for a particular year.
@@ -318,8 +290,10 @@ fn_plot_age_serfling(expected_1918_age_nb_stan, title="Expected deaths by age gr
 expected_1919_age_nb_stan = fn_age_serfling_nb_stan(1919, deaths_monthly, deaths_yearly_age_sex)
 
 fn_plot_global_serfling(expected_1919, title="Expected deaths for 1919", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1919_age_nb_stan, title="Expected deaths for 1919", ylim=c(0,12000))
-fn_plot_age_serfling(expected_1919_age_nb_stan, title="Expected deaths by age group for 1918", ylim=c(0,12000))
+
+fn_plot_global_serfling(expected_1919_nb_stan, title="Expected deaths for 1919 (nb, stan)", ylim=c(0,12000))
+
+fn_plot_age_serfling(expected_1919_age_nb_stan, title="Expected deaths by age group for 1919 (nb, age, stan)", ylim=c(0,12000))
 ```
 
 ## Expected total monthly deaths for 1919, ignoring 1918
@@ -327,10 +301,11 @@ fn_plot_age_serfling(expected_1919_age_nb_stan, title="Expected deaths by age gr
 ```{r}
 expected_1919_without_1918_age_nb_stan = fn_age_serfling_nb_stan(1919, deaths_monthly, ignore_year = 1918, deaths_yearly_age_sex)
 
-fn_plot_global_serfling(expected_1919_without_1918, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
-fn_plot_global_serfling(expected_1919_without_1918_age_nb_stan, title="Expected deaths for 1919, ignoring 1918", ylim=c(0,12000))
-fn_plot_age_serfling(expected_1919_without_1918_age_nb_stan, title="Expected deaths by age group for 1918", ylim=c(0,12000))
+fn_plot_global_serfling(expected_1919_without_1918, title="Expected deaths for 1919, ignoring 1918 (nb, stan)", ylim=c(0,12000))
 
+fn_plot_global_serfling(expected_1919_without_1918_age_nb_stan, title="Expected deaths for 1919, ignoring 1918 (nb, age, stan)", ylim=c(0,12000))
+
+fn_plot_age_serfling(expected_1919_without_1918_age_nb_stan, title="Expected deaths by age group for 1918 (nb, age, stan)", ylim=c(0,12000))
 ```
 
 This is where I stopped for now. We can discuss extensions, in particular:
