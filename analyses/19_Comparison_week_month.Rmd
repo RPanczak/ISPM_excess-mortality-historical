@@ -1,6 +1,6 @@
 ---
 title: "Excess mortality"
-subtitle: "2010-2020 Comparison of monthly and weekly data"
+subtitle: "2005-2020 Comparison of monthly and weekly estimates"
 author: "Katarina Matthes, Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -45,11 +45,11 @@ ES <- fn_comparison_monthly_weekly("Spain")
 ```
 # Explanation
 
-There are differences between months and weeks. Months go exactly to 31.December, whereas calendar weeks go into the new year. 2015 and 2020 had even 53 calendar weeks, instead of 52.  Which means, the KW 1 of the 2020 started on 30.12.2019 and KW 53 ended on 03.01.2021,i.e. 5 days did not actually belong to the year 2020. Calendar weeks are based on a DIN standard. But since we want to represent years, I would take the calculation with months.There we have then in any case always the 01.01. - 31.12. in it and no fluctuations of the days by the DIN norm of the calendar weeks.
+There are differences between months and weeks. Months go exactly to 31.December, whereas calendar weeks go into the new year. 2015 and 2020 had even 53 calendar weeks, instead of 52. Which means, the KW 1 of the 2020 started on `30.12.2019` and KW 53 ended on `03.01.2021`, i.e. 5 days did not actually belong to the year 2020. Calendar weeks are based on a DIN standard. But since we want to represent years, I would take the calculation with months.There we have then in any case always the 01.01. - 31.12. in it and no fluctuations of the days by the DIN norm of the calendar weeks.
 
-Because of these differences, even the reported death rates of months and weeks vary. As said, for calendar weeks, 5 more days are counted. And if the reported death numbers are already different, then the expected numbers are as well.I can't make any statement right now about the method, whether the calculation differs, because we already assume a different basis at the beginning. 
+Because of these differences, even the reported death rates of months and weeks vary. As said, for calendar weeks, 5 more days are counted. And if the reported death numbers are already different, then the expected numbers are as well. I can't make any statement right now about the method, whether the calculation differs, because we already assume a different basis at the beginning. 
 
-# Switzerland 
+# Switzerland {.tabset}
 
 ```{r table_Switzerland, echo=FALSE,message=TRUE} 
 CH %>%
@@ -57,7 +57,23 @@ CH %>%
   kable_material(c("striped", "hover"),full_width = F,position = "left")
 ```
 
-# Sweden
+## Absolute difference 
+
+```{r}
+CH %>% 
+  ggplot(aes(x = Year, y = Difference)) +
+  geom_line()
+```
+
+## % difference 
+
+```{r}
+CH %>% 
+  ggplot(aes(x = Year, y = Perc_diff)) +
+  geom_line()
+```
+
+# Sweden {.tabset}
 
 ```{r table_Sweden, echo=FALSE,message=TRUE} 
 SW %>%
@@ -65,9 +81,42 @@ SW %>%
   kable_material(c("striped", "hover"),full_width = F,position = "left")
 ```
 
-# Spain
+## Absolute difference 
+
+```{r}
+SW %>% 
+  ggplot(aes(x = Year, y = Difference)) +
+  geom_line()
+```
+
+## % difference 
+
+```{r}
+SW %>% 
+  ggplot(aes(x = Year, y = Perc_diff)) +
+  geom_line()
+```
+
+# Spain {.tabset}
+
 ```{r table_Spain, echo=FALSE,message=TRUE} 
 ES %>%
   kbl() %>%
   kable_material(c("striped", "hover"),full_width = F,position = "left")
+```
+
+## Absolute difference 
+
+```{r}
+ES %>% 
+  ggplot(aes(x = Year, y = Difference)) +
+  geom_line()
+```
+
+## % difference 
+
+```{r}
+ES %>% 
+  ggplot(aes(x = Year, y = Perc_diff)) +
+  geom_line()
 ```

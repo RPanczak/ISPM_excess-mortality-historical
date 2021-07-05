@@ -22,13 +22,14 @@ fn_prepare_monthly_weekly_data(Country.data="Sweden",data.timespan="Week")
 fn_prepare_monthly_weekly_data(Country.data="Sweden",data.timespan="Month")
 
 
-# combine data
-source("R/fn_comparison_monthly_weekly.R")
-
-fn_comparison_monthly_weekly("Switzerland")
-fn_comparison_monthly_weekly("Spain")
-fn_comparison_monthly_weekly("Sweden")
+# # combine data
+# source("R/fn_comparison_monthly_weekly.R")
+# 
+# fn_comparison_monthly_weekly("Switzerland")
+# fn_comparison_monthly_weekly("Spain")
+# fn_comparison_monthly_weekly("Sweden")
 
 # render 
 setwd("./analyses")
 render("19_Comparison_week_month.Rmd")
+setwd(rprojroot::find_rstudio_root_file())
