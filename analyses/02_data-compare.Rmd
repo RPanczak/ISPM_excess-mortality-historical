@@ -558,9 +558,47 @@ ggplot(bfs_pop_year, aes(x = Year)) +
   scale_y_continuous(labels = comma)
 ```
 
+### 2020 pops
+
+[Provisional demographic balance of the permanent resident population 2020 by canton, citizenship (category), sex, age and demographic component](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16224502.html). In comparisons (*below*) it looks like HMD is using Jan pops so those are preserved from the source. Apart from `0 Jahre` age group that is strangely `0` so figures from `31 Dec` are taken.
+
+```{r eval=FALSE}
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16224502/master",
+              destfile = "data-raw/BfS/px-x-0102020000_202.px",
+              method = "curl")
+
+bfs_pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
+  as_tibble() %>% 
+  remove_empty() %>% 
+  clean_names() %>% 
+  # filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
+  filter(
+    (demografische_komponente == "Bestand am 1. Januar" & 
+       alter != "0 Jahre") | 
+      (demografische_komponente == "Bestand am 31. Dezember" & 
+         alter == "0 Jahre")) %>% 
+  filter(alter != "Alter - Total") %>% 
+  filter(kanton == "Schweiz") %>% 
+  filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
+  select(-kanton, -jahr, -staatsangehorigkeit_kategorie, -demografische_komponente) %>%   mutate(alter = str_replace(alter, fixed(" Jahre"), "")) %>% 
+  mutate(alter = str_replace(alter, fixed(" Jahr"), "")) %>% 
+  mutate(alter = str_replace(alter, fixed(" und mehr"), "")) %>% 
+  mutate(Age = as.numeric(alter)) %>% 
+  select(-alter) %>% 
+  mutate(geschlecht = str_replace(geschlecht, fixed("Geschlecht - "), "")) %>% 
+  mutate(geschlecht = str_replace(geschlecht, fixed("Frau"), "Female")) %>% 
+  mutate(geschlecht = str_replace(geschlecht, fixed("Mann"), "Male")) %>% 
+  pivot_wider(names_from = geschlecht, values_from = value) %>% 
+  mutate(Country = "Switzerland", Year = 2020) %>% 
+  relocate(Country, Year, Age, Female, Male, Total)
+
+write_rds(bfs_pop_2020, "data/BfS/bfs_pop_2020.Rds")
+haven::write_dta(bfs_pop_2020, "data/BfS/bfs_pop_2020.dta")
+```
+
 ## Comparison - pops
 
-### BfS web vs HMD
+BfS web vs HMD  
 
 ```{r}
 compare <- left_join(
@@ -821,9 +859,9 @@ sweden_deaths_month %>%
 
 ```{r}
 ine_2019 <- read_delim("data-raw/INE/Spain2019age.csv",
-                             delim = ";",
-                             locale = locale(grouping_mark = "."),
-                             trim_ws = TRUE) %>% 
+                       delim = ";",
+                       locale = locale(grouping_mark = "."),
+                       trim_ws = TRUE) %>% 
   mutate(Year = as.integer(2019)) %>% 
   mutate(Age = word(Edad, 1),
          Age = str_replace(Age, fixed("Menores"), "0"),
@@ -832,9 +870,9 @@ ine_2019 <- read_delim("data-raw/INE/Spain2019age.csv",
   select(Year, Age, Total) 
 
 ine_2020 <- read_delim("data-raw/INE/Spain2020weeklyage.csv",
-                             delim = ";",
-                             locale = locale(grouping_mark = "."),
-                             trim_ws = TRUE) %>% 
+                       delim = ";",
+                       locale = locale(grouping_mark = "."),
+                       trim_ws = TRUE) %>% 
   rename(Edad = `Edad (grupos quinquenales)`) %>% 
   filter(Edad != "Todas las edades") %>% 
   filter(Edad != "No consta") %>% 
@@ -849,7 +887,7 @@ ine_2020 <- read_delim("data-raw/INE/Spain2020weeklyage.csv",
 
 ine_deaths_age_sex <- bind_rows(ine_2019, ine_2020) %>% 
   mutate(Country = "Spain") %>% relocate(Country)
-  
+
 write_rds(ine_deaths_age_sex, "data/INE/ine_deaths_age_sex.Rds")
 write_dta(ine_deaths_age_sex, "data/INE/ine_deaths_age_sex.dta")
 ```
