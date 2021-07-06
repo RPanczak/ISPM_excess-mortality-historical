@@ -25,13 +25,21 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
       mutate(Population = round((pop_jan + pop_dec) / 2)) %>% 
       select(-pop_jan, -pop_dec)
     
-    pop_2020_pred <- predict(
-      lm(Population ~ Year, 
-         data = pop_year %>% filter(Year >= 2010)),
-      new = tibble(Year = 2020))
+    pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
+      as_tibble() %>% janitor::remove_empty() %>% janitor::clean_names() %>% 
+      filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
+      filter(alter == "Alter - Total") %>% 
+      filter(geschlecht == "Geschlecht - Total") %>% 
+      filter(kanton == "Schweiz") %>% 
+      filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
+      select(demografische_komponente, value) %>% 
+      summarise(Population = round(mean(value))) %>% 
+      mutate(Year = 2020) %>% relocate(Year)
     
     pop_year <- pop_year %>%
-      add_row(Year=2020, Population=pop_2020_pred)
+      bind_rows(pop_2020)
+    
+    rm(pop_2020)
   }
   if(Country.data=="Spain") {
     pop_year<- read_rds("data/INE/spain_deaths_month.Rds") %>% 
