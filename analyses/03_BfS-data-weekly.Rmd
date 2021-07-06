@@ -52,16 +52,16 @@ mu <- Hmisc::markupSpecs$html
 #               method = "curl")
 
 week_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
-                               escape_double = FALSE, 
-                               col_types = cols(CY = col_integer(), 
-                                                Week = col_integer(), 
-                                                Ending = col_date(format = "%d.%m.%Y"), 
-                                                NumberOfDeaths = col_integer(), 
-                                                Expected = col_integer(), 
-                                                lowerB = col_integer(), 
-                                                upperB = col_integer(), 
-                                                Excess = col_integer()), 
-                               trim_ws = TRUE) %>% 
+                             escape_double = FALSE, 
+                             col_types = cols(CY = col_integer(), 
+                                              Week = col_integer(), 
+                                              Ending = col_date(format = "%d.%m.%Y"), 
+                                              NumberOfDeaths = col_integer(), 
+                                              Expected = col_integer(), 
+                                              lowerB = col_integer(), 
+                                              upperB = col_integer(), 
+                                              Excess = col_integer()), 
+                             trim_ws = TRUE) %>% 
   rename(Year = CY) %>% 
   filter(!is.na(Year))
 
@@ -99,16 +99,16 @@ zip(zipfile = "data-raw/BfS/ts-e-14.03.04.03-wr.zip",
 file.remove("data-raw/BfS/ts-e-14.03.04.03-wr.csv")
 
 week_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.zip", 
-                               ";", escape_double = FALSE, 
-                               col_types = cols(Year = col_integer(), 
-                                                Week = col_integer(), 
-                                                Ending = col_date(format = "%d.%m.%Y"), 
-                                                NoDeaths_EP = col_double(), 
-                                                Expected = col_double(), 
-                                                LowerB = col_double(), 
-                                                UpperB = col_double(), 
-                                                Diff = col_double()), 
-                               trim_ws = TRUE, na = c(".")) %>% 
+                             ";", escape_double = FALSE, 
+                             col_types = cols(Year = col_integer(), 
+                                              Week = col_integer(), 
+                                              Ending = col_date(format = "%d.%m.%Y"), 
+                                              NoDeaths_EP = col_double(), 
+                                              Expected = col_double(), 
+                                              LowerB = col_double(), 
+                                              UpperB = col_double(), 
+                                              Diff = col_double()), 
+                             trim_ws = TRUE, na = c(".")) %>% 
   rename(NumberOfDeaths = NoDeaths_EP,
          lowerB = LowerB, upperB = UpperB,
          Excess = Diff) %>% 
@@ -166,39 +166,6 @@ haven::write_dta(excess_2010_2020, "data/BfS/excess_2010_2020.dta")
 ggplot(excess_2010_2020) + 
   geom_col(aes(x = factor(Year), y = Excess_expected)) + 
   theme_minimal() + xlab("") + ylab("Excess deaths")
-```
-
-<!-- ----------------------------------------------------- -->
-
-# Pops 
-
-[Permanent resident population by age, category of citizenship and sex, 1999-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.14367976.html) (*it actually should say 2010-2019*!)
-
-```{r}
-p_2019 <- read_excel("data-raw/BfS/je-e-01.02.03.03.xlsx", 
-                     sheet = "2019", skip = 3) %>% 
-  remove_empty() %>% 
-  clean_names() %>% 
-  filter(!is.na(x2)) %>% 
-  select(x1:x80) %>% 
-  rename(sex = x1,
-         total = x2) %>% 
-  filter(sex %in% c("Female", "Male")) %>% 
-  group_by(sex) %>% 
-  summarise_all(list(sum)) %>% 
-  ungroup() %>% 
-  pivot_longer(-sex, names_to = "age_group", values_to = "population") %>% 
-  filter(age_group != "total") %>% 
-  mutate(age_bin = case_when(
-    age_group == "x0_19" ~ "0-64",
-    age_group == "x20_39" ~ "0-64",
-    age_group == "x40_64" ~ "0-64",
-    TRUE ~ "65+")) %>% 
-  group_by(sex, age_bin) %>% 
-  summarise(population = sum(population)) %>% 
-  ungroup() %>% 
-  mutate(year = 2019) %>% 
-  relocate(year)
 ```
 
 <!-- ----------------------------------------------------- -->
