@@ -22,7 +22,7 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, lubridate, scales, magrittr, slider)
+p_load(tidyverse, lubridate, scales, magrittr, slider, janitor)
 ```
 
 ```{r knit-setup, include = FALSE}
@@ -101,13 +101,29 @@ bfs_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>%
   select(-pop_jan, -pop_dec)
 ```
 
-2020 simply `lm` predicted using pops from last 10 years
+<!-- 2020 simply `lm` predicted using pops from last 10 years -->
+
+2020 from provisional BfS estimates.
 
 ```{r}
-(pop_2020_pred <- predict(
-  lm(Population ~ Year, 
-     data = bfs_pop_year %>% filter(Year >= 2010)),
-  new = tibble(Year = 2020)))
+# (pop_2020_pred <- predict(
+#   lm(Population ~ Year, 
+#      data = bfs_pop_year %>% filter(Year >= 2010)),
+#   new = tibble(Year = 2020)))
+
+pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
+  as_tibble() %>% remove_empty() %>% clean_names() %>% 
+  filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
+  filter(alter == "Alter - Total") %>% 
+  filter(geschlecht == "Geschlecht - Total") %>% 
+  filter(kanton == "Schweiz") %>% 
+  filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
+  select(demografische_komponente, value) %>% 
+  summarise(Population = round(mean(value))) %>% 
+  mutate(Year = 2020) %>% relocate(Year)
+
+bfs_pop_year %<>% 
+  bind_rows(pop_2020)
 ```
 
 ## Together
@@ -121,7 +137,6 @@ deaths_monthly %<>%
          flu_year = ifelse(Year %in% flu_years, 1, 0),
          flu_year_affected = ifelse(Year %in% flu_years_affected, 1, 0),
          deaths_flu_year = ifelse(Year %in% flu_years, NA, Deaths),
-         Population = ifelse(Year >= 2020, pop_2020_pred, Population),
          si_one = sin(2*pi*Month/12),
          si_two = sin(4*pi*Month/12),
          co_one = cos(2*pi*Month/12),
@@ -129,7 +144,7 @@ deaths_monthly %<>%
   mutate(Deaths = as.integer(round(Deaths))) %>% 
   mutate(Population = as.integer(round(Population)))
 
-rm(bfs_pop_year)
+rm(bfs_pop_year, pop_2020)
 ```
 
 ## 4 harmonic variables
