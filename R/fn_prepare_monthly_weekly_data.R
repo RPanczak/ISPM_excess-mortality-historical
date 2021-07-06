@@ -25,8 +25,8 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
       mutate(Population = round((pop_jan + pop_dec) / 2)) %>% 
       select(-pop_jan, -pop_dec)
     
-    pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
-      as_tibble() %>% janitor::remove_empty() %>% janitor::clean_names() %>% 
+    pop_2020 <- read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
+      as_tibble() %>% remove_empty() %>% clean_names() %>% 
       filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
       filter(alter == "Alter - Total") %>% 
       filter(geschlecht == "Geschlecht - Total") %>% 

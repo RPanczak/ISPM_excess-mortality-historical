@@ -9,6 +9,8 @@ library(doParallel)
 library(foreach)
 library(rmarkdown)
 library(rmdformats)
+library(pxR)
+library(janitor)
 
 
 # prepare data
