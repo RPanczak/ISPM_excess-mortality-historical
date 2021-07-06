@@ -28,7 +28,7 @@ p_load(tidyverse,
        foreach, 
        rstan)
 
-file.sources = list.files(path="../R",pattern="fn_",full.names = TRUE)
+file.sources = list.files(path="../R/",pattern="fn_",full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
 set.seed(12345)
@@ -63,7 +63,7 @@ bfs_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>%
   select(-pop_jan, -pop_dec) %>%
   mutate(Population=round(Population))
 
-bfs_pop_year_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
+hmd_ch_pop_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
   filter((Year >= 1913 & Year <= 1919)) %>%
   dplyr::select(-Country,-Total) %>%
   pivot_longer(cols=c("Female","Male"), names_to = "Sex") %>%
@@ -121,9 +121,9 @@ deaths_yearly_age_sex %<>%
   group_by(Year, Sex, Age_cat) %>%
   summarise(Deaths = sum(value)) %>%
   ungroup() %>%
-  left_join(bfs_pop_year_age_sex)
+  left_join(hmd_ch_pop_age_sex)
 
-rm(bfs_pop_year_age_sex)
+rm(hmd_ch_pop_age_sex)
 
 ggplot(deaths_yearly_age_sex) +
   geom_line(aes(x=Year,y=Deaths/Population*1000,colour=Age_cat)) +
@@ -131,22 +131,6 @@ ggplot(deaths_yearly_age_sex) +
   labs(x="Time", y="Deaths per 1,000 population") +
   facet_wrap(~Sex,ncol=1) +
   scale_y_log10()
-```
-
-## Yearly pops with age breakdown
-
-```{r}
-pop_yearly_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
-  filter((Year >= 1913 & Year <= 1919))
-
-# # if pivot? or age cats? are needed
-# pop_yearly_age_sex %<>% 
-#   pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
-#   mutate(Age_cat = cut(Age, seq(0, 110, 10), 
-#                        include.lowest = TRUE)) %>% 
-#   group_by(Year, Sex, Age_cat) %>% 
-#   summarise(Population = sum(value)) %>% 
-#   ungroup()
 ```
 
 <!-- ----------------------------------------------------- -->
