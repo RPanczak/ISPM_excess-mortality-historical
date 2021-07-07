@@ -28,7 +28,8 @@ p_load(tidyverse,
        foreach, 
        rstan)
 
-file.sources = list.files(path="../R/",pattern="fn_",full.names = TRUE)
+# file.sources = list.files(path="../R/",pattern="fn_",full.names = TRUE)
+file.sources = list.files(path="R",pattern="fn_",full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
 set.seed(12345)
@@ -71,7 +72,7 @@ ch_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>%
   )
 
 ch_pop_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
-  filter((Year >= 2015 & Year <= 2020)) %>% 
+  filter((Year >= 2015 & Year <= 2019)) %>% 
   dplyr::select(-Country,-Total) %>%
   pivot_longer(cols=c("Female","Male"), names_to = "Sex") %>%
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
@@ -105,8 +106,7 @@ ch_pop_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>%
 
 ## Monthly deaths
 
-Counts of total deaths per month over the period 1913-1919. The population is averaged
-over each year.
+Counts of total deaths per month over the period 2015-2020. 
 
 ```{r}
 deaths_monthly <- 
@@ -156,6 +156,7 @@ ggplot(deaths_yearly_age_sex) +
   geom_point(aes(x=Year,y=Deaths/Population*1000,colour=Age_cat), fill="white", shape=21, size=1.8) +
   labs(x="Time", y="Deaths per 1,000 population") +
   facet_wrap(~Sex,ncol=1) +
+  scale_color_brewer(palette = "RdYlBu", direction = -1) +
   scale_y_log10()
 ```
 
@@ -168,7 +169,7 @@ Estimating expected for 2020, using data from 2015-2019.
 ```{r}
 expected_2020 = fn_global_serfling(2020, deaths_monthly)
 
-fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(0,10000))
 ```
 
 
@@ -177,9 +178,9 @@ fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(
 ```{r}
 expected_2020_stan = fn_global_serfling_stan(2020, deaths_monthly)
 
-fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(0,10000))
 
-fn_plot_global_serfling(expected_2020_stan, title="Expected deaths for 2020 (stan)", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020_stan, title="Expected deaths for 2020 (stan)", ylim=c(0,10000))
 ```
 
 
@@ -188,9 +189,9 @@ fn_plot_global_serfling(expected_2020_stan, title="Expected deaths for 2020 (sta
 ```{r}
 expected_2020_nb_stan = fn_global_serfling_nb_stan(2020, deaths_monthly)
 
-fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(0,10000))
 
-fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (nb, stan)", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (nb, stan)", ylim=c(0,10000))
 ```
 
 # Total monthly deaths by age group
@@ -198,9 +199,9 @@ fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (
 ```{r}
 expected_2020_age_nb_stan = fn_age_serfling_nb_stan(2020, deaths_monthly, deaths_yearly_age_sex)
 
-fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (nb, stan)", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (nb, stan)", ylim=c(0,10000))
 
-fn_plot_global_serfling(expected_2020_age_nb_stan, title="Expected deaths for 2020 (nb, age, stan)", ylim=c(0,12000))
+fn_plot_global_serfling(expected_2020_age_nb_stan, title="Expected deaths for 2020 (nb, age, stan)", ylim=c(0,10000))
 ```
 
 In addition to before, we can now examine expected deaths (and compute excess) by age group for a particular year.
