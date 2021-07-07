@@ -204,12 +204,46 @@ fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (
 fn_plot_global_serfling(expected_2020_age_nb_stan, title="Expected deaths for 2020 (nb, age, stan)", ylim=c(0,10000))
 ```
 
+Check model fit:
+
+```{r}
+
+summary(expected_2020_age_nb_stan$samples,pars="exp_lin_total_deaths")[[1]] %>%
+  as_tibble() %>%
+  bind_cols(Year=rep(2015:2019,each=12),
+            Month=rep(1:12,5)) %>%
+  left_join(deaths_monthly) %>%
+  ggplot() +
+  geom_point(aes(x=Month,y=Deaths)) +
+  geom_ribbon(aes(x=Month,ymin=`2.5%`,ymax=`97.5%`),alpha=.4) +
+  geom_line(aes(x=Month,y=`50%`)) +
+  facet_wrap(~Year)
+
+
+tmp = group_by(deaths_yearly_age_sex,Year,Age_cat) %>%
+  summarise(Deaths=sum(Deaths),Population=sum(Population))
+
+summary(expected_2020_age_nb_stan$samples,pars="prop_lin_grouped_deaths")[[1]] %>%
+  as_tibble() %>%
+  bind_cols(Year=rep(2015:2019,each=10),
+            Age_cat=rep(levels(tmp$Age_cat),5)) %>%
+  left_join(tmp) %>%
+  ggplot() +
+  geom_point(aes(x=Age_cat,y=Deaths/Population)) +
+  geom_pointrange(aes(x=Age_cat,y=`50%`,ymin=`2.5%`,ymax=`97.5%`),col="dodgerblue") +
+  facet_wrap(~Year)
+
+```
+
+
+
+
 In addition to before, we can now examine expected deaths (and compute excess) by age group for a particular year.
 
 ```{r}
 fn_plot_age_serfling(expected_2020_age_nb_stan, title="Expected deaths by age group for 2020", ylim=c(0,30000))
-```
 
+```
 
 # Comparison of expected deaths from different solutions
 
