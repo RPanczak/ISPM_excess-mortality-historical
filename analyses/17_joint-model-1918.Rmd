@@ -130,6 +130,7 @@ ggplot(deaths_yearly_age_sex) +
   geom_point(aes(x=Year,y=Deaths/Population*1000,colour=Age_cat), fill="white", shape=21, size=1.8) +
   labs(x="Time", y="Deaths per 1,000 population") +
   facet_wrap(~Sex,ncol=1) +
+  scale_color_brewer(palette = "RdYlBu", direction = -1) +
   scale_y_log10()
 ```
 
