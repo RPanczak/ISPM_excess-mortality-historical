@@ -1,16 +1,18 @@
 library(openxlsx)
+library(readr)
 library(tidyr)
-
+library(dplyr)
 
 Altersklassen_delete <- c("Total der Sterbefälle unter dem 20. Lebensjahr","Total der Sterbefälle über dem 20. Lebensjahr","Total der sämtlichen Sterbefälle",
                           "Entsprechende Sterblichkeitsziffer per Jahr und 20 Einwohner")
 
 data.schmid <- read.xlsx("data-raw/Schmid/Schmid_Tabelle_XX.xlsx") %>%
   fill(Altersklassen) %>%
-  filter(!(Altersklassen %in% Altersklassen_delete))%>%
-  select(-Total)%>%
-  gather(.,Month,Number_death,3:14)%>%
-  mutate(Age=Altersklassen,
+  filter(!(Altersklassen %in% Altersklassen_delete)) %>%
+  select(-Total) %>%
+  gather(.,Month,Number_death,3:14) %>%
+  mutate(Number_death = as.integer(Number_death),
+         Age=Altersklassen,
          Age=replace(Age, Age=="Unter 1 Jahr","<1"),
          Age=replace(Age, Age=="1-4 Jahre","1-4"),
          Age=replace(Age, Age=="5-19 Jahre","5-9"),
@@ -27,9 +29,12 @@ data.schmid <- read.xlsx("data-raw/Schmid/Schmid_Tabelle_XX.xlsx") %>%
          Month=replace(Month, Month=="Sept.","September"),
          Month=replace(Month, Month=="Oktober","October"),
          Month=replace(Month, Month=="Nov.","November"),
-         Month=replace(Month, Month=="Dez.","December"))%>%
-  select(Year=Jahre,Month,Number_death,Age)
+         Month=replace(Month, Month=="Dez.","December")) %>%
+  mutate(Age_f = factor(Age, levels = c("<1", "5-9", "1-4", 
+                                      "20-39", "40-59", "60-79", ">79"))) %>% 
+  mutate(Month_num = as.integer(factor(Month, levels = month.name))) %>% 
+  select(Year=Jahre,Month,Month_num,Age,Age_f,Number_death) %>% 
+  mutate(Date = lubridate::ymd(paste0(Year, "-", Month_num, "-01"))) %>% 
+  as_tibble()
 
-
-saveRDS(data.schmid, "data/Schmid/Schmid_death.Rds")
-
+write_rds(data.schmid, "data/Schmid/Schmid_death.Rds")
