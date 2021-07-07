@@ -28,8 +28,8 @@ p_load(tidyverse,
        foreach, 
        rstan)
 
-# file.sources = list.files(path="../R/",pattern="fn_",full.names = TRUE)
-file.sources = list.files(path="R",pattern="fn_",full.names = TRUE)
+file.sources = list.files(path="../R/",pattern="fn_",full.names = TRUE)
+# file.sources = list.files(path="R",pattern="fn_",full.names = TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
 set.seed(12345)
@@ -71,7 +71,38 @@ ch_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>%
                 Population = sum(Total))
   )
 
-ch_pop_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
+# ch_pop_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
+#   filter((Year >= 2015 & Year <= 2019)) %>% 
+#   dplyr::select(-Country,-Total) %>%
+#   pivot_longer(cols=c("Female","Male"), names_to = "Sex") %>%
+#   mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+#                        include.lowest = TRUE,
+#                        right=FALSE,
+#                        labels=c("0-9","10-19","20-29","30-39","40-49",
+#                                 "50-59","60-69","70-79","80-89","90+"))) %>%
+#   group_by(Year, Sex, Age_cat) %>%
+#   summarise(Population=sum(value)) %>%
+#   dplyr::mutate(Age_cat=factor(Age_cat)) %>%
+#   ungroup()  %>%
+#   mutate(Population=round(Population)) %>% 
+#   bind_rows(
+#     
+#     read_rds("data/BfS/bfs_pop_2020.Rds") %>%
+#       pivot_longer(cols=c("Female","Male"), names_to = "Sex") %>%
+#       mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+#                            include.lowest = TRUE,
+#                            right=FALSE,
+#                            labels=c("0-9","10-19","20-29","30-39","40-49",
+#                                     "50-59","60-69","70-79","80-89","90+"))) %>%
+#       group_by(Year, Sex, Age_cat) %>%
+#       summarise(Population=sum(value)) %>%
+#       dplyr::mutate(Age_cat=factor(Age_cat)) %>%
+#       ungroup()  %>%
+#       mutate(Population=round(Population))
+#     
+#   )
+
+ch_pop_age_sex_2019 <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>% 
   filter((Year >= 2015 & Year <= 2019)) %>% 
   dplyr::select(-Country,-Total) %>%
   pivot_longer(cols=c("Female","Male"), names_to = "Sex") %>%
@@ -84,23 +115,27 @@ ch_pop_age_sex <- read_rds("data/mortality_org/hmd_ch_pop_age_sex.Rds") %>%
   summarise(Population=sum(value)) %>%
   dplyr::mutate(Age_cat=factor(Age_cat)) %>%
   ungroup()  %>%
-  mutate(Population=round(Population)) %>% 
-  bind_rows(
-    
-    read_rds("data/BfS/bfs_pop_2020.Rds") %>%
-      pivot_longer(cols=c("Female","Male"), names_to = "Sex") %>%
-      mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                           include.lowest = TRUE,
-                           right=FALSE,
-                           labels=c("0-9","10-19","20-29","30-39","40-49",
-                                    "50-59","60-69","70-79","80-89","90+"))) %>%
-      group_by(Year, Sex, Age_cat) %>%
-      summarise(Population=sum(value)) %>%
-      dplyr::mutate(Age_cat=factor(Age_cat)) %>%
-      ungroup()  %>%
-      mutate(Population=round(Population))
-    
-  )
+  mutate(Population=round(Population))
+
+ch_pop_age_sex_2020 <- ch_pop_age_sex_2019 %>% 
+  filter(Year == 2019) %>% 
+  mutate(Year = 2020)
+  
+ch_pop_age_sex <- bind_rows(ch_pop_age_sex_2019, ch_pop_age_sex_2020)
+
+rm(ch_pop_age_sex_2019, ch_pop_age_sex_2020)
+
+# ch_pop_age_sex %>% 
+#   filter(Year >= 2019) %>% 
+#   group_by(Year) %>% 
+#   summarise(Population = sum(Population))
+# 
+# ggplot(filter(ch_pop_age_sex, Year >= 2015 & Year <= 2019),
+#        aes(x = Age_cat, y = Population)) +
+#   # geom_jitter(colour = "darkgray") +
+#   geom_point(colour = "darkgray") +
+#   geom_point(data = filter(ch_pop_age_sex, Year == 2020), colour = "red") +
+#   facet_grid(vars(Sex))
 ```
 
 
@@ -194,6 +229,7 @@ fn_plot_global_serfling(expected_2020, title="Expected deaths for 2020", ylim=c(
 fn_plot_global_serfling(expected_2020_nb_stan, title="Expected deaths for 2020 (nb, stan)", ylim=c(0,10000))
 ```
 
+
 # Total monthly deaths by age group
 
 ```{r}
@@ -242,7 +278,6 @@ In addition to before, we can now examine expected deaths (and compute excess) b
 
 ```{r}
 fn_plot_age_serfling(expected_2020_age_nb_stan, title="Expected deaths by age group for 2020", ylim=c(0,30000))
-
 ```
 
 # Comparison of expected deaths from different solutions
