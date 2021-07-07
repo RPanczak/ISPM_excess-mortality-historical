@@ -38,3 +38,17 @@ data.schmid <- read.xlsx("data-raw/Schmid/Schmid_Tabelle_XX.xlsx") %>%
   as_tibble()
 
 write_rds(data.schmid, "data/Schmid/Schmid_death.Rds")
+
+# library(ggplot2)
+# 
+# ggplot(data.schmid, aes(x = Month_num, y = Number_death)) + 
+#   geom_col() +
+#   scale_x_continuous(breaks = c(1,6,12), labels = c('1','6','12')) +
+#   facet_grid(vars(Age_f), vars(Year)) + 
+#   theme_minimal()
+# 
+# ggplot(data.schmid, aes(x = Month_num, y = Number_death, color = factor(Year))) + 
+#   geom_line() +
+#   scale_x_continuous(breaks = c(1,6,12), labels = c('1','6','12')) +
+#   facet_grid(vars(Age_f), scale = "free_y") + 
+#   theme_minimal()
