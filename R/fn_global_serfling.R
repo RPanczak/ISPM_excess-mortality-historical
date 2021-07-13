@@ -1,5 +1,7 @@
 # function for the global Serfling model
 
+source("R/fn_boot_pi.R")
+
 fn_global_serfling = function(pred_year, monthly_data, p=0.99) {
   
   # select last 5 years
