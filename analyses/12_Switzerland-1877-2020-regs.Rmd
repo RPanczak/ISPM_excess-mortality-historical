@@ -45,11 +45,10 @@ Monthly number of deaths, **1877-2020**.
 
 Prepared in `02.Rmd`.  
 
-Data until 2019 from BfS online sources; 2020 from STMF.  
-
-```{r}
+```{r eval=FALSE, include=FALSE}
+# till 2019 from BfS, 2020 from STMF
 deaths_monthly <- bind_rows(
-  read_rds("data/BfS/bfs_deaths_month.Rds") %>% 
+  read_rds("data/BfS/ch_deaths_month.Rds") %>% 
     filter(Year < 2020) %>% 
     mutate(source = "BfS"),
   
@@ -61,14 +60,19 @@ deaths_monthly <- bind_rows(
 )
 ```
 
+```{r}
+# all data from BfS
+deaths_monthly <- read_rds("data/BfS/ch_deaths_month.Rds")
+```
+
 ## Years
 
 ```{r}
 year_smooth <- 5
 
-year_from <- min(deaths_monthly$Year)
+(year_from <- min(deaths_monthly$Year))
 
-year_reg <- year_from + year_smooth
+(year_reg <- year_from + year_smooth)
 
 year_max <- 2020
 ```
@@ -90,47 +94,13 @@ flu_years_affected <- c(flu_years_hc_affected,
                         seq(2009 + 1, 2009 + year_smooth))
 ```
 
-## Pops
-
-Data till 2019 - taking mean from jan & dec values.
-
-```{r}
-bfs_pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>% 
-  filter(Year >= min(deaths_monthly$Year)) %>% 
-  mutate(Population = round((pop_jan + pop_dec) / 2)) %>% 
-  select(-pop_jan, -pop_dec)
-```
-
-<!-- 2020 simply `lm` predicted using pops from last 10 years -->
-
-2020 from provisional BfS estimates.
-
-```{r}
-# (pop_2020_pred <- predict(
-#   lm(Population ~ Year, 
-#      data = bfs_pop_year %>% filter(Year >= 2010)),
-#   new = tibble(Year = 2020)))
-
-pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
-  as_tibble() %>% remove_empty() %>% clean_names() %>% 
-  filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
-  filter(alter == "Alter - Total") %>% 
-  filter(geschlecht == "Geschlecht - Total") %>% 
-  filter(kanton == "Schweiz") %>% 
-  filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
-  select(demografische_komponente, value) %>% 
-  summarise(Population = round(mean(value))) %>% 
-  mutate(Year = 2020) %>% relocate(Year)
-
-bfs_pop_year %<>% 
-  bind_rows(pop_2020)
-```
-
 ## Together
 
 ```{r}
 deaths_monthly %<>% 
-  left_join(bfs_pop_year) %>%
+  mutate(Year = as.integer(Year),
+         Deaths = as.integer(round(Deaths)),
+         Population = as.integer(round(Population))) %>% 
   mutate(flu_year_hc = ifelse(Year %in% flu_years_hc, 1, 0),
          flu_year_hc_affected = ifelse(Year %in% flu_years_hc_affected, 1, 0),
          deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, Deaths),
@@ -140,11 +110,7 @@ deaths_monthly %<>%
          si_one = sin(2*pi*Month/12),
          si_two = sin(4*pi*Month/12),
          co_one = cos(2*pi*Month/12),
-         co_two = cos(4*pi*Month/12)) %>% 
-  mutate(Deaths = as.integer(round(Deaths))) %>% 
-  mutate(Population = as.integer(round(Population)))
-
-rm(bfs_pop_year, pop_2020)
+         co_two = cos(4*pi*Month/12)) 
 ```
 
 ## 4 harmonic variables
@@ -547,18 +513,10 @@ mort_plot(1957)
 mort_plot(1957, extremes_remove = TRUE) 
 ```
 
-### 2020 {.tabset}
-
-#### With extremes
+### 2020 
 
 ```{r echo=FALSE}
 mort_plot(2020) 
-```
-
-#### Without extremes
-
-```{r echo=FALSE}
-mort_plot(2020, extremes_remove = TRUE) 
 ```
 
 <!-- ----------------------------------------------------- -->

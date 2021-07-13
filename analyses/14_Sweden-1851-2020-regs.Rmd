@@ -45,9 +45,9 @@ Monthly number of deaths, **1851-2020**.
 
 Prepared in `02.Rmd`.  
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 deaths_monthly <- bind_rows(
-  read_rds("data/SCB/sweden_deaths_month.Rds") %>% 
+  read_rds("data/SCB/se_deaths_month.Rds") %>% 
     mutate(source = "SCB") %>% 
     filter(Year < 2020),
   
@@ -66,6 +66,9 @@ deaths_monthly %<>%
   mutate(Population = ifelse(Year == 2020, pop2020$Population, Population))
 ```
 
+```{r}
+deaths_monthly <- read_rds("data/SCB/se_deaths_month.Rds")
+```
 ## Years
 
 ```{r}
@@ -99,7 +102,9 @@ flu_years_affected <- c(flu_years_hc_affected,
 
 ```{r}
 deaths_monthly %<>% 
-  mutate(flu_year_hc = ifelse(Year %in% flu_years_hc, 1, 0),
+  mutate(Year = as.integer(Year),
+         Deaths = as.integer(round(Deaths)),
+         Population = as.integer(round(Population))) %>%   mutate(flu_year_hc = ifelse(Year %in% flu_years_hc, 1, 0),
          flu_year_hc_affected = ifelse(Year %in% flu_years_hc_affected, 1, 0),
          deaths_flu_year_hc = ifelse(Year %in% flu_years_hc, NA, Deaths),
          flu_year = ifelse(Year %in% flu_years, 1, 0),
@@ -108,9 +113,7 @@ deaths_monthly %<>%
          si_one = sin(2*pi*Month/12),
          si_two = sin(4*pi*Month/12),
          co_one = cos(2*pi*Month/12),
-         co_two = cos(4*pi*Month/12))  %>% 
-  mutate(Deaths = as.integer(round(Deaths))) %>% 
-  mutate(Population = as.integer(round(Population)))
+         co_two = cos(4*pi*Month/12))
 ```
 
 ## Three pandemics {.tabset}
@@ -162,7 +165,7 @@ deaths_monthly %>%
 deaths_monthly %>% 
   filter(Year >= 1888 & Year <= 1892) %>% 
   ggplot(aes(x = Date)) +
-  geom_line(aes(y = (Deaths /pop) * 100000)) + 
+  geom_line(aes(y = (Deaths / Population) * 100000)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_y_continuous(labels = comma, limits = c(0, 300)) +
   theme_minimal() + 
@@ -175,7 +178,7 @@ deaths_monthly %>%
 deaths_monthly %>% 
   filter(Year >= 1917 & Year <= 1921) %>% 
   ggplot(aes(x = Date)) +
-  geom_line(aes(y = (Deaths /pop) * 100000)) + 
+  geom_line(aes(y = (Deaths / Population) * 100000)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_y_continuous(labels = comma, limits = c(0, 300)) +
   theme_minimal() + 
@@ -188,7 +191,7 @@ deaths_monthly %>%
 deaths_monthly %>% 
   filter(Year >= 2016) %>% 
   ggplot(aes(x = Date)) +
-  geom_line(aes(y = (Deaths /pop) * 100000)) + 
+  geom_line(aes(y = (Deaths / Population) * 100000)) + 
   scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
   scale_y_continuous(labels = comma, limits = c(0, 300)) +
   theme_minimal() + 
@@ -486,18 +489,10 @@ mort_plot(1957)
 mort_plot(1957, extremes_remove = TRUE) 
 ```
 
-### 2020 {.tabset}
-
-#### With extremes
+### 2020 
 
 ```{r echo=FALSE}
 mort_plot(2020) 
-```
-
-#### Without extremes
-
-```{r echo=FALSE}
-mort_plot(2020, extremes_remove = TRUE) 
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -505,5 +500,3 @@ mort_plot(2020, extremes_remove = TRUE)
 # Computing Environment
 
 `r mu$session()`
-
-
