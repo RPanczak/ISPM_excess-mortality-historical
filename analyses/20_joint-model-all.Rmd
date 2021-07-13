@@ -57,8 +57,10 @@ mu <- Hmisc::markupSpecs$html
 ```{r}
 deaths_monthly <- bind_rows(
   read_rds("data/BfS/ch_deaths_month.Rds") %>% mutate(Country = "Switzerland"),
-  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Sweden"),
-  read_rds("data/SCB/se_deaths_month.Rds") %>% mutate(Country = "Spain")
+  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Sweden") %>% 
+    filter(Year >= 1900),
+  read_rds("data/SCB/se_deaths_month.Rds") %>% mutate(Country = "Spain") %>% 
+    filter(Year >= 1908)
 ) %>% 
   arrange(Country, Year) %>% 
   mutate(si_one = sin(2*pi*Month/12),
