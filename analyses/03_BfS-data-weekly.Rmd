@@ -65,12 +65,11 @@ week_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
   rename(Year = CY) %>% 
   filter(!is.na(Year))
 
-write_rds(week_2010_2019, "data/BfS/bfs_deaths_week_2010-2019.Rds")
-haven::write_dta(week_2010_2019, "data/BfS/bfs_deaths_week_2010-2019.dta")
+write_rds(week_2010_2019, "data/BfS/deaths_week_2010-2019.Rds")
 ```
 
 ```{r include=FALSE}
-week_2010_2019 <- read_rds("data/BfS/bfs_deaths_week_2010-2019.Rds") 
+week_2010_2019 <- read_rds("data/BfS/deaths_week_2010-2019.Rds") 
 ```
 
 Last five years with two age groups
@@ -114,12 +113,11 @@ week_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.zip",
          Excess = Diff) %>% 
   filter(!is.na(Year))
 
-write_rds(week_2020_2021, "data/BfS/bfs_deaths_week_2020-2021.Rds")
-haven::write_dta(week_2020_2021, "data/BfS/bfs_deaths_week_2020-2021.dta")
+write_rds(week_2020_2021, "data/BfS/deaths_week_2020-2021.Rds")
 ```
 
 ```{r include=FALSE}
-week_2020_2021 <- read_rds("data/BfS/bfs_deaths_week_2020-2021.Rds")
+week_2020_2021 <- read_rds("data/BfS/deaths_week_2020-2021.Rds")
 ```
 
 ```{r echo=FALSE}
@@ -161,7 +159,6 @@ excess_2010_2020 <- week_2010_2019 %>%
 
 ```{r echo=FALSE}
 write_rds(excess_2010_2020, "data/BfS/excess_2010_2020.Rds")
-haven::write_dta(excess_2010_2020, "data/BfS/excess_2010_2020.dta")
 
 ggplot(excess_2010_2020) + 
   geom_col(aes(x = factor(Year), y = Excess_expected)) + 
