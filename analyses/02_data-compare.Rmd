@@ -122,17 +122,28 @@ hmd_deaths_age_sex <-
     read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% mutate(Country = "Switzerland")
   ) %>% 
   mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
-  mutate(Age = as.numeric(Age)) %>% 
+  mutate(Age = as.integer(Age),
+         Female = as.integer(round(Female)),
+         Male = as.integer(round(Male)), 
+         Total = as.integer(round(Total))) %>% 
   relocate(Country) 
 
 write_rds(hmd_deaths_age_sex, "data/mortality_org/hmd_deaths_age_sex.Rds")
 
 hmd_deaths_year <- hmd_deaths_age_sex %>% 
   group_by(Country, Year) %>%
-  summarise(Deaths = round(sum(Total))) %>% 
+  summarise(Deaths = as.integer(round(sum(Total)))) %>% 
   ungroup()
 
 write_rds(hmd_deaths_year, "data/mortality_org/hmd_deaths_year.Rds")
+```
+
+Sweden has one more year of data than other two countries:   
+
+```{r}
+hmd_deaths_age_sex %>% 
+  group_by(Country) %>% 
+  summarize(Max = max(Year))
 ```
 
 Yearly totals per country indicating different time frames of data.  
@@ -184,20 +195,31 @@ hmd_pop_age_sex <-
       mutate(Country = "Switzerland")
   ) %>% 
   mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
-  mutate(Age = as.numeric(Age)) %>% 
+  mutate(Age = as.integer(Age),
+         Female = as.integer(round(Female)),
+         Male = as.integer(round(Male)), 
+         Total = as.integer(round(Total))) %>% 
   relocate(Country) 
 
 write_rds(hmd_pop_age_sex, "data/mortality_org/hmd_pop_age_sex.Rds")
 
 hmd_pop_year <- hmd_pop_age_sex %>% 
   group_by(Country, Year) %>%
-  summarise(Population = round(sum(Total))) %>% 
+  summarise(Population = as.integer(round(sum(Total)))) %>% 
   ungroup()
 
 write_rds(hmd_pop_year, "data/mortality_org/hmd_pop_year.Rds")
 ```
 
-Yearly totals, ignoring age
+Again, Sweden has more data - and already includes 2020:  
+
+```{r}
+hmd_pop_age_sex %>% 
+  group_by(Country) %>% 
+  summarize(Max = max(Year))
+```
+
+Yearly totals  
 
 ```{r echo=FALSE}
 hmd_pop_year  %>% 
@@ -208,7 +230,7 @@ hmd_pop_year  %>%
   scale_y_continuous(labels = comma)
 ```
 
-Again, age structure is available but only yearly and until `2019`.  
+Again, age structure is available yearly.  
 
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
@@ -274,7 +296,8 @@ stmf_week <- read_csv("data-raw/mortality_org/stmf_week.zip",
   mutate(Week2 = get_aweek(week = Week, year = Year, 
                            start = "Monday", week_start = "Monday"),
          Week_start = get_date(week = Week, year = Year, 
-                               start = "Monday")) %>% 
+                               start = "Monday"),
+         Deaths = as.integer(Deaths)) %>% 
   relocate(Week2, Week_start, .after = Week) %>% 
   mutate(Country = case_when(
     CountryCode == "CHE" ~ "Switzerland",
@@ -319,7 +342,8 @@ stmf_month <- bind_rows(
 ) %>% 
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
   rename(Deaths = value) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month)),
+         Deaths = as.integer(Deaths)) %>% 
   relocate(Country, Year, Month, Date)
 
 write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
@@ -341,27 +365,24 @@ stmf_month %>%
 
 Conversions are not perfect!  
 
-Example of 2020 totals derived from weekly data:
+Example of 2019+ totals derived from weekly data:
 
 ```{r}
-stmf_week %>% 
-  filter(Year == 2020) %>% 
-  group_by(Country) %>% 
-  summarise(deaths_year = round(sum(Deaths))) %>% 
-  kbl() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE) %>% 
-  column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE)
-```
-
-And from monthly data:
-
-```{r}
-stmf_month %>% 
-  filter(Year == 2020) %>% 
-  group_by(Country) %>% 
-  summarise(Deaths = round(sum(Deaths))) %>% 
+left_join(
+  stmf_week %>% 
+    filter(Year >= 2019) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Weekly = round(sum(Deaths))) %>% 
+    ungroup(),
+  
+  stmf_month %>% 
+    filter(Year >= 2019) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Monthly = round(sum(Deaths))) %>% 
+    ungroup()
+) %>% 
+  mutate(Difference = Weekly - Monthly,
+         Perc_weekly = percent((Weekly - Monthly) / Weekly, accuracy = 0.01)) %>% 
   kbl() %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
@@ -375,42 +396,42 @@ Showing small imperfections of the `week -> month` transition!
 
 # Switzerland 
 
-## BfS
-
-### Monthly deaths 
+## Monthly deaths 
 
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
 Using data since 1877 only where monthly registration starts.  
-With important update from @Kaspar **covering missing months between 1886 and 1900**!
+With important update from @Kaspar **covering missing months between 1886 and 1900**!  
 
 ```{r message=FALSE, warning=FALSE}
 ch_deaths_year <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
                             skip = 2, na = "...") %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
-  rename(year = x1) %>% 
+  rename(Year = x1) %>% 
   filter(!is.na(todesfalle_total)) %>% 
-  select(year:todesfalle_im_dezember) %>% 
-  mutate(year = as.numeric(year)) %>% 
-  rename(Year = year) %>% 
+  select(Year:todesfalle_im_dezember) %>% 
   select(Year, todesfalle_total) %>% 
-  rename(Deaths = todesfalle_total)
+  rename(Deaths = todesfalle_total) %>% 
+  mutate(Year = as.integer(Year),
+         Deaths = as.integer(Deaths))
 
 write_rds(ch_deaths_year, "data/BfS/ch_deaths_year.Rds")
 
 ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx") %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
   rename(Year = jahr) %>% 
+  mutate(Year = as.integer(Year)) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Year, Month, Date) %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  relocate(Year, Month, Date) 
-
-write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
+  mutate(Year = as.integer(Year),
+         Month = as.integer(Month),
+         Deaths = as.integer(Deaths)) %>% 
+  relocate(Year, Month, Date)
 ```
 
 ```{r echo=FALSE}
@@ -418,7 +439,7 @@ ggplot(data = ch_deaths_year,
        aes(x = Year)) +
   geom_line(aes(y = Deaths)) +
   theme_bw() +
-  xlab("") + ylab("Monthly number of deaths")
+  xlab("") + ylab("Yearly number of deaths")
 ```
 
 ```{r echo=FALSE}
@@ -429,58 +450,102 @@ ggplot(data = ch_deaths_month,
   xlab("") + ylab("Monthly number of deaths")
 ```
 
-### 2019-2020 deaths with age & sex structure
+## 2019-2020 deaths with age & sex structure
 
 To supplement HMD.  
 
 ```{r}
-ch_deaths_age_sex <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
-                              col_types = cols(KalJahr = col_integer(),
-                                               Alter = col_integer(),
-                                               COUNT = col_integer()), 
-                              trim_ws = TRUE) %>% 
+ch_deaths_age_sex_2019 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
+                                   col_types = cols(KalJahr = col_integer(),
+                                                    Alter = col_integer(),
+                                                    COUNT = col_integer()), 
+                                   trim_ws = TRUE) %>% 
   rename(Year = KalJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
   pivot_wider(names_from = Sex, values_from = Deaths) %>% 
   rename(Female = F, Male = M) %>% 
   mutate_at(vars(Female:Male), ~replace(., is.na(.), 0)) %>% 
-  mutate(Total = Female + Male) %>% 
-  mutate(Country = "Switzerland") %>% relocate(Country)
+  mutate(Country = "Switzerland",
+         Female = as.integer(round(Female)),
+         Male = as.integer(round(Male)), 
+         Total = as.integer(Female + Male)) %>% 
+  relocate(Country)
 
-write_rds(ch_deaths_age_sex, "data/BfS/ch_deaths_age_sex.Rds")
+write_rds(ch_deaths_age_sex_2019, "data/BfS/ch_deaths_age_sex_2019.Rds")
 ```
 
-### Yearly pops 
+## Yearly pops 
 
-[Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html)
+[Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html). Population of Jan and Dec averaged.  
 
 ```{r}
 ch_pop_year <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx", 
                          na = "...", skip = 1) %>% 
   remove_empty(c("rows", "cols")) %>%
   clean_names() %>% 
-  rename(Year = x1, pop_jan = population_on_2, pop_dec = population_on_11) %>% 
+  rename(Year = x1, pop_jan = population_on_2, pop_dec = population_on_11) %>%
   filter(!is.na(Year)) %>% 
   filter(!is.na(pop_jan)) %>% 
   mutate(Year = if_else(Year == "2010 7", "2010", Year),
-         Year = as.numeric(Year), 
-         pop_jan = as.numeric(pop_jan),
-         pop_dec = as.numeric(pop_dec)) %>% 
+         Year = as.integer(Year), 
+         pop_jan = as.integer(pop_jan),
+         pop_dec = as.integer(pop_dec)) %>% 
   select(Year, starts_with("pop_"))
+```
+
+## Yearly pops 2020 
+
+<!-- 2020 simply `lm` predicted using pops from last 10 years -->
+
+```{r eval=FALSE, include=FALSE}
+(pop_2020_pred <- predict(
+  lm(Population ~ Year,
+     data = ch_pop_year %>% filter(Year >= 2010)),
+  new = tibble(Year = 2020)))
+```
+
+2020 from [Provisional demographic balance of the permanent resident population 2020 by canton, citizenship (category), sex, age and demographic component](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16224502.html).     
+
+```{r}
+pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
+  as_tibble() %>% remove_empty(c("rows", "cols")) %>% clean_names() %>% 
+  filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
+  filter(alter == "Alter - Total") %>% 
+  filter(geschlecht == "Geschlecht - Total") %>% 
+  filter(kanton == "Schweiz") %>% 
+  filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
+  select(demografische_komponente, value) %>% 
+  pivot_wider(names_from = demografische_komponente, values_from = value) %>% 
+  rename(pop_jan = `Bestand am 1. Januar`,
+         pop_dec = `Bestand am 31. Dezember`) %>% 
+  mutate(pop_jan = as.integer(pop_jan),
+         pop_dec = as.integer(pop_dec),
+         Year = as.integer(2020)) 
+
+ch_pop_year %<>% 
+  bind_rows(pop_2020) %>% 
+  mutate(Population = as.integer(round((pop_jan + pop_dec) / 2))) %>% 
+  relocate(Year)
 
 write_rds(ch_pop_year, "data/BfS/ch_pop_year.Rds")
+rm(pop_2020)
+
+ch_deaths_month %<>% 
+  left_join(ch_pop_year %>% select(Year, Population))
+
+write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 ```
 
 ```{r echo=FALSE}
 ggplot(ch_pop_year, aes(x = Year)) +
-  geom_line(aes(y = pop_dec/1000000)) +
+  geom_line(aes(y = Population)) +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]") +
   scale_y_continuous(labels = comma)
 ```
 
-### 2020 pops
+## 2020 pops with age structure
 
-[Provisional demographic balance of the permanent resident population 2020 by canton, citizenship (category), sex, age and demographic component](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16224502.html). In comparisons (*below*) it looks like HMD is using Jan pops so those are preserved from the source. Apart from `0 Jahre` age group that is strangely `0` so figures from `31 Dec` are taken.
+Using provisional figures linked above. Same as previously mean of Jan and Dec is taken, apart from `0 Jahre` age group where only figures from `31 Dec` are taken (`1st Jan` value is strangely `0` for this group).  
 
 ```{r eval=FALSE}
 download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16224502/master",
@@ -489,40 +554,47 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16224502/mast
 ```
 
 ```{r}
-ch_pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
+ch_pop_age_sex_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
   as_tibble() %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>%
-  # # both and mean?
-  # filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
-  # 1st Jan for all apart from 0?
-  filter(
-    (demografische_komponente == "Bestand am 1. Januar" &
-       alter != "0 Jahre") |
-      (demografische_komponente == "Bestand am 31. Dezember" &
-         alter == "0 Jahre")) %>%
+  # both and mean?
+  filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>%
+  # apart from 0 age!
+  filter(! (demografische_komponente == "Bestand am 1. Januar" & alter == "0 Jahre")) %>% 
+  # # 1st Jan for all apart from 0?
+  # filter(
+  #   (demografische_komponente == "Bestand am 1. Januar" &
+  #      alter != "0 Jahre") |
+  #     (demografische_komponente == "Bestand am 31. Dezember" &
+  #        alter == "0 Jahre")) %>%
   # # 31 Dec for everybody?
   # filter(
   #   demografische_komponente == "Bestand am 31. Dezember") %>% 
   filter(alter != "Alter - Total") %>% 
   filter(kanton == "Schweiz") %>% 
   filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
-  select(-kanton, -jahr, -staatsangehorigkeit_kategorie, -demografische_komponente) %>%   mutate(alter = str_replace(alter, fixed(" Jahre"), "")) %>% 
+  select(-kanton, -jahr, -staatsangehorigkeit_kategorie) %>% 
+  group_by(alter, geschlecht) %>% 
+  summarise(Population = as.integer(round(mean(value)))) %>% 
+  ungroup() %>%   
+  mutate(alter = str_replace(alter, fixed(" Jahre"), "")) %>% 
   mutate(alter = str_replace(alter, fixed(" Jahr"), "")) %>% 
   mutate(alter = str_replace(alter, fixed(" und mehr"), "")) %>% 
-  mutate(Age = as.numeric(alter)) %>% 
+  mutate(Age = as.integer(alter)) %>% 
   select(-alter) %>% 
   mutate(geschlecht = str_replace(geschlecht, fixed("Geschlecht - "), "")) %>% 
   mutate(geschlecht = str_replace(geschlecht, fixed("Frau"), "Female")) %>% 
   mutate(geschlecht = str_replace(geschlecht, fixed("Mann"), "Male")) %>% 
-  pivot_wider(names_from = geschlecht, values_from = value) %>% 
-  mutate(Country = "Switzerland", Year = 2020) %>% 
+  pivot_wider(names_from = geschlecht, values_from = Population) %>% 
+  mutate(Country = "Switzerland", 
+         Year = as.integer(2020)) %>% 
   relocate(Country, Year, Age, Female, Male, Total)
 
-write_rds(ch_pop_2020, "data/BfS/ch_pop_2020.Rds")
+write_rds(ch_pop_age_sex_2020, "data/BfS/ch_pop_age_sex_2020.Rds")
 ```
 
-Altarnative source might be [Ständige Wohnbevölkerung nach Geschlecht und Altersklasse, Provisorische Jahresergebnisse, 2016-2020](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16404495.html). These however holds **Dec** pops.  
+<!-- Altarnative source might be [Ständige Wohnbevölkerung nach Geschlecht und Altersklasse, Provisorische Jahresergebnisse, 2016-2020](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16404495.html). These however holds **Dec** pops only.   -->
 
 ```{r eval=FALSE}
 download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16404495/master",
@@ -534,15 +606,16 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16404495/mast
 
 ### Totals
 
-BfS web vs HMD  
+BfS vs HMD  
 
 ```{r}
 compare <- left_join(
-  ch_pop_year, 
-  hmd_pop_year %>% filter(Country == "Switzerland")) %>% 
+  ch_pop_year %>% rename(BfS_pop = Population), 
+  hmd_pop_year %>% filter(Country == "Switzerland") %>% rename(HMD_pop = Population)) %>% 
   select(-Country) %>% 
-  mutate(diff1 = pop_jan - Population) %>% 
-  mutate(diff2 = pop_dec - Population)
+  mutate(diff1 = pop_jan - HMD_pop,
+         diff2 = pop_dec - HMD_pop,
+         diff3 = BfS_pop - HMD_pop)
 ```
 
 Difference between **Jan** pop from BfS and **yearly** pop from HMD
@@ -577,6 +650,22 @@ compare %>%
   xlab("") + ylab("Yearly difference in population estimates")
 ```
 
+Difference between **mean** pop from BfS and **yearly** pop from HMD
+
+```{r}
+summary(compare$diff3)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Year, y = diff3)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_line() +
+  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in population estimates")
+```
+
 ### Age groups
 
 Julien tracked down some weird patterns in Population estimates for 2020.  
@@ -596,7 +685,7 @@ hmd_pop_age_sex %>%
   summarise(Population = sum(Total)) %>% 
   ungroup() %>% 
   bind_rows(
-    ch_pop_2020 %>% 
+    ch_pop_age_sex_2020 %>% 
       mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                            include.lowest = TRUE,
                            right=FALSE,
@@ -617,9 +706,9 @@ hmd_pop_age_sex %>%
 
 ## Comparison - deaths
 
-### Yearly vs. monthly BfS figures
+<!-- ### Yearly vs. monthly BfS figures -->
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ch_deaths_month %>% 
   filter(!is.na(Deaths)) %>% 
   group_by(Year) %>% 
@@ -630,7 +719,7 @@ ch_deaths_month %>%
   nrow()
 ```
 
-*There are no years where summed  monthly data differ from "official" yearly sums.*
+<!-- *There are no years where summed monthly data differ from yearly numbers.* -->
 
 ### BfS vs HMD {.tabset}
 
@@ -645,7 +734,7 @@ compare <- left_join(
          perc = (deaths_year_bfs - deaths_year_hmd) / deaths_year_bfs)
 ```
 
-Timeline of differences between BfS figures and HMD
+Timeline of differences between yearly BfS and HMD figures. 
 
 #### Absolute
 
@@ -691,7 +780,7 @@ compare <- inner_join(
          perc = (deaths_bfs - deaths_stmf) / deaths_bfs)
 ```
 
-Summary of differences between BfS figures and STMF
+Summary of differences between monthly BfS and STMF figures. 
 
 #### Absolute
 
@@ -725,29 +814,18 @@ ggplot(compare, aes(x = Date, y = perc*100)) +
 
 # Spain
 
-```{r}
-es_pop <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
-  remove_empty() %>% 
-  clean_names() %>% 
-  rename(Year = year) %>% 
-  rename(Population = prados_de_la_escosura2020_july) %>% 
-  select(Year, Population)
+## Monthly deaths 
 
+```{r}
 es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>% 
-  remove_empty() %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
   rename(Year = jahr) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  relocate(Year, Month, Date) %>% 
-  left_join(es_pop)
-
-write_rds(es_deaths_month, "data/INE/es_deaths_month.Rds")
-rm(es_pop)
+  relocate(Year, Month, Date) 
 ```
-
-### Monthly deaths 
 
 ```{r echo=FALSE}
 es_deaths_month %>% 
@@ -757,11 +835,26 @@ es_deaths_month %>%
   xlab("") + ylab("Monthly deaths")
 ```
 
-### Yearly pops 
+## Yearly pops 
+
+```{r}
+es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
+  clean_names() %>% 
+  rename(Year = year) %>% 
+  rename(Population = prados_de_la_escosura2020_july) %>% 
+  select(Year, Population)
+
+write_rds(es_pop_year, "data/INE/es_pop_year.Rds")
+
+es_deaths_month %<>% 
+  left_join(es_pop_year)
+
+write_rds(es_deaths_month, "data/INE/es_deaths_month.Rds")
+```
 
 ```{r echo=FALSE}
-es_deaths_month %>% 
-  filter(Month == 12) %>% 
+es_pop_year %>% 
   ggplot(aes(x = Year, y = Population)) +
   geom_line() +
   theme_bw() +
@@ -771,7 +864,7 @@ es_deaths_month %>%
 ### 2019-2020 deaths with age structure
 
 ```{r}
-es_deaths_age_sex <- bind_rows(
+es_deaths_age_sex_2019 <- bind_rows(
   
   read_delim("data-raw/INE/Spain2019age.csv",
              delim = ";",
@@ -803,28 +896,21 @@ es_deaths_age_sex <- bind_rows(
 ) %>% 
   mutate(Country = "Spain") %>% relocate(Country)
 
-write_rds(es_deaths_age_sex, "data/INE/es_deaths_age_sex.Rds")
+write_rds(es_deaths_age_sex_2019, "data/INE/es_deaths_age_sex_2019.Rds")
 ```
+
+### 2020 pops with age structure
+
+TBD...  
 
 <!-- ----------------------------------------------------- -->
 
 # Sweden
 
 ```{r}
-se_pop <- read_xlsx("data-raw/SCB/be0101_tab9utveng1749-2020.xlsx",
-                        skip = 4) %>% 
-  remove_empty() %>% 
-  clean_names() %>% 
-  rename(Population = population) %>% 
-  select(year, Population) %>% 
-  filter(!is.na(Population)) %>% 
-  mutate(year = ifelse(year == "20001)", 2000, year),
-         year = as.numeric(year)) %>% 
-  rename(Year = year) 
-
 se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
-                                skip = 2) %>% 
-  remove_empty() %>% 
+                            skip = 2) %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
   rename(Month_txt = month) %>% 
   filter(Month_txt != "Unknown") %>% 
@@ -838,14 +924,10 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
   select(-Month_txt) %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Year, Month, Date) %>% 
-  left_join(se_pop) %>% 
   arrange(Year, Month)
-
-write_rds(se_deaths_month, "data/SCB/se_deaths_month.Rds")
-rm(se_pop)
 ```
 
-### Monthly deaths 
+## Monthly deaths 
 
 ```{r echo=FALSE}
 se_deaths_month %>% 
@@ -855,11 +937,30 @@ se_deaths_month %>%
   xlab("") + ylab("Monthly deaths")
 ```
 
-### Yearly pops 
+## Yearly pops 
+
+```{r}
+se_pop_year <- read_xlsx("data-raw/SCB/be0101_tab9utveng1749-2020.xlsx",
+                         skip = 4) %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
+  clean_names() %>% 
+  rename(Population = population) %>% 
+  select(year, Population) %>% 
+  filter(!is.na(Population)) %>% 
+  mutate(year = ifelse(year == "20001)", 2000, year),
+         year = as.numeric(year)) %>% 
+  rename(Year = year) 
+
+write_rds(se_pop_year, "data/SCB/se_pop_year.Rds")
+
+se_deaths_month %<>% 
+  left_join(se_pop_year)
+
+write_rds(se_deaths_month, "data/SCB/se_deaths_month.Rds")
+```
 
 ```{r echo=FALSE}
-se_deaths_month %>% 
-  filter(Month == 12) %>% 
+se_pop_year %>% 
   ggplot(aes(x = Year, y = Population)) +
   geom_line() +
   theme_bw() +
@@ -869,10 +970,10 @@ se_deaths_month %>%
 ### 2019-2020 deaths with age & sex structure
 
 ```{r}
-se_deaths_age_sex <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
-                                col_types = c("text", "text", "text", "numeric", "numeric"), 
-                                skip = 2) %>% 
-  remove_empty() %>% 
+se_deaths_age_sex_2019 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
+                                    col_types = c("text", "text", "text", "numeric", "numeric"), 
+                                    skip = 2) %>% 
+  remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
   filter(!is.na(x2019)) %>% 
   select(-x1) %>% 
@@ -889,7 +990,17 @@ se_deaths_age_sex <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx",
   arrange(Year, Age) %>% 
   mutate(Country = "Sweden") %>% relocate(Country)
 
-write_rds(se_deaths_age_sex, "data/SCB/se_deaths_age_sex.Rds")
+write_rds(se_deaths_age_sex_2019, "data/SCB/se_deaths_age_sex_2019.Rds")
+```
+
+### 2020 pops with age structure
+
+HMD already has data for Sweden for 2020.  
+
+```{r}
+hmd_pop_age_sex %>% 
+  filter(Country == "Sweden") %>% 
+  summarize(Max = max(Year))
 ```
 
 <!-- ----------------------------------------------------- -->
