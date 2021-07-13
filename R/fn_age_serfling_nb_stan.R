@@ -1,4 +1,4 @@
-# function for the global Serfling model, negative binomial version
+# function for the joint Serfling model, negative binomial version
 
 # pred_year = 2020
 # monthly_data = deaths_monthly %>% filter(Country == "Switzerland")
