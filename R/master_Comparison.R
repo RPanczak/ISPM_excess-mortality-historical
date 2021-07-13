@@ -11,6 +11,7 @@ library(rmarkdown)
 library(rmdformats)
 library(pxR)
 library(janitor)
+library(viridis)
 
 
 # prepare data
@@ -25,11 +26,13 @@ fn_prepare_monthly_weekly_data(Country.data="Sweden",data.timespan="Month")
 
 
 # # combine data
-# source("R/fn_comparison_monthly_weekly.R")
-# 
+source("R/fn_comparison_monthly_weekly.R")
+source("R/plot_appendix_month_weeks.R")
 # fn_comparison_monthly_weekly("Switzerland")
 # fn_comparison_monthly_weekly("Spain")
 # fn_comparison_monthly_weekly("Sweden")
+
+function_plot_appendix_month_weeks()
 
 # render 
 setwd("./analyses")
