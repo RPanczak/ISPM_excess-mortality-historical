@@ -122,7 +122,8 @@ hmd_deaths_age_sex <-
     read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% mutate(Country = "Switzerland")
   ) %>% 
   mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
-  mutate(Age = as.integer(Age),
+  mutate(Year = as.integer(Year),
+         Age = as.integer(Age),
          Female = as.integer(round(Female)),
          Male = as.integer(round(Male)), 
          Total = as.integer(round(Total))) %>% 
@@ -196,6 +197,7 @@ hmd_pop_age_sex <-
   ) %>% 
   mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
   mutate(Age = as.integer(Age),
+         Year = as.integer(Year),
          Female = as.integer(round(Female)),
          Male = as.integer(round(Male)), 
          Total = as.integer(round(Total))) %>% 
