@@ -14,7 +14,7 @@
 # prior_intercept=10
 # p=0.99
 
-fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, prior=10, prior_intercept=10, p=0.99) {
+fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, ignore_year=TRUE, prior=10, prior_intercept=10, p=0.99) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -27,7 +27,7 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, prior=1
   ee %<>% arrange(Age_cat,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
-  if(pred_year %in% pandemic_affected) {
+  if(ignore_year == TRUE & pred_year %in% pandemic_affected) {
     dd %<>% dplyr::filter(Year != pandemic)
     ee %<>% dplyr::filter(Year != pandemic)
   }
@@ -68,6 +68,7 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, prior=1
   # sampling
   ss = stan(file="stan/age_serfling_nb.stan",
             data=dd_list,
+            # save_dso=FALSE,
             chains=4,
             iter=2000)
   # get prediction
