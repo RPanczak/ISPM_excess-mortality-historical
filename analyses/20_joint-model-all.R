@@ -1,22 +1,3 @@
----
-title: "Excess mortality joint modelling"
-subtitle: "All countries, all time periods"
-author: "Julien Riou & Radek Panczak"
-date: "`r Sys.Date()`"
-output:
-  rmdformats::robobook:
-    code_folding: show
-    self_contained: true
-    highlight: pygments
-editor_options: 
-  chunk_output_type: console
----
-
-<!-- ----------------------------------------------------- -->
-
-```{r setup, include = FALSE}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-
 # install.packages(c(“StanHeaders”, “rstan”), type = “source”)
 
 library(pacman)
@@ -35,30 +16,14 @@ theme_set(theme_minimal())
 registerDoParallel(cores = parallel::detectCores())
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
-```
-
-```{r knit-setup, include = FALSE}
-knitr::opts_chunk$set(cache = FALSE,
-                      prompt = FALSE,
-                      tidy = FALSE,
-                      comment = NA,
-                      message = FALSE,
-                      warning = FALSE)
-knitr::opts_knit$set(width = 75)
-mu <- Hmisc::markupSpecs$html
-```
-
-<!-- ----------------------------------------------------- -->
 
 # Data 
 
 ## Monthly deaths with yearly pops
 
-```{r}
 deaths_monthly <- bind_rows(
   read_rds("data/BfS/ch_deaths_month.Rds") %>% mutate(Country = "Switzerland"),
-  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Sweden") %>% 
-    filter(Year >= 1900),
+  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Sweden"),
   read_rds("data/SCB/se_deaths_month.Rds") %>% mutate(Country = "Spain") %>% 
     filter(Year >= 1908)
 ) %>% 
@@ -67,13 +32,9 @@ deaths_monthly <- bind_rows(
          si_two = sin(4*pi*Month/12),
          co_one = cos(2*pi*Month/12),
          co_two = cos(4*pi*Month/12))
-```
 
 ## Yearly deaths by sex and age group with pops
 
-**At the moment age structure of deaths from 2020 for Spain and Switzerland is borrowed from 2019!**  
-
-```{r}
 pop_yearly_age_sex <- bind_rows(
   read_rds("data/mortality_org/hmd_pop_age_sex.Rds"),
   
@@ -129,22 +90,19 @@ deaths_yearly_age_sex <- bind_rows(
   left_join(pop_yearly_age_sex)
 
 rm(pop_yearly_age_sex)
-```
 
 ## Set up
 
-```{r}
 year_smooth <- 5
 
 pandemic <- c(1890, 1918, 2020)
 
 pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
                        seq(1918 + 1, 1918 + year_smooth))
-```
+
 
 # Modelling
 
-```{r}
 results_month <- tibble(Country = character(), 
                         Year = double(), Month = double(), 
                         Deaths = double(),
@@ -178,28 +136,27 @@ results_age <- tibble(Country = character(),
                       Model = character())
 
 for (COUNTRY in unique(deaths_monthly$Country)) {
-  # for (COUNTRY in c("Switzerland")) {
+  # for (COUNTRY in c("Sweden")) {
   
   # #############################################
   # Data params preps
   
   YEARS <- deaths_monthly %>% 
     filter(Country == COUNTRY) %>% 
-    summarize(MIN = min(Year),
-              MAX = max(Year))
+    summarize(MIN = min(Year))
   
   REG_DATA <- deaths_monthly %>% 
     filter(Country == COUNTRY)
   
   AGE_DATA <- deaths_yearly_age_sex %>% 
-    filter(Country == COUNTRY)
+     filter(Country == COUNTRY)
   
-  for (YEAR in YEARS$MIN+5:YEARS$MAX) {
+  print(paste("Analysing", COUNTRY))
+  
+  for (YEAR in YEARS$MIN+5:2020) {
     # for (YEAR in 1918:1919) {
     
-    print(paste("Analysing", COUNTRY))
     print(paste("     Analysing year", YEAR))
-    
     
     # #############################################
     # Model 1
@@ -299,4 +256,3 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
 write_rds(results_month, "data/results_month.Rds")
 write_rds(results_year, "data/results_year.Rds")
 write_rds(results_age, "data/results_age.Rds")
-```

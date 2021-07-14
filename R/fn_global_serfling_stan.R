@@ -1,8 +1,7 @@
 # function for the global Serfling model, Stan implementation
 
-# pred_year = 1918
+# pred_year = 1905
 # monthly_data = deaths_monthly
-# ignore_year=NULL
 # prior=10
 # prior_intercept=10
 # p=0.99

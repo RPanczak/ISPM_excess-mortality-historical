@@ -7,7 +7,7 @@
 # prior_intercept=10
 # p=0.99
 
-# pred_year = 1908+5
+# pred_year = 1954
 # monthly_data = deaths_monthly %>% filter(Country == "Spain")
 # yearly_data = deaths_yearly_age_sex %>% filter(Country == "Spain")
 # prior=10
