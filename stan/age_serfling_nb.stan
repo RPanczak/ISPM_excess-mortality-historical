@@ -18,6 +18,9 @@ data {
   real p_alpha;
   real p_beta;
 }
+transformed data {
+  int overflow_limit = 10000000;
+}
 parameters {
   real alpha[K];
   real beta_year;
@@ -105,10 +108,10 @@ generated quantities {
   prop_pred_lin_grouped_deaths = ( to_vector(to_array_1d(exp_pred_lin_grouped_deaths)) ) ./ sum( to_vector(to_array_1d(exp_pred_lin_grouped_deaths)) );
   
   for(j in 1:J) {
-    if(exp_pred_lin_total_deaths[j] < 2^28) // avoid overflow
+    if(exp_pred_lin_total_deaths[j] < overflow_limit && phi > 1e-3) // avoid overflow
       pred_total_deaths[j] = neg_binomial_2_rng(exp_pred_lin_total_deaths[j], phi);
     else 
-      pred_total_deaths[j] = 99999999;
+      pred_total_deaths[j] = overflow_limit;
     excess_total_deaths[j] = predyear_total_deaths[j] - pred_total_deaths[j];
   }
   yearly_excess_total_deaths = sum(excess_total_deaths);

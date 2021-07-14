@@ -10,6 +10,9 @@ source("R/fn_global_serfling_stan.R")
 source("R/fn_global_serfling_nb_stan.R")
 source("R/fn_age_serfling_nb_stan.R")
 
+path0 = paste0("data/outputs_",Sys.Date(),"/")
+dir.create(path0,showWarnings = FALSE)
+
 set.seed(12345)
 options(scipen = 999)
 theme_set(theme_minimal())
@@ -70,6 +73,8 @@ results_age <- tibble(Country = character(),
                       excess_year_upper = double(),
                       Model = character())
 
+
+
 for (COUNTRY in unique(deaths_monthly$Country)) {
   # for (COUNTRY in c("Sweden")) {
   
@@ -88,8 +93,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   
   print(paste("Analysing", COUNTRY))
   
-  # for (YEAR in YEARS$MIN+5:2020) {
-  for (YEAR in 1919) {
+  for (YEAR in YEARS$MIN+5:2020) {
+  # for (YEAR in 1919) {
     
     print(paste("     Analysing year", YEAR))
     
@@ -97,7 +102,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     # Model 1
     print("          Global Serfling")
     
-    global_serfling <- fn_global_serfling(YEAR, REG_DATA)
+    global_serfling <- fn_global_serfling(YEAR, REG_DATA, pandemic_years = pandemic)
     
     extract_month <- global_serfling$pred_total_deaths %>% 
       select(Country, Year, Month, Deaths, pred, lower, upper) %>% 
@@ -110,15 +115,15 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     # #############################################
     # Model 2
-    print("          Global Serfling (Stan)")
+    print("          Global Serfling (Stan, NB)")
     
-    global_serfling_stan <- fn_global_serfling_stan(YEAR, REG_DATA)
+    global_serfling_stan <- fn_global_serfling_nb_stan(YEAR, REG_DATA, pandemic_years = pandemic)
     
     extract_month <- global_serfling_stan$pred_total_deaths %>% 
       select(Country, Year, Month, Deaths,
              pred, lower, upper,
              excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Global Serfling (Stan)",
+      mutate(Model = "Global Serfling (Stan, NB)",
              mutate(across(pred:excess_month_upper, round)))
     
     results_month <- bind_rows(results_month, extract_month)
@@ -128,41 +133,16 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, 
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Global Serfling (Stan)",
+      mutate(Model = "Global Serfling (Stan, NB)",
              mutate(across(pred:excess_year_upper, round)))
     
     results_year <- bind_rows(results_year, extract_year)
     
     # #############################################
     # Model 3
-    print("          Global Serfling (Stan, NB)")
-    
-    global_serfling_nb_stan <- fn_global_serfling_nb_stan(YEAR, REG_DATA)
-    
-    extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
-      select(Country, Year, Month, Deaths,
-             pred, lower, upper,
-             excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Global Serfling (Stan, NB)",
-             mutate(across(pred:excess_month_upper, round)))
-    
-    results_month <- bind_rows(results_month, extract_month)
-    
-    extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
-      filter(row_number() == 1) %>% 
-      select(Country, Year, 
-             pred, lower, upper,
-             excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Global Serfling (Stan, NB)",
-             mutate(across(pred:excess_year_upper, round)))
-    
-    results_year <- bind_rows(results_year, extract_year)
-    
-    # #############################################
-    # Model 4
     print("          Age Serfling (Stan, NB)")
     
-    age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, REG_DATA, AGE_DATA)
+    age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, REG_DATA, AGE_DATA, pandemic_years = pandemic)
     
     extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
       select(Country, Year, Month, Deaths,
@@ -192,9 +172,16 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     results_age <- bind_rows(results_age, extract_age)
     
+    write_rds(results_month, paste0(path0,"results_month.Rds"))
+    write_rds(results_year, paste0(path0,"results_year.Rds"))
+    write_rds(results_age, paste0(path0,"results_age.Rds"))
   }
 } 
 
-write_rds(results_month, "data/results_month.Rds")
-write_rds(results_year, "data/results_year.Rds")
-write_rds(results_age, "data/results_age.Rds")
+
+
+ggplot(results_month) +
+  geom_pointrange(aes(x=Month, y=excess_month,ymin=excess_month_lower,ymax=excess_month_upper,colour=Model),
+                  position=position_dodge(.8)) +
+  facet_wrap(~Year,scales="free")
+summary(results_month$Rhat)

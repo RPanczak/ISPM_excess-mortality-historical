@@ -1,13 +1,14 @@
 # function for the global Serfling model, negative binomial version
 
 # pred_year = 1918
-# monthly_data = deaths_monthly
+# monthly_data = filter(deaths_monthly, Country=="Switzerland")
+# pandemic_years =  c(1890, 1918, 1957, 2020)
 # ignore_year=NULL
 # prior=10
 # prior_intercept=10
 # p=0.99
 
-fn_global_serfling_nb_stan = function(pred_year, monthly_data, prior=10, prior_intercept=10, p=0.99) {
+fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -17,12 +18,11 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, prior=10, prior_i
   dd %<>% arrange(Month,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
-  if(pred_year %in% pandemic_affected) {
-    dd %<>% dplyr::filter(Year != pandemic)
-  }
+  dd %<>% dplyr::filter(!(Year %in% pandemic_years))
   
   # extract prediction data
   pp = dplyr::filter(monthly_data, Year == pred_year)
+  
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
   years = years - min(years) + 1
@@ -44,11 +44,15 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, prior=10, prior_i
   # set priors (default is normal(0,10))
   dd_list$p_beta = prior
   dd_list$p_alpha = prior_intercept
+  # compiling and save compiled model (need to recompile on a new machine)
+  mm = stan_model(file="stan/global_serfling_nb.stan", save_dso = TRUE)
   # sampling
-  ss = stan(file="stan/global_serfling_nb.stan",
+  ss = sampling(mm,
             data=dd_list,
             chains=4,
-            iter=2000)
+            iter=2000,
+            refresh=0,
+            save_warmup = FALSE)
   # get prediction
   lp = (1 - p) / 2
   up = 1 - lp
@@ -56,14 +60,14 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, prior=10, prior_i
     as_tibble() %>%
     bind_cols(pp) %>%
     dplyr::rename(pred=5,lower=4,upper=6) %>%
-    dplyr::select(Country,Year,Month,Date,Deaths,Population,pred,lower,upper)
+    dplyr::select(Country,Year,Month,Date,Deaths,Population,pred,lower,upper,n_eff,Rhat)
   pp = summary(ss, pars="excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
     as_tibble() %>%
     dplyr::select(excess_month=5,excess_month_lower=4,excess_month_upper=6) %>%
-    bind_cols(pp)
+    bind_cols(pp,.)
   pp = summary(ss, pars="yearly_excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
     as_tibble() %>%
     dplyr::select(excess_year=5,excess_year_lower=4,excess_year_upper=6) %>%
-    bind_cols(pp)
+    bind_cols(pp,.)
   return(list(samples=ss,pred_total_deaths=pp))
 }

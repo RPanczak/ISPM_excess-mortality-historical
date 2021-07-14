@@ -44,7 +44,7 @@ model {
 }
 generated quantities {
   real pred_lin[J];
-  real<lower=0> exp_pred_lin[J];
+  real exp_pred_lin[J];
   int pred_total_deaths[J];
   int excess_total_deaths[J];
   int yearly_excess_total_deaths;
@@ -60,7 +60,7 @@ generated quantities {
     if(exp_pred_lin[j] < 2^28) // avoid overflow
       pred_total_deaths[j] = poisson_rng(exp_pred_lin[j]);
     else
-      pred_total_deaths[j] = 99999999; 
+      pred_total_deaths[j] = -1; 
     excess_total_deaths[j] = predyear_total_deaths[j] - pred_total_deaths[j];
     yearly_excess_total_deaths = sum(excess_total_deaths);
   }
