@@ -80,9 +80,10 @@ year_max <- 2020
 ## Pandemics
 
 ```{r}
-flu_years_hc <- c(1890, 1918, 2020)
+flu_years_hc <- c(1890, 1918, 1957, 2020)
 
 flu_years_hc_affected <- c(seq(1890 + 1, 1890 + year_smooth),
+                           seq(1957 + 1, 1957 + year_smooth),
                            seq(1918 + 1, 1918 + year_smooth))
 
 flu_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
