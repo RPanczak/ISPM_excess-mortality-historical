@@ -224,6 +224,11 @@
           <li><a href="#monthly-deaths-2">Monthly deaths</a></li>
           <li><a href="#yearly-pops-2">Yearly pops</a></li>
           </ul></li>
+          <li><a href="#combined-analysis-datasets">Combined analysis datasets</a>
+          <ul>
+          <li><a href="#monthly-deaths-with-yearly-pops">Monthly deaths with yearly pops</a></li>
+          <li><a href="#yearly-deaths-by-sex-and-age-group-with-pops">Yearly deaths by sex and age group with pops</a></li>
+          </ul></li>
           <li><a href="#computing-environment">Computing Environment</a></li>
           </ul>
         </nav>
@@ -1028,9 +1033,9 @@ With important update from <span class="citation">@Kaspar</span> <strong>coverin
 <span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Total =</span> <span class="fu">as.integer</span>(<span class="fu">round</span>(Total))), </span>
 <span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_delim</span>(<span class="st">&quot;data-raw/INE/Spain2020weeklyage.csv&quot;</span>,</span>
-<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>                         <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>,</span>
-<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>                         <span class="at">locale =</span> <span class="fu">locale</span>(<span class="at">grouping_mark =</span> <span class="st">&quot;.&quot;</span>),</span>
-<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>                         <span class="at">trim_ws =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>             <span class="at">delim =</span> <span class="st">&quot;;&quot;</span>,</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>             <span class="at">locale =</span> <span class="fu">locale</span>(<span class="at">grouping_mark =</span> <span class="st">&quot;.&quot;</span>),</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>             <span class="at">trim_ws =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">Edad =</span> <span class="st">`</span><span class="at">Edad (grupos quinquenales)</span><span class="st">`</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Edad <span class="sc">!=</span> <span class="st">&quot;Todas las edades&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Edad <span class="sc">!=</span> <span class="st">&quot;No consta&quot;</span>) <span class="sc">%&gt;%</span> </span>
@@ -1138,6 +1143,98 @@ With important update from <span class="citation">@Kaspar</span> <strong>coverin
 1  2020</code></pre>
 <!-- ----------------------------------------------------- -->
 </div>
+</div>
+</div>
+<div id="combined-analysis-datasets" class="section level1">
+<h1>Combined analysis datasets</h1>
+<div id="monthly-deaths-with-yearly-pops" class="section level2">
+<h2>Monthly deaths with yearly pops</h2>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>deaths_monthly <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  es_deaths_month <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Country =</span> <span class="st">&quot;Spain&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Year <span class="sc">&gt;=</span> <span class="dv">1908</span>),</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  se_deaths_month <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Country =</span> <span class="st">&quot;Sweden&quot;</span>),</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>  ch_deaths_month <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Country =</span> <span class="st">&quot;Switzerland&quot;</span>) </span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(Country, Year) <span class="sc">%&gt;%</span> </span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">si_one =</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Month<span class="sc">/</span><span class="dv">12</span>),</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">si_two =</span> <span class="fu">sin</span>(<span class="dv">4</span><span class="sc">*</span>pi<span class="sc">*</span>Month<span class="sc">/</span><span class="dv">12</span>),</span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">co_one =</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Month<span class="sc">/</span><span class="dv">12</span>),</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">co_two =</span> <span class="fu">cos</span>(<span class="dv">4</span><span class="sc">*</span>pi<span class="sc">*</span>Month<span class="sc">/</span><span class="dv">12</span>))</span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(deaths_monthly, <span class="st">&quot;data/deaths_monthly.Rds&quot;</span>)</span></code></pre></div>
+</div>
+<div id="yearly-deaths-by-sex-and-age-group-with-pops" class="section level2">
+<h2>Yearly deaths by sex and age group with pops</h2>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>pop_yearly_age_sex <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  hmd_pop_age_sex,</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># !!! temp solution for ES &amp; CH for 2020 !!!</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  hmd_pop_age_sex <span class="sc">%&gt;%</span> </span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Country <span class="sc">==</span> <span class="st">&quot;Spain&quot;</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2019</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Year =</span> <span class="dv">2020</span>),</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  hmd_pop_age_sex <span class="sc">%&gt;%</span> </span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Country <span class="sc">==</span> <span class="st">&quot;Switzerland&quot;</span> <span class="sc">&amp;</span> Year <span class="sc">==</span> <span class="dv">2019</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Year =</span> <span class="dv">2020</span>)</span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Female, <span class="sc">-</span>Male) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Age =</span> <span class="fu">ifelse</span>(Age <span class="sc">==</span> <span class="st">&quot;110+&quot;</span>, <span class="st">&quot;111&quot;</span>, Age),</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age =</span> <span class="fu">as.integer</span>(Age), </span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">Year =</span> <span class="fu">as.integer</span>(Year), </span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>         <span class="co"># Age_cat = cut(Age, </span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>         <span class="co"># breaks = c(0, 1, 5, 20, 40, 60, 80, 112),</span></span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>         <span class="co"># # labels = c(&quot;&lt;1&quot;, &quot;1-4&quot;, &quot;5-19&quot;, &quot;20-39&quot;, &quot;40-59&quot;, &quot;60-79&quot;,&quot;80+&quot;), </span></span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>         <span class="co"># right=FALSE), </span></span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age_cat =</span> <span class="fu">cut</span>(Age, </span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>                       <span class="at">breaks =</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">90</span>, <span class="dv">5</span>), <span class="dv">113</span>), </span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>                       <span class="co"># labels = c(&quot;0-9&quot;,&quot;10-19&quot;,&quot;20-29&quot;,&quot;30-39&quot;,&quot;40-49&quot;,&quot;50-59&quot;,&quot;60-69&quot;,&quot;70-79&quot;,&quot;80+&quot;)), </span></span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>                       <span class="at">right=</span><span class="cn">FALSE</span>)</span>
+<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Country, Year, Age_cat) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Population =</span> <span class="fu">sum</span>(Total)) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() </span>
+<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a>deaths_yearly_age_sex <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a>  hmd_deaths_age_sex,</span>
+<span id="cb45-35"><a href="#cb45-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-36"><a href="#cb45-36" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2019 is already in HMD for Sweden</span></span>
+<span id="cb45-37"><a href="#cb45-37" aria-hidden="true" tabindex="-1"></a>  se_deaths_age_sex_2019 <span class="sc">%&gt;%</span> </span>
+<span id="cb45-38"><a href="#cb45-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Year <span class="sc">==</span> <span class="dv">2020</span>),</span>
+<span id="cb45-39"><a href="#cb45-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-40"><a href="#cb45-40" aria-hidden="true" tabindex="-1"></a>  es_deaths_age_sex_2019,</span>
+<span id="cb45-41"><a href="#cb45-41" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-42"><a href="#cb45-42" aria-hidden="true" tabindex="-1"></a>  ch_deaths_age_sex_2019</span>
+<span id="cb45-43"><a href="#cb45-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-44"><a href="#cb45-44" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-45"><a href="#cb45-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>Female, <span class="sc">-</span>Male) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-46"><a href="#cb45-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Age =</span> <span class="fu">ifelse</span>(Age <span class="sc">==</span> <span class="st">&quot;110+&quot;</span>, <span class="st">&quot;111&quot;</span>, Age),</span>
+<span id="cb45-47"><a href="#cb45-47" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age =</span> <span class="fu">as.integer</span>(Age), </span>
+<span id="cb45-48"><a href="#cb45-48" aria-hidden="true" tabindex="-1"></a>         <span class="at">Year =</span> <span class="fu">as.integer</span>(Year), </span>
+<span id="cb45-49"><a href="#cb45-49" aria-hidden="true" tabindex="-1"></a>         <span class="co"># Age_cat = cut(Age, </span></span>
+<span id="cb45-50"><a href="#cb45-50" aria-hidden="true" tabindex="-1"></a>         <span class="co"># breaks = c(0, 1, 5, 20, 40, 60, 80, 112),</span></span>
+<span id="cb45-51"><a href="#cb45-51" aria-hidden="true" tabindex="-1"></a>         <span class="co"># # labels = c(&quot;&lt;1&quot;, &quot;1-4&quot;, &quot;5-19&quot;, &quot;20-39&quot;, &quot;40-59&quot;, &quot;60-79&quot;,&quot;80+&quot;), </span></span>
+<span id="cb45-52"><a href="#cb45-52" aria-hidden="true" tabindex="-1"></a>         <span class="co"># right=FALSE), </span></span>
+<span id="cb45-53"><a href="#cb45-53" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age_cat =</span> <span class="fu">cut</span>(Age, </span>
+<span id="cb45-54"><a href="#cb45-54" aria-hidden="true" tabindex="-1"></a>                       <span class="at">breaks =</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">90</span>, <span class="dv">5</span>), <span class="dv">113</span>), </span>
+<span id="cb45-55"><a href="#cb45-55" aria-hidden="true" tabindex="-1"></a>                       <span class="co"># labels = c(&quot;0-9&quot;,&quot;10-19&quot;,&quot;20-29&quot;,&quot;30-39&quot;,&quot;40-49&quot;,&quot;50-59&quot;,&quot;60-69&quot;,&quot;70-79&quot;,&quot;80+&quot;)), </span></span>
+<span id="cb45-56"><a href="#cb45-56" aria-hidden="true" tabindex="-1"></a>                       <span class="at">right=</span><span class="cn">FALSE</span>)</span>
+<span id="cb45-57"><a href="#cb45-57" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb45-58"><a href="#cb45-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Country, Year, Age_cat) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-59"><a href="#cb45-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">Deaths =</span> <span class="fu">sum</span>(Total)) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-60"><a href="#cb45-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb45-61"><a href="#cb45-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pop_yearly_age_sex)</span>
+<span id="cb45-62"><a href="#cb45-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-63"><a href="#cb45-63" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(pop_yearly_age_sex)</span>
+<span id="cb45-64"><a href="#cb45-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-65"><a href="#cb45-65" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(deaths_yearly_age_sex, <span class="st">&quot;data/deaths_yearly_age_sex.Rds&quot;</span>)</span></code></pre></div>
+<!-- ----------------------------------------------------- -->
 </div>
 </div>
 <div id="computing-environment" class="section level1">

@@ -17,89 +17,22 @@ registerDoParallel(cores = parallel::detectCores())
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
-# Data 
+# Set up
 
-## Monthly deaths with yearly pops
+## Data 
 
-deaths_monthly <- bind_rows(
-  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Spain") %>% 
-    filter(Year >= 1908),
-  read_rds("data/SCB/se_deaths_month.Rds") %>% mutate(Country = "Sweden"),
-  read_rds("data/BfS/ch_deaths_month.Rds") %>% mutate(Country = "Switzerland") 
-) %>% 
-  arrange(Country, Year) %>% 
-  mutate(si_one = sin(2*pi*Month/12),
-         si_two = sin(4*pi*Month/12),
-         co_one = cos(2*pi*Month/12),
-         co_two = cos(4*pi*Month/12))
+deaths_monthly <- read_rds("data/deaths_monthly.Rds")
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
 
-## Yearly deaths by sex and age group with pops
-
-pop_yearly_age_sex <- bind_rows(
-  read_rds("data/mortality_org/hmd_pop_age_sex.Rds"),
-  
-  read_rds("data/mortality_org/hmd_pop_age_sex.Rds") %>% 
-    filter(Country == "Spain" & Year == 2019) %>% 
-    mutate(Year = 2020),
-  
-  read_rds("data/mortality_org/hmd_pop_age_sex.Rds") %>% 
-    filter(Country == "Switzerland" & Year == 2019) %>% 
-    mutate(Year = 2020)) %>% 
-  
-  select(-Female, -Male) %>% 
-  mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.integer(Age), 
-         Year = as.integer(Year), 
-         # Age_cat = cut(Age, 
-         # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
-         # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
-         # right=FALSE), 
-         Age_cat = cut(Age, 
-                       breaks = c(seq(0, 90, 5), 113), 
-                       # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
-                       right=FALSE)
-  ) %>%
-  group_by(Country, Year, Age_cat) %>% 
-  summarise(Population = sum(Total)) %>% 
-  ungroup() 
-
-deaths_yearly_age_sex <- bind_rows(
-  read_rds("data/mortality_org/hmd_deaths_age_sex.Rds"),
-  
-  read_rds("data/SCB/se_deaths_age_sex_2019.Rds") %>% 
-    filter(Year == 2020),
-  
-  read_rds("data/INE/es_deaths_age_sex_2019.Rds"),
-  
-  read_rds("data/BfS/ch_deaths_age_sex_2019.Rds")
-) %>% 
-  select(-Female, -Male) %>% 
-  mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.integer(Age), 
-         Year = as.integer(Year), 
-         # Age_cat = cut(Age, 
-         # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
-         # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
-         # right=FALSE), 
-         Age_cat = cut(Age, 
-                       breaks = c(seq(0, 90, 5), 113), 
-                       # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
-                       right=FALSE)
-  ) %>%
-  group_by(Country, Year, Age_cat) %>% 
-  summarise(Deaths = sum(Total)) %>% 
-  ungroup() %>% 
-  left_join(pop_yearly_age_sex)
-
-rm(pop_yearly_age_sex)
-
-## Set up
+## Years
 
 year_smooth <- 5
 
-pandemic <- c(1890, 1918, 2020)
+pandemic <- c(1890, 1918, 1957,
+              2020)
 
 pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
+                       seq(1957 + 1, 1957 + year_smooth),
                        seq(1918 + 1, 1918 + year_smooth))
 
 
@@ -156,7 +89,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   print(paste("Analysing", COUNTRY))
   
   # for (YEAR in YEARS$MIN+5:2020) {
-  for (YEAR in 2019:2020) {
+  for (YEAR in 1919) {
     
     print(paste("     Analysing year", YEAR))
     
