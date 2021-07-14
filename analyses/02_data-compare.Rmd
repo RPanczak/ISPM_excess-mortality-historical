@@ -467,7 +467,7 @@ ch_deaths_age_sex_2019 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv",
   mutate(Country = "Switzerland",
          Female = as.integer(round(Female)),
          Male = as.integer(round(Male)), 
-         Total = as.integer(Female + Male)) %>% 
+         Total = Female + Male) %>% 
   relocate(Country)
 
 write_rds(ch_deaths_age_sex_2019, "data/BfS/ch_deaths_age_sex_2019.Rds")
@@ -822,7 +822,9 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
   clean_names() %>% 
   rename(Year = jahr) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
-  mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
+  mutate(Month = as.integer(str_replace(Month, fixed("m"), "")),
+         Year = as.integer(Year),
+         Deaths = as.integer(round(Deaths)))  %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Year, Month, Date) 
 ```
@@ -843,7 +845,9 @@ es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>%
   clean_names() %>% 
   rename(Year = year) %>% 
   rename(Population = prados_de_la_escosura2020_july) %>% 
-  select(Year, Population)
+  select(Year, Population) %>% 
+  mutate(Year = as.integer(Year),
+         Population = as.integer(round(Population)))
 
 write_rds(es_pop_year, "data/INE/es_pop_year.Rds")
 
@@ -875,9 +879,10 @@ es_deaths_age_sex_2019 <- bind_rows(
            Age = str_replace(Age, fixed("Menores"), "0"),
            Age = as.integer(Age)
     ) %>% 
-    select(Year, Age, Total), 
+    select(Year, Age, Total) %>% 
+    mutate(Total = as.integer(round(Total))), 
   
-  ine_2020 <- read_delim("data-raw/INE/Spain2020weeklyage.csv",
+  read_delim("data-raw/INE/Spain2020weeklyage.csv",
                          delim = ";",
                          locale = locale(grouping_mark = "."),
                          trim_ws = TRUE) %>% 
@@ -887,10 +892,10 @@ es_deaths_age_sex_2019 <- bind_rows(
     mutate(Year = as.integer(2020)) %>% 
     mutate(Age = str_replace(Edad, fixed("De "), ""),
            Age = word(Age, 1),
-           Age = as.numeric(Age)
+           Age = as.integer(Age)
     ) %>% 
     group_by(Year, Age) %>% 
-    summarize(Total = sum(Total)) %>% 
+    summarize(Total = as.integer(round(sum(Total)))) %>% 
     ungroup() 
   
 ) %>% 
@@ -919,8 +924,9 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
   group_by(Year, Month_txt) %>% 
   summarise(Deaths = sum(Deaths)) %>% 
   ungroup() %>% 
-  mutate(Year = as.numeric(str_replace(Year, fixed("x"), "")),
-         Month = match(Month_txt, month.name)) %>% 
+  mutate(Year = as.integer(str_replace(Year, fixed("x"), "")),
+         Month = match(Month_txt, month.name),
+         Deaths = as.integer(round(Deaths))) %>% 
   select(-Month_txt) %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   relocate(Year, Month, Date) %>% 
@@ -948,7 +954,8 @@ se_pop_year <- read_xlsx("data-raw/SCB/be0101_tab9utveng1749-2020.xlsx",
   select(year, Population) %>% 
   filter(!is.na(Population)) %>% 
   mutate(year = ifelse(year == "20001)", 2000, year),
-         year = as.numeric(year)) %>% 
+         year = as.integer(year),
+         Population = as.integer(round(Population))) %>% 
   rename(Year = year) 
 
 write_rds(se_pop_year, "data/SCB/se_pop_year.Rds")
@@ -986,6 +993,8 @@ se_deaths_age_sex_2019 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx"
          Age = str_replace(Age, fixed("100+"), "100"),
          Age = as.integer(Age)) %>% 
   pivot_wider(names_from = Sex, values_from = value) %>% 
+  mutate(Male = as.integer(round(Male)),
+         Female = as.integer(round(Female))) %>% 
   mutate(Total = Male + Female) %>% 
   arrange(Year, Age) %>% 
   mutate(Country = "Sweden") %>% relocate(Country)
