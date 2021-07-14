@@ -22,10 +22,10 @@ rstan_options(auto_write = TRUE)
 ## Monthly deaths with yearly pops
 
 deaths_monthly <- bind_rows(
-  read_rds("data/BfS/ch_deaths_month.Rds") %>% mutate(Country = "Switzerland"),
-  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Sweden"),
-  read_rds("data/SCB/se_deaths_month.Rds") %>% mutate(Country = "Spain") %>% 
-    filter(Year >= 1908)
+  read_rds("data/INE/es_deaths_month.Rds") %>% mutate(Country = "Spain") %>% 
+    filter(Year >= 1908),
+  read_rds("data/SCB/se_deaths_month.Rds") %>% mutate(Country = "Sweden"),
+  read_rds("data/BfS/ch_deaths_month.Rds") %>% mutate(Country = "Switzerland") 
 ) %>% 
   arrange(Country, Year) %>% 
   mutate(si_one = sin(2*pi*Month/12),
@@ -48,7 +48,8 @@ pop_yearly_age_sex <- bind_rows(
   
   select(-Female, -Male) %>% 
   mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.numeric(Age), 
+         Age = as.integer(Age), 
+         Year = as.integer(Year), 
          # Age_cat = cut(Age, 
          # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
          # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
@@ -74,7 +75,8 @@ deaths_yearly_age_sex <- bind_rows(
 ) %>% 
   select(-Female, -Male) %>% 
   mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.numeric(Age), 
+         Age = as.integer(Age), 
+         Year = as.integer(Year), 
          # Age_cat = cut(Age, 
          # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
          # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
@@ -149,12 +151,12 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     filter(Country == COUNTRY)
   
   AGE_DATA <- deaths_yearly_age_sex %>% 
-     filter(Country == COUNTRY)
+    filter(Country == COUNTRY)
   
   print(paste("Analysing", COUNTRY))
   
-  for (YEAR in YEARS$MIN+5:2020) {
-    # for (YEAR in 1918:1919) {
+  # for (YEAR in YEARS$MIN+5:2020) {
+  for (YEAR in 2019:2020) {
     
     print(paste("     Analysing year", YEAR))
     
@@ -166,9 +168,9 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     extract_month <- global_serfling$pred_total_deaths %>% 
       select(Country, Year, Month, Deaths, pred, lower, upper) %>% 
-      mutate(excess_month = Deaths - pred,
-             excess_month_upper = Deaths - upper,
-             excess_month_lower = Deaths - lower) %>% 
+      mutate(excess_month = round(Deaths - pred),
+             excess_month_upper = round(Deaths - upper),
+             excess_month_lower = round(Deaths - lower)) %>% 
       mutate(Model = "Global Serfling")
     
     results_month <- bind_rows(results_month, extract_month)
@@ -183,7 +185,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Month, Deaths,
              pred, lower, upper,
              excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Global Serfling (Stan)")
+      mutate(Model = "Global Serfling (Stan)",
+             mutate(across(pred:excess_month_upper, round)))
     
     results_month <- bind_rows(results_month, extract_month)
     
@@ -192,7 +195,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, 
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Global Serfling (Stan)")
+      mutate(Model = "Global Serfling (Stan)",
+             mutate(across(pred:excess_year_upper, round)))
     
     results_year <- bind_rows(results_year, extract_year)
     
@@ -206,7 +210,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Month, Deaths,
              pred, lower, upper,
              excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Global Serfling (Stan, NB)")
+      mutate(Model = "Global Serfling (Stan, NB)",
+             mutate(across(pred:excess_month_upper, round)))
     
     results_month <- bind_rows(results_month, extract_month)
     
@@ -215,7 +220,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, 
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Global Serfling (Stan, NB)")
+      mutate(Model = "Global Serfling (Stan, NB)",
+             mutate(across(pred:excess_year_upper, round)))
     
     results_year <- bind_rows(results_year, extract_year)
     
@@ -229,7 +235,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Month, Deaths,
              pred, lower, upper,
              excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Age Serfling (Stan, NB)")
+      mutate(Model = "Age Serfling (Stan, NB)",
+             mutate(across(pred:excess_month_upper, round)))
     
     results_month <- bind_rows(results_month, extract_month)
     
@@ -238,7 +245,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, 
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Age Serfling (Stan, NB)")
+      mutate(Model = "Age Serfling (Stan, NB)",
+             mutate(across(pred:excess_year_upper, round)))
     
     results_year <- bind_rows(results_year, extract_year)
     
@@ -246,7 +254,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Age_cat, Deaths,
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Age Serfling (Stan, NB)")
+      mutate(Model = "Age Serfling (Stan, NB)",
+             mutate(across(pred:excess_year_upper, round)))
     
     results_age <- bind_rows(results_age, extract_age)
     
