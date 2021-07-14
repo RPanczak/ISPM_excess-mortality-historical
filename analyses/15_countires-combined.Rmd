@@ -62,9 +62,9 @@ expected_deaths_monthly <- bind_rows(
 
 write_rds(expected_deaths_monthly, "data/expected_deaths_monthly.Rds")
 
-# unlink("data/ch_expected_deaths_monthly.Rds")
-# unlink("data/se_expected_deaths_monthly.Rds")
-# unlink("data/es_expected_deaths_monthly.Rds")
+unlink("data/ch_expected_deaths_monthly.Rds")
+unlink("data/se_expected_deaths_monthly.Rds")
+unlink("data/es_expected_deaths_monthly.Rds")
 ```
 
 ```{r}
@@ -119,7 +119,7 @@ expected_deaths_monthly %>%
   guides(fill = guide_legend(reverse = TRUE)) +
   ggtitle("Monthly number of Deaths")
 
-ggsave("paper/diffs.png", dpi = 300, width = 297, height = 210, units = "mm")
+#ggsave("paper/diffs.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ## Yearly 
@@ -160,7 +160,7 @@ expected_deaths_monthly %>%
   guides(fill = guide_legend(reverse = TRUE)) +
   ggtitle("Yearly number of Deaths")
 
-ggsave("paper/diffs_year.png", dpi = 300, width = 297, height = 210, units = "mm")
+#ggsave("paper/diffs_year.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 # Figure 2 - four pandemics
@@ -252,7 +252,7 @@ plot_spacer() + Spain_1918 + Spain_1957 + Spain_2020 +
   plot_layout(widths = rep(c(2, 2, 2, 1), 3)) +
   plot_layout(ncol = 4) 
 
-ggsave("paper/four_pndemics.png", dpi = 300, width = 297, height = 210, units = "mm")
+#ggsave("paper/four_pndemics.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ## Percent
@@ -299,7 +299,7 @@ plot_data %>%
         panel.background = element_blank(), 
         axis.line = element_line(colour = "grey40")) 
 
-ggsave("paper/four_pndemics_perc.png", dpi = 300, width = 297, height = 210, units = "mm")
+#ggsave("paper/four_pndemics_perc.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 # Table 1
@@ -317,7 +317,7 @@ table_1 <- expected_deaths_monthly %>%
             Percent_excess_death = round((Cum_excess_death/Expected_Mortality)*100, 1))%>%
   ungroup()
 
-openxlsx::write.xlsx(table_1,"paper/table1.xlsx", row.names = FALSE, overwrite = TRUE)
+#openxlsx::write.xlsx(table_1,"paper/table1.xlsx", row.names = FALSE, overwrite = TRUE)
 ```
 
 ```{r echo=FALSE}
