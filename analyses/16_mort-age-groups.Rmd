@@ -127,7 +127,7 @@ ggplot(data = data %>% filter(Type == "Previous"),
   theme(axis.text.x = element_text(angle = 90)) +
   xlab("Age group") + labs(colour = "Age")
 
-ggsave("paper/age_groups.png", dpi = 300, width = 297, height = 210, units = "mm")
+#ggsave("paper/age_groups.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ```{r echo=FALSE}
