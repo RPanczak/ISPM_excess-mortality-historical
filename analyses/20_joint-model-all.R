@@ -121,7 +121,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     extract_month <- global_serfling_stan$pred_total_deaths %>% 
       select(Country, Year, Month, Deaths,
-             pred, lower, upper,
+             pred, lower, upper, n_eff, Rhat,
              excess_month, excess_month_lower, excess_month_upper) %>% 
       mutate(Model = "Global Serfling (Stan, NB)",
              mutate(across(pred:excess_month_upper, round)))
@@ -146,7 +146,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
       select(Country, Year, Month, Deaths,
-             pred, lower, upper,
+             pred, lower, upper, n_eff, Rhat,
              excess_month, excess_month_lower, excess_month_upper) %>% 
       mutate(Model = "Age Serfling (Stan, NB)",
              mutate(across(pred:excess_month_upper, round)))
@@ -178,10 +178,25 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   }
 } 
 
+# diagnostics
+if(FALSE) {
+  # check that all values <1.1
+  summary(results_month$Rhat) 
+  
+  # check that all effective sample sizes are large
+  summary(results_month$n_eff) 
+  
+  # check model agreement
+  ggplot(results_month) +
+    geom_pointrange(aes(x=Month, y=excess_month,ymin=excess_month_lower,ymax=excess_month_upper,colour=Model),
+                    position=position_dodge(.8)) +
+    facet_wrap(~Year,scales="free")
+  
+  # check age
+  ggplot(results_age) +
+    geom_pointrange(aes(x=Age_cat, y=excess_year,ymin=excess_year_lower,ymax=excess_year_upper),
+                    position=position_dodge(.8)) +
+    facet_wrap(~Year)
+}
 
 
-ggplot(results_month) +
-  geom_pointrange(aes(x=Month, y=excess_month,ymin=excess_month_lower,ymax=excess_month_upper,colour=Model),
-                  position=position_dodge(.8)) +
-  facet_wrap(~Year,scales="free")
-summary(results_month$Rhat)
