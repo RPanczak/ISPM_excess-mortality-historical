@@ -1,7 +1,3 @@
-# install.packages(c(“StanHeaders”, “rstan”), repos = "https://cloud.r-project.org/", dependencies = TRUE, type = "source")
-
-# setwd("~/ISPM_excess-mortality/")
-
 library(pacman)
 p_load(tidyverse, magrittr, 
        doParallel, foreach, 
@@ -16,7 +12,6 @@ set.seed(12345)
 options(scipen = 999)
 theme_set(theme_minimal())
 registerDoParallel(cores = parallel::detectCores())
-options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
 # Set up
