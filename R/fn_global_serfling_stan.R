@@ -6,7 +6,7 @@
 # prior_intercept=10
 # p=0.99
 
-fn_global_serfling_stan = function(pred_year, monthly_data, prior=10, prior_intercept=10, p=0.99) {
+fn_global_serfling_stan = function(pred_year, monthly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -16,9 +16,7 @@ fn_global_serfling_stan = function(pred_year, monthly_data, prior=10, prior_inte
   dd %<>% arrange(Month,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
-  if(pred_year %in% pandemic_affected) {
-    dd %<>% dplyr::filter(Year != pandemic)
-  }
+  dd %<>% dplyr::filter(Year != pandemic_years)
   
   # extract prediction data
   pp = dplyr::filter(monthly_data, Year == pred_year)

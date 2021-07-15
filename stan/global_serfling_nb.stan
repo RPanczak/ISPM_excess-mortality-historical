@@ -13,6 +13,9 @@ data {
   real p_alpha;
   real p_beta;
 }
+transformed data {
+  int overflow_limit = 10000000;
+}
 parameters {
   real alpha;
   real beta_year;
@@ -47,7 +50,7 @@ model {
 }
 generated quantities {
   real pred_lin[J];
-  real<lower=0> exp_pred_lin[J];
+  real exp_pred_lin[J];
   int pred_total_deaths[J];
   int excess_total_deaths[J];
   int yearly_excess_total_deaths;
@@ -60,10 +63,10 @@ generated quantities {
         beta_periodic[4]*cos(4*pi()*months[j]/12) + 
       log(predyear_total_population[j]);
     exp_pred_lin[j] = exp(pred_lin[j]);
-    if(exp_pred_lin[j] < 2^28) // avoid overflow
+    if(exp_pred_lin[j] < overflow_limit && phi > 1e-3) // avoid overflow
       pred_total_deaths[j] = neg_binomial_2_rng(exp_pred_lin[j], phi);
     else
-      pred_total_deaths[j] = 99999999; 
+      pred_total_deaths[j] = overflow_limit; 
     excess_total_deaths[j] = predyear_total_deaths[j] - pred_total_deaths[j];
     yearly_excess_total_deaths = sum(excess_total_deaths);
   }

@@ -14,7 +14,7 @@
 # prior_intercept=10
 # p=0.99
 
-fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, ignore_year=TRUE, prior=10, prior_intercept=10, p=0.99) {
+fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -27,10 +27,8 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, ignore_
   ee %<>% arrange(Age_cat,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
-  if(ignore_year == TRUE & pred_year %in% pandemic_affected) {
-    dd %<>% dplyr::filter(Year != pandemic)
-    ee %<>% dplyr::filter(Year != pandemic)
-  }
+  dd %<>% dplyr::filter(!(Year %in% pandemic_years))
+  ee %<>% dplyr::filter(!(Year %in% pandemic_years))
   
   # extract prediction data
   pp = dplyr::filter(monthly_data, Year == pred_year)
@@ -65,12 +63,15 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, ignore_
   # set priors (default is normal(0,10))
   dd_list$p_beta = prior
   dd_list$p_alpha = prior_intercept
+  # compiling and save compiled model (need to recompile on a new machine)
+  mm = stan_model(file="stan/age_serfling_nb.stan", save_dso = TRUE)
   # sampling
-  ss = stan(file="stan/age_serfling_nb.stan",
+  ss = sampling(mm,
             data=dd_list,
-            # save_dso=FALSE,
             chains=4,
-            iter=2000)
+            iter=2000,
+            refresh=0,
+            save_warmup = FALSE)
   # get prediction
   lp = (1 - p) / 2
   up = 1 - lp
@@ -78,7 +79,7 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, ignore_
     as_tibble() %>%
     bind_cols(pp) %>%
     dplyr::rename(pred=5,lower=4,upper=6) %>%
-    dplyr::select(Country, Year,Month,Date,Deaths,Population,pred,lower,upper)
+    dplyr::select(Country, Year,Month,Date,Deaths,Population,pred,lower,upper,n_eff,Rhat)
   pp = summary(ss, pars="excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
     as_tibble() %>%
     dplyr::select(excess_month=5,excess_month_lower=4,excess_month_upper=6) %>%
