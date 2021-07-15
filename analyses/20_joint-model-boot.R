@@ -47,28 +47,6 @@ results_month <- tibble(Country = character(),
                         excess_month_upper = double(),
                         Model = character())
 
-results_year <- tibble(Country = character(), 
-                       Year = double(), 
-                       pred = double(), 
-                       lower = double(), 
-                       upper = double(),
-                       excess_year = double(), 
-                       excess_year_lower = double(), 
-                       excess_year_upper = double(),
-                       Model = character())
-
-results_age <- tibble(Country = character(), 
-                      Year = double(), 
-                      Age_cat = factor(), 
-                      pred = double(), 
-                      lower = double(), 
-                      upper = double(),
-                      excess_year = double(), 
-                      excess_year_lower = double(), 
-                      excess_year_upper = double(),
-                      Model = character())
-
-
 for (COUNTRY in unique(deaths_monthly$Country)) {
 # for (COUNTRY in c("Sweden")) {
   
@@ -110,8 +88,6 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     rm(extract_month)
     
     write_rds(results_month, paste0(path0,"All_results_month.Rds"))
-    write_rds(results_year, paste0(path0,"All_results_year.Rds"))
-    write_rds(results_age, paste0(path0,"All_results_age.Rds"))
   }
 } 
 
@@ -127,28 +103,6 @@ results_month_pand <- tibble(Country = character(),
                              excess_month_lower = double(), 
                              excess_month_upper = double(),
                              Model = character())
-
-results_year_pand <- tibble(Country = character(), 
-                            Year = double(), 
-                            pred = double(), 
-                            lower = double(), 
-                            upper = double(),
-                            excess_year = double(), 
-                            excess_year_lower = double(), 
-                            excess_year_upper = double(),
-                            Model = character())
-
-results_age_pand <- tibble(Country = character(), 
-                           Year = double(), 
-                           Age_cat = factor(), 
-                           pred = double(), 
-                           lower = double(), 
-                           upper = double(),
-                           excess_year = double(), 
-                           excess_year_lower = double(), 
-                           excess_year_upper = double(),
-                           Model = character())
-
 
 for (COUNTRY in unique(deaths_monthly$Country)) {
 # for (COUNTRY in c("Sweden")) {
@@ -195,9 +149,5 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     rm(extract_month)
     
     write_rds(results_month_pand, paste0(path0,"All_results_month_pand.Rds"))
-    write_rds(results_year_pand, paste0(path0,"All_results_year_pand.Rds"))
-    write_rds(results_age_pand, paste0(path0,"All_results_age_pand.Rds"))
   }
 } 
-
-
