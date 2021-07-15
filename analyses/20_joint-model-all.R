@@ -1,9 +1,9 @@
-# install.packages(c(“StanHeaders”, “rstan”), type = “source”)
+# install.packages(c(“StanHeaders”, “rstan”), repos = "https://cloud.r-project.org/", dependencies = TRUE, type = "source")
 
 # setwd("~/ISPM_excess-mortality/")
 
 library(pacman)
-p_load(tidyverse, lubridate, scales, magrittr, 
+p_load(tidyverse, magrittr, 
        doParallel, foreach, 
        rstan)
 
@@ -94,8 +94,8 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   
   print(paste("Analysing", COUNTRY))
   
-  # for (YEAR in YEARS$MIN+5:2020) {
-  for (YEAR in 1918:1919) {
+  for (YEAR in YEARS$MIN+5:2020) {
+  # for (YEAR in 1918:1919) {
     
     print(paste("     Analysing year", YEAR))
     
@@ -234,14 +234,14 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   
   print(paste("Analysing", COUNTRY))
   
-  # for (YEAR in pandemic_affected) {
-  for (YEAR in 1919) {
+  for (YEAR in pandemic_affected) {
+  # for (YEAR in 1919) {
     
     print(paste("     Analysing year", YEAR))
     
     # #############################################
     # Model 1
-    print("          Global Serfling")
+    print("          Global Serfling (pandemic)")
     
     global_serfling <- fn_global_serfling(YEAR, REG_DATA, pandemic_years = NULL)
     
@@ -250,13 +250,13 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       mutate(excess_month = round(Deaths - pred),
              excess_month_upper = round(Deaths - upper),
              excess_month_lower = round(Deaths - lower)) %>% 
-      mutate(Model = "Global Serfling")
+      mutate(Model = "Global Serfling (pandemic)")
     
     results_month_pand <- bind_rows(results_month_pand, extract_month)
     
     # #############################################
     # Model 2
-    print("          Global Serfling (Stan, NB)")
+    print("          Global Serfling (Stan, NB, pandemic)")
     
     global_serfling_stan <- fn_global_serfling_nb_stan(YEAR, REG_DATA, pandemic_years = NULL)
     
@@ -264,7 +264,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Month, Deaths,
              pred, lower, upper, n_eff, Rhat,
              excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Global Serfling (Stan, NB)",
+      mutate(Model = "Global Serfling (Stan, NB, pandemic)",
              mutate(across(pred:excess_month_upper, round)))
     
     results_month_pand <- bind_rows(results_month_pand, extract_month)
@@ -274,14 +274,14 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, 
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Global Serfling (Stan, NB)",
+      mutate(Model = "Global Serfling (Stan, NB, pandemic)",
              mutate(across(pred:excess_year_upper, round)))
     
     results_year_pand <- bind_rows(results_year_pand, extract_year)
     
     # #############################################
     # Model 3
-    print("          Age Serfling (Stan, NB)")
+    print("          Age Serfling (Stan, NB, pandemic)")
     
     age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, REG_DATA, AGE_DATA, pandemic_years = NULL)
     
@@ -289,7 +289,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Month, Deaths,
              pred, lower, upper, n_eff, Rhat,
              excess_month, excess_month_lower, excess_month_upper) %>% 
-      mutate(Model = "Age Serfling (Stan, NB)",
+      mutate(Model = "Age Serfling (Stan, NB, pandemic)",
              mutate(across(pred:excess_month_upper, round)))
     
     results_month_pand <- bind_rows(results_month_pand, extract_month)
@@ -299,7 +299,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, 
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Age Serfling (Stan, NB)",
+      mutate(Model = "Age Serfling (Stan, NB, pandemic)",
              mutate(across(pred:excess_year_upper, round)))
     
     results_year_pand <- bind_rows(results_year_pand, extract_year)
@@ -308,7 +308,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       select(Country, Year, Age_cat, Deaths,
              pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
-      mutate(Model = "Age Serfling (Stan, NB)",
+      mutate(Model = "Age Serfling (Stan, NB, pandemic)",
              mutate(across(pred:excess_year_upper, round)))
     
     results_age_pand <- bind_rows(results_age_pand, extract_age)
