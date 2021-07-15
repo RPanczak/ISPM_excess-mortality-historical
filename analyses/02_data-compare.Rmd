@@ -260,7 +260,7 @@ hmd_pop_age_sex %>%
 
 # HMD - STMF data series
 
-Short-term Mortality Fluctuations weekly dataset to cover 2020 data
+Short-term Mortality Fluctuations weekly dataset covering 2000-2020 period
 
 ```{r eval=FALSE}
 download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
@@ -403,7 +403,7 @@ Showing small imperfections of the `week -> month` transition!
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
 Using data since 1877 only where monthly registration starts.  
-With important update from @Kaspar **covering missing months between 1886 and 1900**!  
+With important update from @Christof **covering missing months between 1886 and 1900**!  
 
 ```{r message=FALSE, warning=FALSE}
 ch_deaths_year <- read_xlsx("data-raw/BfS/px-x-0102020206_111_20210223-102443.xlsx", 
@@ -670,7 +670,7 @@ compare %>%
 
 ### Age groups
 
-Julien tracked down some weird patterns in Population estimates for 2020.  
+@Julien tracked down some weird patterns in Population estimates for 2020.  
 
 Particularly in older age groups we have some serious jumps in N!?  
 
@@ -1006,7 +1006,7 @@ write_rds(se_deaths_age_sex_2019, "data/SCB/se_deaths_age_sex_2019.Rds")
 
 ### 2020 pops with age structure
 
-HMD already has data for Sweden for 2020.  
+HMD already has data for Sweden for 2020 =)  
 
 ```{r}
 hmd_pop_age_sex %>% 
@@ -1066,7 +1066,7 @@ pop_yearly_age_sex <- bind_rows(
          # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
          # right=FALSE), 
          Age_cat = cut(Age, 
-                       breaks = c(seq(0, 90, 5), 113), 
+                       breaks = c(seq(0, 90, 10), 111), 
                        # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
                        right=FALSE)
   ) %>%
@@ -1096,7 +1096,7 @@ deaths_yearly_age_sex <- bind_rows(
          # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
          # right=FALSE), 
          Age_cat = cut(Age, 
-                       breaks = c(seq(0, 90, 5), 113), 
+                       breaks = c(seq(0, 90, 10), 111), 
                        # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
                        right=FALSE)
   ) %>%
