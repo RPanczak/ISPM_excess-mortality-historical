@@ -165,7 +165,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   print(paste("Analysing", COUNTRY))
   
   # Different pandemics for Spain - missing data on oldest
-  if (Country == "Spain"){
+  if (COUNTRY == "Spain"){
     
     pandemic_affected <- c(seq(1957 + 1, 1957 + year_smooth),
                            seq(1918 + 1, 1918 + year_smooth))
