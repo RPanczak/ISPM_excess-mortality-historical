@@ -3,7 +3,7 @@
 #SBATCH --partition=epyc2
 #SBATCH --qos=job_epyc2
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=1G
 #SBATCH --time=48:00:00
 #SBATCH --mail-user=radoslaw.panczak@ispm.unibe.ch
