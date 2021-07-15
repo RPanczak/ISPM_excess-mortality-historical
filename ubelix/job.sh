@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem-per-cpu=1G
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mail-user=radoslaw.panczak@ispm.unibe.ch
 #SBATCH --mail-type=all  
 
@@ -18,6 +18,3 @@ dos2unix $HOME/ISPM_excess-mortality/stan/*.stan
 module load R
 
 R CMD BATCH --verbose --no-save --no-restore $HOME/ISPM_excess-mortality/analyses/20_joint-model-all.R
-
-
-
