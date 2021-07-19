@@ -12,6 +12,7 @@ library(rmdformats)
 library(pxR)
 library(janitor)
 library(viridis)
+library(pxR)
 
 
 # prepare data
