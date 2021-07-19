@@ -30,13 +30,14 @@ death_spain_monthly_new <- death_spain_prev %>%
          Population=as.integer(Population))%>%
   filter(!Year==2020)%>%
   rbind(death_spain_monthly)
-  
-
 
 write_rds(death_spain_monthly_new ,paste0("data/INE/es_deaths_month_new.Rds"))
 
+
+
 death_spain_age <- death_spain %>%
   gather(., Month, Deaths, 2:13, factor_key=TRUE) %>%
+  mutate(Age=as.factor(Age))%>%
   group_by(Age) %>%
   dplyr::summarize(Deaths=sum(Deaths,na.rm=TRUE))%>%
   mutate(Year=as.integer(2020),
@@ -53,6 +54,6 @@ pop_spain_new <- pop_spain_prev %>%
   rbind(pop_spain_total)
 
 
-write_rds(death_spain_age,paste0("data/INE/es_pop_year_new.Rds"))
+write_rds(pop_spain_new,paste0("data/INE/es_pop_year_new.Rds"))
 
 
