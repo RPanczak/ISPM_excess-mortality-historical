@@ -27,11 +27,6 @@ year_smooth <- 5
 
 pandemic <- c(1890, 1918, 1957, 2020)
 
-pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
-                       seq(1957 + 1, 1957 + year_smooth),
-                       seq(1918 + 1, 1918 + year_smooth))
-
-
 # Modelling 
 
 ## Excluding pandemic years
@@ -48,8 +43,7 @@ results_month <- tibble(Country = character(),
                         Model = character())
 
 for (COUNTRY in unique(deaths_monthly$Country)) {
-# for (COUNTRY in c("Sweden")) {
-  
+
   # #############################################
   # Data params preps
   
@@ -66,8 +60,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   print(paste("Analysing", COUNTRY))
   
   for (YEAR in YEARS$MIN+5:2020) {
-  # for (YEAR in 1918:1919) {
-    
+
     print(paste("     Analysing year", YEAR))
     
     # #############################################
@@ -105,8 +98,7 @@ results_month_pand <- tibble(Country = character(),
                              Model = character())
 
 for (COUNTRY in unique(deaths_monthly$Country)) {
-# for (COUNTRY in c("Sweden")) {
-  
+
   # #############################################
   # Data params preps
   
@@ -121,14 +113,18 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   # Different pandemics for Spain - missing data on oldest
   if (COUNTRY == "Spain"){
     
-    pandemic_affected <- c(seq(1957 + 1, 1957 + year_smooth),
-                           seq(1918 + 1, 1918 + year_smooth))
+    pandemic_affected <- c(seq(1918 + 1, 1918 + year_smooth),
+                           seq(1957 + 1, 1957 + year_smooth))
     
+  } else {
+    
+    pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
+                           seq(1918 + 1, 1918 + year_smooth),
+                           seq(1957 + 1, 1957 + year_smooth))
   }
   
   for (YEAR in pandemic_affected) {
-  # for (YEAR in 1919) {
-    
+
     print(paste("     Analysing year", YEAR))
     
     # #############################################

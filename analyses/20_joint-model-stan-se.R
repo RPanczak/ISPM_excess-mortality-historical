@@ -1,6 +1,7 @@
-# install.packages(c(“StanHeaders”, “rstan”), repos = "https://cloud.r-project.org/", dependencies = TRUE, type = "source")
+# install.packages(c("StanHeaders", "rstan"), repos = "https://cloud.r-project.org/", dependencies = TRUE, type = "source")
 
 # setwd("~/ISPM_excess-mortality/")
+setwd("C:/projects/ISPM_excess-mortality/")
 
 library(pacman)
 p_load(tidyverse, magrittr, rstan)
@@ -34,8 +35,8 @@ year_smooth <- 5
 pandemic <- c(1890, 1918, 1957, 2020)
 
 pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
-                       seq(1957 + 1, 1957 + year_smooth),
-                       seq(1918 + 1, 1918 + year_smooth))
+                       seq(1918 + 1, 1918 + year_smooth),
+                       seq(1957 + 1, 1957 + year_smooth))
 
 # Modelling 
 
@@ -80,8 +81,7 @@ YEARS <- deaths_monthly %>%
   summarize(MIN = min(Year))
 
 for (YEAR in YEARS$MIN+5:2020) {
-  # for (YEAR in 1918:1919) {
-  
+
   print(paste("     Analysing year", YEAR))
   
   # #############################################
@@ -189,11 +189,8 @@ results_age_pand <- tibble(Country = character(),
 # #############################################
 # Data params preps
 
-print(paste("Analysing", COUNTRY))
-
 for (YEAR in pandemic_affected) {
-  # for (YEAR in 1919) {
-  
+
   print(paste("     Analysing year", YEAR))
   
   # #############################################
