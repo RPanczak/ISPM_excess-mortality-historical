@@ -1,7 +1,8 @@
 library(pacman)
 p_load(tidyverse, magrittr, 
-       doParallel, foreach, 
-       rstan)
+       doParallel, foreach)
+
+setwd("C:/projects/ISPM_excess-mortality/")
 
 source("R/fn_global_serfling.R")
 
@@ -19,7 +20,6 @@ rstan_options(auto_write = TRUE)
 ## Data 
 
 deaths_monthly <- read_rds("data/deaths_monthly.Rds")
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
 
 ## Years
 
@@ -54,12 +54,9 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   REG_DATA <- deaths_monthly %>% 
     filter(Country == COUNTRY)
   
-  AGE_DATA <- deaths_yearly_age_sex %>% 
-    filter(Country == COUNTRY)
-  
   print(paste("Analysing", COUNTRY))
   
-  for (YEAR in YEARS$MIN+5:2020) {
+  for (YEAR in (YEARS$MIN+5):2020) {
 
     print(paste("     Analysing year", YEAR))
     
@@ -80,7 +77,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     rm(extract_month)
     
-    write_rds(results_month, paste0(path0,"All_results_month.Rds"))
+    write_rds(results_month, paste0(path0, "All_results_month.Rds"))
   }
 } 
 
@@ -103,9 +100,6 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   # Data params preps
   
   REG_DATA <- deaths_monthly %>% 
-    filter(Country == COUNTRY)
-  
-  AGE_DATA <- deaths_yearly_age_sex %>% 
     filter(Country == COUNTRY)
   
   print(paste("Analysing", COUNTRY))
@@ -144,6 +138,6 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     
     rm(extract_month)
     
-    write_rds(results_month_pand, paste0(path0,"All_results_month_pand.Rds"))
+    write_rds(results_month_pand, paste0(path0, "All_results_month_pand.Rds"))
   }
 } 
