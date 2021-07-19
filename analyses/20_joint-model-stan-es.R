@@ -79,8 +79,8 @@ results_age <- tibble(Country = character(),
 YEARS <- deaths_monthly %>% 
   summarize(MIN = min(Year))
 
-for (YEAR in YEARS$MIN+5:2020) {
-
+for (YEAR in (YEARS$MIN+5):2020) {
+  
   print(paste("     Analysing year", YEAR))
   
   # #############################################
