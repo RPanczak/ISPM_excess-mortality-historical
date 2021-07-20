@@ -454,10 +454,10 @@ ggplot(data = ch_deaths_month,
 
 ## 2019-2020 deaths with age & sex structure
 
-To supplement HMD.  
+BfS delivered data to supplement missing last two years in HMD.  
 
 ```{r}
-ch_deaths_age_sex_2019 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
+ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
                                    col_types = cols(KalJahr = col_integer(),
                                                     Alter = col_integer(),
                                                     COUNT = col_integer()), 
@@ -472,7 +472,7 @@ ch_deaths_age_sex_2019 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv",
          Total = Female + Male) %>% 
   relocate(Country)
 
-write_rds(ch_deaths_age_sex_2019, "data/BfS/ch_deaths_age_sex_2019.Rds")
+write_rds(ch_deaths_age_sex_2019_2020, "data/BfS/ch_deaths_age_sex_2019_2020.Rds")
 ```
 
 ## Yearly pops 
@@ -496,16 +496,16 @@ ch_pop_year <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx",
 
 ## Yearly pops 2020 
 
-<!-- 2020 simply `lm` predicted using pops from last 10 years -->
+<!-- 2020 could be simply `lm` predicted using pops from last 10 years:   -->
 
 ```{r eval=FALSE, include=FALSE}
 (pop_2020_pred <- predict(
-  lm(Population ~ Year,
+  lm(pop_jan ~ Year,
      data = ch_pop_year %>% filter(Year >= 2010)),
   new = tibble(Year = 2020)))
 ```
 
-2020 from [Provisional demographic balance of the permanent resident population 2020 by canton, citizenship (category), sex, age and demographic component](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16224502.html).     
+2020 data from [Provisional demographic balance of the permanent resident population 2020 by canton, citizenship (category), sex, age and demographic component](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.16224502.html).     
 
 ```{r}
 pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
@@ -547,7 +547,7 @@ ggplot(ch_pop_year, aes(x = Year)) +
 
 ## 2020 pops with age structure
 
-Using provisional figures linked above. Same as previously mean of Jan and Dec is taken, apart from `0 Jahre` age group where only figures from `31 Dec` are taken (`1st Jan` value is strangely `0` for this group).  
+Using provisional figures - see above for source. Same as previously mean of Jan and Dec is taken, apart from `0 Jahre` age group where only figures from `31 Dec` are taken (`1st Jan` value is strangely `0` for this group).  
 
 ```{r eval=FALSE}
 download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16224502/master",
@@ -672,7 +672,7 @@ compare %>%
 
 @Julien tracked down some weird patterns in Population estimates for 2020.  
 
-Particularly in older age groups we have some serious jumps in N!?  
+Particularly in older age groups we have some serious +++jumps in N!?  
 
 ```{r}
 hmd_pop_age_sex %>% 
@@ -680,7 +680,7 @@ hmd_pop_age_sex %>%
   filter(Year >= 2010) %>% 
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                        include.lowest = TRUE,
-                       right=FALSE,
+                       right = FALSE,
                        labels=c("0-9","10-19","20-29","30-39","40-49",
                                 "50-59","60-69","70-79","80-89","90+"))) %>% 
   group_by(Year, Age_cat) %>% 
@@ -690,7 +690,7 @@ hmd_pop_age_sex %>%
     ch_pop_age_sex_2020 %>% 
       mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                            include.lowest = TRUE,
-                           right=FALSE,
+                           right = FALSE,
                            labels=c("0-9","10-19","20-29","30-39","40-49",
                                     "50-59","60-69","70-79","80-89","90+"))) %>% 
       group_by(Year, Age_cat) %>% 
@@ -708,7 +708,7 @@ hmd_pop_age_sex %>%
 
 ## Comparison - deaths
 
-<!-- ### Yearly vs. monthly BfS figures -->
+### Yearly vs. monthly BfS figures
 
 ```{r eval=FALSE, include=FALSE}
 ch_deaths_month %>% 
@@ -721,7 +721,7 @@ ch_deaths_month %>%
   nrow()
 ```
 
-<!-- *There are no years where summed monthly data differ from yearly numbers.* -->
+*There are no years where summed monthly data differ from yearly numbers.*
 
 ### BfS vs HMD {.tabset}
 
@@ -816,7 +816,9 @@ ggplot(compare, aes(x = Date, y = perc*100)) +
 
 # Spain
 
-## Monthly deaths 
+## Monthly deaths till 2019
+
+Data from INE [since 1975 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1) and [1941-1974 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1); data prior to 1940 was transcribed from PDFs available from INE.  
 
 ```{r}
 es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>% 
@@ -828,10 +830,33 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
          Year = as.integer(Year),
          Deaths = as.integer(round(Deaths)))  %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  relocate(Year, Month, Date) 
+  relocate(Year, Month, Date) %>% 
+  filter(Year != 2020)
+```
+
+## Monthly deaths 2020
+
+2020 update (*still labelled as provisional!*) is from  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
+
+```{r}
+es_2020 <- read_xlsx("data-raw/INE/Spain_2020_death.xlsx", sheet = 1) %>%
+  gather(., Month, Deaths, 2:13, factor_key = TRUE) %>%
+  group_by(Month) %>%
+  summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  mutate(Year = 2020,
+         Deaths = as.integer(Deaths),
+         Date = anytime::anydate(paste0("2020-", Month, "-01")),
+         Month = as.integer(Month)) %>% 
+  relocate(Year, Month, Date, Deaths)
 ```
 
 ```{r echo=FALSE}
+es_deaths_month %<>% 
+  bind_rows(es_2020)
+
+rm(es_2020)
+
 es_deaths_month %>% 
   ggplot(aes(x = Date, y = Deaths)) +
   geom_line() +
@@ -841,6 +866,8 @@ es_deaths_month %>%
 
 ## Yearly pops 
 
+With update for 2020 from provisional data (see below for source).  
+
 ```{r}
 es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
   remove_empty(which = c("rows", "cols")) %>% 
@@ -849,7 +876,19 @@ es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>%
   rename(Population = prados_de_la_escosura2020_july) %>% 
   select(Year, Population) %>% 
   mutate(Year = as.integer(Year),
-         Population = as.integer(round(Population)))
+         Population = as.integer(round(Population))) %>% 
+  filter(Year != 2020)
+
+es_pop_2020 <- read_xlsx("data-raw/INE/Spain_Population_age_2020.xlsx", sheet = 1) %>%
+  summarize(Population = sum(Population, na.rm = TRUE))%>%
+  mutate(Year = as.integer(2020),
+         Population = as.integer(Population)) %>% 
+  relocate(Year)
+ 
+es_pop_year %<>% 
+  bind_rows(es_pop_2020)
+  
+rm(es_pop_2020)
 
 write_rds(es_pop_year, "data/INE/es_pop_year.Rds")
 
@@ -867,10 +906,14 @@ es_pop_year %>%
   xlab("") + ylab("Yearly population")
 ```
 
-### 2019-2020 deaths with age structure
+## 2019-2020 deaths with age structure
+
+INE data to supplement missing last two years in HMD.  
+
+2019 data available [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available from [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
 
 ```{r}
-es_deaths_age_sex_2019 <- bind_rows(
+es_deaths_age_2019_2020 <- bind_rows(
   
   read_delim("data-raw/INE/Spain2019age.csv",
              delim = ";",
@@ -884,31 +927,36 @@ es_deaths_age_sex_2019 <- bind_rows(
     select(Year, Age, Total) %>% 
     mutate(Total = as.integer(round(Total))), 
   
-  read_delim("data-raw/INE/Spain2020weeklyage.csv",
-             delim = ";",
-             locale = locale(grouping_mark = "."),
-             trim_ws = TRUE) %>% 
-    rename(Edad = `Edad (grupos quinquenales)`) %>% 
-    filter(Edad != "Todas las edades") %>% 
-    filter(Edad != "No consta") %>% 
-    mutate(Year = as.integer(2020)) %>% 
-    mutate(Age = str_replace(Edad, fixed("De "), ""),
-           Age = word(Age, 1),
-           Age = as.integer(Age)
-    ) %>% 
-    group_by(Year, Age) %>% 
-    summarize(Total = as.integer(round(sum(Total)))) %>% 
-    ungroup() 
+  read_xlsx("data-raw/INE/Spain_2020_death.xlsx", sheet = 1) %>%
+  gather(., Month, Deaths, 2:13, factor_key = TRUE) %>%
+  mutate(Age = as.integer(Age))%>%
+  group_by(Age) %>%
+  dplyr::summarize(Deaths = sum(Deaths,na.rm = TRUE))%>%
+  mutate(Year = as.integer(2020),
+         Total = as.integer(Deaths)) %>%
+  select(Year, Age, Total)
   
 ) %>% 
   mutate(Country = "Spain") %>% relocate(Country)
 
-write_rds(es_deaths_age_sex_2019, "data/INE/es_deaths_age_sex_2019.Rds")
+write_rds(es_deaths_age_2019_2020, "data/INE/es_deaths_age_2019_2020.Rds")
 ```
 
-### 2020 pops with age structure
+## 2020 pops with age structure
 
-TBD...  
+2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
+
+```{r echo=FALSE}
+es_pop_age_2020 <- read_xlsx("data-raw/INE/Spain_Population_age_2020.xlsx", sheet = 1) %>%
+  mutate(Year = as.integer(2020),
+         Age = as.integer(Age),
+         Population = as.integer(Population),
+         Country = "Spain") %>% 
+  rename(Total = Population) %>% 
+  relocate(Country, Year)
+
+write_rds(es_pop_age_2020, "data/INE/es_pop_age_2020.Rds")
+```
 
 <!-- ----------------------------------------------------- -->
 
@@ -979,7 +1027,7 @@ se_pop_year %>%
 ### 2019-2020 deaths with age & sex structure
 
 ```{r}
-se_deaths_age_sex_2019 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
+se_deaths_age_sex_2019_2020 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
                                     col_types = c("text", "text", "text", "numeric", "numeric"), 
                                     skip = 2) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
@@ -1001,7 +1049,7 @@ se_deaths_age_sex_2019 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx"
   arrange(Year, Age) %>% 
   mutate(Country = "Sweden") %>% relocate(Country)
 
-write_rds(se_deaths_age_sex_2019, "data/SCB/se_deaths_age_sex_2019.Rds")
+write_rds(se_deaths_age_sex_2019_2020, "data/SCB/se_deaths_age_sex_2019_2020.Rds")
 ```
 
 ### 2020 pops with age structure
@@ -1023,6 +1071,7 @@ hmd_pop_age_sex %>%
 ```{r}
 deaths_monthly <- bind_rows(
   
+  # Spain age&sex distribution in HMD is available from later!
   es_deaths_month %>% mutate(Country = "Spain") %>% 
     filter(Year >= 1908),
   
@@ -1047,28 +1096,23 @@ pop_yearly_age_sex <- bind_rows(
   
   hmd_pop_age_sex,
   
-  # !!! temp solution for ES & CH for 2020 !!!
-  hmd_pop_age_sex %>% 
-    filter(Country == "Spain" & Year == 2019) %>% 
-    mutate(Year = 2020),
+  es_pop_age_2020,
   
+  # !!! temp solution for CH for 2020 !!!
   hmd_pop_age_sex %>% 
     filter(Country == "Switzerland" & Year == 2019) %>% 
-    mutate(Year = 2020)
+    mutate(Year = as.integer(2020))
   
 ) %>% 
   select(-Female, -Male) %>% 
-  mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.integer(Age), 
-         Year = as.integer(Year), 
-         # Age_cat = cut(Age, 
+  mutate(# Age_cat = cut(Age, 
          # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
          # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
-         # right=FALSE), 
+         # right = FALSE), 
          Age_cat = cut(Age, 
-                       breaks = c(seq(0, 90, 10), 111), 
+                       breaks = c(seq(0, 90, 10), 113), 
                        # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
-                       right=FALSE)
+                       right = FALSE)
   ) %>%
   group_by(Country, Year, Age_cat) %>% 
   summarise(Population = sum(Total)) %>% 
@@ -1078,27 +1122,24 @@ deaths_yearly_age_sex <- bind_rows(
   
   hmd_deaths_age_sex,
   
-  # 2019 is already in HMD for Sweden
-  se_deaths_age_sex_2019 %>% 
+  # 2019 is already in HMD for Sweden so only 2020
+  se_deaths_age_sex_2019_2020 %>% 
     filter(Year == 2020),
   
-  es_deaths_age_sex_2019,
+  es_deaths_age_2019_2020,
   
-  ch_deaths_age_sex_2019
+  ch_deaths_age_sex_2019_2020
   
 ) %>% 
   select(-Female, -Male) %>% 
-  mutate(Age = ifelse(Age == "110+", "111", Age),
-         Age = as.integer(Age), 
-         Year = as.integer(Year), 
-         # Age_cat = cut(Age, 
+  mutate(# Age_cat = cut(Age, 
          # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
          # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
-         # right=FALSE), 
+         # right = FALSE), 
          Age_cat = cut(Age, 
-                       breaks = c(seq(0, 90, 10), 111), 
+                       breaks = c(seq(0, 90, 10), 113), 
                        # labels = c("0-9","10-19","20-29","30-39","40-49","50-59","60-69","70-79","80+")), 
-                       right=FALSE)
+                       right = FALSE)
   ) %>%
   group_by(Country, Year, Age_cat) %>% 
   summarise(Deaths = sum(Total)) %>% 
