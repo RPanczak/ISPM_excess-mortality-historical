@@ -99,7 +99,7 @@ results_age <- merge_mort(bind_rows(
 
 ## Table 1
 
-```{r}
+```{r echo=FALSE}
 table_1 <- 
   
   left_join(
@@ -120,10 +120,10 @@ table_1 <-
   left_join(
     
     results_year %>%
-      select(Country, Year, excess_year, pred, lower, upper) %>%
+      select(Country, Year, excess_year, excess_year_lower, excess_year_upper) %>%
       filter(Year %in% pandemic_year) %>%
       rename(Excess = excess_year,
-             Excess_lci = lower, Excess_uci = upper)
+             Excess_lci = excess_year_lower, Excess_uci = excess_year_upper)
     
   ) %>% 
   mutate(Percent_excess = 
@@ -194,7 +194,7 @@ ggsave("paper/Figure_1.png", dpi = 300, width = 297, height = 210, units = "mm")
 
 Zooming to pandemics to explore absolute excess with CrI.  
 
-```{r}
+```{r echo=FALSE}
 focus_years <- c(1890, 1918, 1957, 2020)
 
 for(country in unique(results_month$Country)) { 
@@ -460,7 +460,7 @@ ggsave("paper/Figure_S1.png", dpi = 300, width = 297, height = 210, units = "mm"
 
 Zooming to pandemics to explore % of excess
 
-```{r}
+```{r echo=FALSE}
 plot_years <- c(seq(1890 - 1, 1890 + 2),
                 seq(1918 - 1, 1918 + 2),
                 seq(1957 - 1, 1957 + 2),
@@ -654,7 +654,7 @@ excess_2010_2020 <-
   mutate(Difference = Excess_modelled - Excess_BfS)
 ```
 
-```{r}
+```{r echo=FALSE}
 excess_2010_2020 %>% 
   kbl() %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
@@ -689,7 +689,7 @@ summary(results_month[results_month$Model != "Global Serfling", ]$n_eff)
 
 Example of last year  
 
-```{r}
+```{r echo=FALSE}
 bind_rows(
   read_rds("data/outputs_2021-07-19/All_results_month.Rds"), 
   read_rds("data/outputs_2021-07-15/Switzerland_results_month.Rds"), 
@@ -707,7 +707,7 @@ bind_rows(
 
 And 1918  
 
-```{r}
+```{r echo=FALSE}
 bind_rows(
   read_rds("data/outputs_2021-07-19/All_results_month.Rds"), 
   read_rds("data/outputs_2021-07-15/Switzerland_results_month.Rds"), 
@@ -725,7 +725,7 @@ bind_rows(
 
 ## Check age
 
-```{r}
+```{r echo=FALSE}
 results_age %>% 
   filter(Year >= 2010) %>% 
   ggplot() +
@@ -735,7 +735,7 @@ results_age %>%
   facet_grid(Country~Age_cat)
 ```
 
-```{r}
+```{r echo=FALSE}
 results_age %>% 
   filter(Year >= 1914 & Year <= 1922) %>% 
   ggplot() +
