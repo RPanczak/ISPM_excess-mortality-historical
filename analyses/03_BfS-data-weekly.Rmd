@@ -167,11 +167,9 @@ ggplot(excess_2010_2020) +
 
 <!-- ----------------------------------------------------- -->
 
-# Comparing BfS to STMF
+# Comparing BfS to STMF {.tabset}
 
 Data from 2020 onwards, weekly resolution.  
-
-Until April, all seems to be fine, except some end of the year correction (?):
 
 ```{r}
 bfs_stmf <- left_join(
@@ -187,17 +185,27 @@ bfs_stmf <- left_join(
   
 ) %>% 
   mutate(diff = NumberOfDeaths - Deaths)
+```
 
+Until May, all seems to be OKish, except some end of the year correction (?):
+
+## Absolute 
+
+```{r}
 ggplot(bfs_stmf, aes(x = Week_start, y = diff)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
-  geom_vline(xintercept = as.Date("2021-04-01"), color = "orange") +
+  geom_vline(xintercept = as.Date("2021-05-01"), color = "orange") +
   geom_line() + 
   theme_bw() +
-  xlab("") + ylab("Weekly absolute difference in number of deaths") 
+  xlab("") + ylab("Weekly absolute difference in number of deaths")
+```
 
+# Percentages 
+
+```{r}
 ggplot(bfs_stmf, aes(x = Week_start, y = diff / NumberOfDeaths)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
-  geom_vline(xintercept = as.Date("2021-04-01"), color = "orange") +
+  geom_vline(xintercept = as.Date("2021-05-01"), color = "orange") +
   geom_line() + 
   theme_bw() +
   xlab("") + ylab("Weekly % difference in number of deaths") +
