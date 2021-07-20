@@ -1,8 +1,10 @@
 # ISPM_excess-mortality
 
-Tracking excess mortality in Switzerland, Spain & Sweden
+Tracking excess mortality in Switzerland, Spain & Sweden.  
 
-![Yearly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/diffs_year.png)
+![Monthly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_1.png)
+
+![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2.png)
 
 ## Data sources
 
@@ -12,18 +14,12 @@ Tracking excess mortality in Switzerland, Spain & Sweden
   
 ### Switzerland
 
-Mortality:  
-
-  1. Bundesamt für Statistik [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html) (monthly, since 1877!)
-  2. Bundesamt für Statistik [Sterblichkeit, Todesursachen](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.html) (weekly, since 2010)
-  
-Population:  
-
-  1. [Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html)
-  2. [Permanent resident population by age, category of citizenship and sex, 1999-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.14367976.html) (*it actually should say 2010-2019*!)
-  3. Custom ISPM data derived from BfS webs-source covering years 1971-2018.
+Data from (Swiss Federal Statistical Office))[https://www.bfs.admin.ch].  
 
 ### Sweden
 
+Data from (Statistics Sweden](https://www.scb.se/en/).  
+
 ### Spain
 
+Data from (Spanish Statistical Office](https://www.ine.es/en/index.htm).  
