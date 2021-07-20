@@ -20,8 +20,8 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
   
   # load population data
   if(Country.data=="Switzerland") {
-    pop_year <- read_rds("data/BfS/bfs_pop_year.Rds") %>% 
-      filter(Year >= min(deaths_data$Year)) %>% 
+    pop_year <- read_rds("data/BfS/ch_pop_year.Rds") %>% 
+      filter(Year >= 2000) %>% 
       mutate(Population = round((pop_jan + pop_dec) / 2)) %>% 
       select(-pop_jan, -pop_dec)
     
@@ -42,16 +42,13 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
     rm(pop_2020)
   }
   if(Country.data=="Spain") {
-    pop_year<- read_rds("data/INE/spain_deaths_month.Rds") %>% 
-      filter(Year >= 2000)%>%
-      filter(Month==12)%>%
-      select(Year, Population)
+    pop_year<- read_rds("data/INE/es_pop_year.Rds") %>% 
+      filter(Year >= 2000)
   }
   if(Country.data=="Sweden") {
-    pop_year<- read_rds("data/SCB/sweden_deaths_month.Rds") %>% 
-      filter(Year >= 2000)%>%
-      filter(Month==12)%>%
-      select(Year, Population)
+    pop_year<- read_rds("data/SCB/se_pop_year.Rds") %>% 
+      filter(Year >= 2000)
+   
   }
   
   # merge population 
