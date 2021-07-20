@@ -1,6 +1,6 @@
 ---
 title: "Excess mortality"
-subtitle: "Combining three countries"
+subtitle: "Final outputs for paper and appendix"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -22,7 +22,7 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, scales, patchwork, kableExtra)
+p_load(tidyverse, magrittr, scales, patchwork, kableExtra)
 ```
 
 ```{r knit-setup, include = FALSE}
@@ -39,68 +39,114 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
+```{r include=FALSE}
 # Data 
+pandemic_year <- c("1890", "1918", "1957", "2020")
 
-```{r eval=FALSE, include=FALSE}
-# # country specific
-# es_results_month <- readRDS("data/es_results_month.Rds")
-# es_results_year <- readRDS("data/es_results_year.Rds")
-# es_results_age <- readRDS("data/es_results_age.Rds")
+merge_mort <- function(data){
+  
+  data %>% 
+    mutate(Pandemic = case_when(
+      (Year >= 1889 & Year <= 1892) ~ 1890,
+      (Year >= 1917 & Year <= 1920) ~ 1918,
+      (Year >= 1956 & Year <= 1959) ~ 1957,
+      (Year >= 2019 & Year <= 2020) ~ 2020
+    )) %>% 
+    relocate(Country)
+}
 
-# together
-results_month <- bind_rows(
-  readRDS("data/es_results_month.Rds")
-)
-results_year <- bind_rows(
-  readRDS("data/es_results_year.Rds")
-)
-results_age <- bind_rows(
-  readRDS("data/es_results_age.Rds")
-)
+results_month <- merge_mort(bind_rows(
+  read_rds("data/outputs_2021-07-19/All_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-15/Switzerland_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-16/Sweden_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-16/Spain_results_month.Rds")
+)) %>% 
+  filter(Model == "Age Serfling (Stan, NB)") %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  arrange(Country, Year, Month) %>% 
+  relocate(Country, Year, Month, Date)
 
-# writeRDS(results_month, "data/results_month.Rds")
-# writeRDS(results_year, "data/results_year.Rds")
-# writeRDS(results_age, "data/results_age.Rds")
+results_month_pand <- merge_mort(bind_rows(
+  read_rds("data/outputs_2021-07-19/All_results_month_pand.Rds"), 
+  read_rds("data/outputs_2021-07-19/Switzerland_results_month_pand.Rds"), 
+  read_rds("data/outputs_2021-07-19/Sweden_results_month_pand.Rds"), 
+  read_rds("data/outputs_2021-07-19/Spain_results_month_pand.Rds")
+)) %>% 
+  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>% 
+  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  arrange(Country, Year, Month)
 
-# unlink("data/es_results_month.Rds")
-# unlink("data/es_results_year.Rds")
-# unlink("data/es_results_age.Rds")
+results_year <- merge_mort(bind_rows(
+  read_rds("data/outputs_2021-07-15/Switzerland_results_year.Rds"), 
+  read_rds("data/outputs_2021-07-16/Sweden_results_year.Rds"), 
+  read_rds("data/outputs_2021-07-16/Spain_results_year.Rds")
+)) %>% 
+  filter(Model == "Age Serfling (Stan, NB)") %>% 
+  arrange(Country, Year)
+
+results_age <- merge_mort(bind_rows(
+  read_rds("data/outputs_2021-07-15/Switzerland_results_age.Rds"), 
+  read_rds("data/outputs_2021-07-16/Sweden_results_age.Rds"), 
+  read_rds("data/outputs_2021-07-16/Spain_results_age.Rds")
+)) %>% 
+  filter(Model == "Age Serfling (Stan, NB)") %>% 
+  arrange(Country, Year)
 ```
+
+<!-- ----------------------------------------------------- -->
+
+# Paper outputs
+
+## Table 1
 
 ```{r}
-results_month <- read_rds("data/es_results_month.Rds") %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
-  mutate(Pandemic = case_when(
-    (Year >= 1889 & Year <= 1892) ~ 1890,
-    (Year >= 1917 & Year <= 1920) ~ 1918,
-    (Year >= 1956 & Year <= 1959) ~ 1957,
-    (Year >= 2019 & Year <= 2020) ~ 2020
-  )) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  relocate(Country, Date)
+table_1 <- 
+  
+  left_join(
+    
+    read_rds("data/deaths_monthly.Rds") %>% 
+      filter(Year %in% pandemic_year,
+             Month == 1) %>% 
+      select(Year, Country, Population), 
+    
+    results_month %>% 
+      filter(Year %in% pandemic_year) %>%
+      group_by(Country, Year) %>% 
+      summarise(Observed = sum(Deaths),
+                Expected = sum(pred)) %>% 
+      ungroup()
+    
+  ) %>% 
+  left_join(
+    
+    results_year %>%
+      select(Country, Year, excess_year, pred, lower, upper) %>%
+      filter(Year %in% pandemic_year) %>%
+      rename(Excess = excess_year,
+             Excess_lci = lower, Excess_uci = upper)
+    
+  ) %>% 
+  mutate(Percent_excess = 
+           round((Excess / Expected) * 100, 1)) %>% 
+  relocate(Year, Country, Population, Expected, Observed, Excess, Percent_excess) %>% 
+  arrange(Year, Country)
 
-results_year <- read_rds("data/es_results_year.Rds") %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
-  mutate(Pandemic = case_when(
-    (Year >= 1889 & Year <= 1892) ~ 1890,
-    (Year >= 1917 & Year <= 1920) ~ 1918,
-    (Year >= 1956 & Year <= 1959) ~ 1957,
-    (Year >= 2019 & Year <= 2020) ~ 2020
-  ))
-
-results_age <- read_rds("data/es_results_age.Rds") %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
-  mutate(Pandemic = case_when(
-    (Year >= 1889 & Year <= 1892) ~ 1890,
-    (Year >= 1917 & Year <= 1920) ~ 1918,
-    (Year >= 1956 & Year <= 1959) ~ 1957,
-    (Year >= 2019 & Year <= 2020) ~ 2020
-  ))
+openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
+                     row.names = FALSE, overwrite = TRUE)
 ```
 
-# Figure 1 - diffs
+```{r echo=FALSE}
+table_1 %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
+```
 
-## Monthly 
+## Figure 1
+
+Monthly absolute estimates of excess.  
 
 ```{r echo=FALSE}
 hline_pandemic <- results_month %>% 
@@ -110,13 +156,12 @@ hline_pandemic <- results_month %>%
   ungroup()
 
 results_month %>% 
-  mutate(Y = excess_month,
-         Difference = ifelse(excess_month > 0, "More", "Less")) %>% 
+  mutate(Difference = ifelse(excess_month > 0, "More", "Less")) %>% 
   ggplot(aes(x = Date)) +
   geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25) +
   geom_hline(yintercept = 0, colour = "grey80") +
-  geom_col(aes(y = Y, fill = Difference)) +
+  geom_col(aes(y = excess_month, fill = Difference)) +
   scale_x_date(date_labels = "%Y",
                breaks = c(as.Date("1860-01-01"), 
                           as.Date("1890-01-01"),
@@ -126,7 +171,7 @@ results_month %>%
                           as.Date("1977-01-01"),
                           as.Date("2009-01-01"),
                           as.Date("2020-01-01")),
-               limits = c(as.Date("1860-01-01") - 100, 
+               limits = c(as.Date("1856-01-01") - 14, 
                           as.Date("2020-12-31"))) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   facet_grid(vars(Country), scales = "free_y") + 
@@ -140,55 +185,17 @@ results_month %>%
   guides(fill = guide_legend(reverse = TRUE)) +
   ggtitle("Monthly number of Deaths")
 
-# ggsave("paper/diffs.png", dpi = 300, width = 297, height = 210, units = "mm")
+rm(hline_pandemic)
+
+ggsave("paper/Figure_1.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
-## Yearly 
+## Figure 2 
 
-```{r echo=FALSE}
-hline_pandemic <- results_year %>% 
-  filter(Year == 2020) %>% 
-  group_by(Country) %>% 
-  summarise(yintercept = max(excess_year)) %>% 
-  ungroup()
-
-results_year %>% 
-  mutate(Y = excess_year,
-         Difference = ifelse(excess_year > 0, "More", "Less")) %>% 
-  ggplot(aes(x = Year)) +
-  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
-             colour = "#984ea3", size = 0.25, linetype = "dashed") +
-  geom_hline(yintercept = 0, colour = "grey80") +
-  geom_col(aes(y = Y, fill = Difference)) +
-  scale_x_continuous(
-    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
-    limits = c(1860-1, 2020+1)) +
-  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  facet_grid(vars(Country), scales = "free_y") + 
-  scale_y_continuous(labels = label_number(accuracy = 1L, suffix = "K", scale = 1e-4)) +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        panel.background = element_blank(), 
-        axis.line = element_line(colour = "grey40"),
-        axis.ticks = element_line()) +
-  xlab("") + ylab("Difference observed - expected") +
-  guides(fill = guide_legend(reverse = TRUE)) +
-  ggtitle("Yearly number of Deaths")
-
-# ggsave("paper/diffs_year.png", dpi = 300, width = 297, height = 210, units = "mm")
-```
-
-# Figure 2 - four pandemics
-
-## Absolute
+Zooming to pandemics to explore absolute excess with CrI.  
 
 ```{r}
 focus_years <- c(1890, 1918, 1957, 2020)
-
-# plot_years <- c(seq(1890 - 1, 1890 + 2),
-#                 seq(1918 - 1, 1918 + 2),
-#                 seq(1957 - 1, 1957 + 2),
-#                 seq(2020 - 1, 2020 + 2))
 
 for(country in unique(results_month$Country)) { 
   
@@ -228,10 +235,10 @@ for(country in unique(results_month$Country)) {
       my_title = paste0(country, ": ", 
                         as.character(year - 1), "-", as.character(year + 2))
     }
-  
+    
     # sync breaks across plots
     my_breaks = plot_data$Date[seq(1, nrow(plot_data), 6)]
-  
+    
     plot <- plot_data %>% 
       ggplot(aes(x = Date)) +
       geom_rect(xmin = as.Date(paste0(year, "-01-01")),
@@ -241,7 +248,7 @@ for(country in unique(results_month$Country)) {
       geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) + 
       geom_line(aes(y = pred), colour = "grey50") +
       # geom_line(aes(y = median_flu_year), colour = "#2c7bb6") + 
-      geom_line(aes(y = Deaths), color = "#d7191c", size = 0.5) + 
+      geom_line(aes(y = Deaths), color = "#EF8A62", size = 0.5) + 
       scale_x_date(breaks = my_breaks, date_labels = "%b") +
       xlab("") + 
       # ylab("Observed, 10y median & predicted deaths") +
@@ -267,10 +274,191 @@ plot_spacer() + Spain_1918 + Spain_1957 + Spain_2020 +
   plot_layout(widths = rep(c(2, 2, 2, 1), 3)) +
   plot_layout(ncol = 4) 
 
-ggsave("paper/four_pndemics.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_2.png", dpi = 300, width = 297, height = 210, units = "mm")
+
+rm(Spain_1918, Spain_1957, Spain_2020,
+   Sweden_1890, Sweden_1918, Sweden_1957, Sweden_2020,
+   Switzerland_1890, Switzerland_1918, Switzerland_1957, Switzerland_2020,
+   focus_years, max)
 ```
 
-## Percent
+## Figure 3
+
+Age differences across major pandemics
+
+```{r echo=FALSE}
+pandemic_years <- c(1890, 1918, 1957, 2020)
+
+analysis_years <- c(seq(1890 - 10, 1890),
+                    seq(1918 - 10, 1918),
+                    seq(1957 - 10, 1957),
+                    seq(2020 - 10, 2020))
+
+previous_years <- c(seq(1890 - 10, 1890 - 1),
+                    seq(1918 - 10, 1918 - 1),
+                    seq(1957 - 10, 1957 - 1),
+                    seq(2020 - 10, 2020 - 1))
+
+age_plot_data <- 
+  results_age %>% 
+  filter(Year %in% analysis_years) %>% 
+  mutate(Type = ifelse(Year %in% previous_years, "Previous", "")) %>% 
+  mutate(Type = ifelse(Year %in% pandemic_years, "Pandemic", Type)) %>%  
+  arrange(Country, Year, Age_cat) %>% 
+  mutate(Pandemic = ifelse(Year %in% pandemic_years, Year, NA)) %>% 
+  fill(Pandemic, .direction = "up") 
+
+ggplot(data = age_plot_data %>% 
+         filter(Type == "Previous"),
+       aes(x = Age_cat)) + 
+  
+  # observed from previous decade
+  geom_boxplot(aes(y = Deaths,
+                   fill = "grey"), 
+               color = "grey", alpha = 0.25) +
+  geom_jitter(aes(y = Deaths), 
+              color = "black", size = 0.5, alpha = 0.5) +
+  
+  # modelled 67A9CF
+  geom_ribbon(data = age_plot_data %>% 
+                filter(Type == "Pandemic"),
+              aes(ymin = lower, ymax = upper, group = Year), 
+              alpha = 0.1, fill = "#67A9CF") + 
+  geom_line(data = age_plot_data %>% 
+              filter(Type == "Pandemic"),
+            aes(y = pred, group = Year, colour = "#67A9CF")) +
+  
+  # observed EF8A62
+  geom_line(data = age_plot_data %>% 
+              filter(Type == "Pandemic"), 
+            aes(y = Deaths, group = Year,
+                colour = "#EF8A62")) +
+  
+  facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
+  scale_fill_manual(name = NULL,
+                    values = c("grey" = "grey"), 
+                    labels = c("Observed \n(Last \n10 years)"), 
+                    guide = "legend") +  
+  scale_colour_manual(name = "Deaths",
+                      values = c("#67A9CF" = "#67A9CF",
+                                 "#EF8A62" = "#EF8A62"), 
+                      labels = c("Expected \n(Last \n5 years)",
+                                 "Observed"), 
+                      guide = "legend") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40"),
+        axis.ticks = element_line(),
+        axis.text.x = element_text(angle = 90)) +
+  xlab("Age group") + labs(colour = "Age group") +
+  guides(fill = guide_legend(order = 2),
+         colour = guide_legend(order = 1))
+
+rm(analysis_years, previous_years)
+
+ggsave("paper/Figure_3.png", dpi = 300, width = 297, height = 210, units = "mm")
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Appendix 
+
+## Table S1
+
+Comparing estimates of excess from different methods
+
+```{r echo=FALSE}
+table_s1 <- bind_rows(
+  
+  # needs all models
+  
+  # global serfling model without CrI
+  read_rds("data/outputs_2021-07-19/All_results_month.Rds") %>% 
+    select(Country, Year, Model, excess_month) %>% 
+    group_by(Country, Year, Model) %>% 
+    summarise(excess_year = sum(excess_month)) %>% 
+    ungroup() %>% 
+    mutate(excess_year_lower = NA_real_,
+           excess_year_upper = NA_real_),
+  
+  # remaining three
+  bind_rows(
+    read_rds("data/outputs_2021-07-15/Switzerland_results_year.Rds"), 
+    read_rds("data/outputs_2021-07-16/Sweden_results_year.Rds"), 
+    read_rds("data/outputs_2021-07-16/Spain_results_year.Rds")
+  ) %>% 
+    select(Country, Year, Model, starts_with("excess_"))
+  
+) %>% 
+  filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
+  arrange(Country, Year, Model) %>% 
+  # mutate(Model = str_remove(Model, fixed(" (Stan, NB)"))) %>% 
+  pivot_wider(names_from = Model, 
+              values_from = starts_with("excess_"),
+              names_sort = FALSE) %>% 
+  relocate(Country, Year,
+           `excess_year_Global Serfling`, `excess_year_lower_Global Serfling`, `excess_year_upper_Global Serfling`,
+           `excess_year_Global Serfling (Stan, NB)`, `excess_year_lower_Global Serfling (Stan, NB)`, `excess_year_upper_Global Serfling (Stan, NB)`,
+           `excess_year_Age Serfling (Stan, NB)`, `excess_year_lower_Age Serfling (Stan, NB)`, `excess_year_upper_Age Serfling (Stan, NB)`) %>% 
+  select(-`excess_year_lower_Global Serfling`, -`excess_year_upper_Global Serfling`,
+  )
+```
+
+```{r echo=FALSE}
+table_s1 %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
+
+openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
+                     row.names = FALSE, overwrite = TRUE)
+```
+
+## Figure S1 
+
+Yearly estimates of excess
+
+```{r echo=FALSE}
+hline_pandemic <- results_year %>% 
+  filter(Year == 2020) %>% 
+  group_by(Country) %>% 
+  summarise(yintercept = max(excess_year)) %>% 
+  ungroup()
+
+results_year %>% 
+  mutate(Difference = ifelse(excess_year > 0, "More", "Less")) %>% 
+  ggplot(aes(x = Year)) +
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25, linetype = "dashed") +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = excess_year, fill = Difference)) +
+  scale_x_continuous(
+    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
+    limits = c(1856-1, 2020+1)) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  facet_grid(vars(Country), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 1L, suffix = "K", scale = 1e-4)) +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40"),
+        axis.ticks = element_line()) +
+  xlab("") + ylab("Difference observed - expected") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  ggtitle("Yearly number of excess deaths")
+
+rm(hline_pandemic)
+
+ggsave("paper/Figure_S1.png", dpi = 300, width = 297, height = 210, units = "mm")
+```
+
+## Figure S2
+
+Zooming to pandemics to explore % of excess
 
 ```{r}
 plot_years <- c(seq(1890 - 1, 1890 + 2),
@@ -296,13 +484,13 @@ plot_data %>%
             ymin = -Inf, ymax = Inf,
             fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +
   geom_col(aes(y = Percent, fill = Difference), size = 0.5) +
-  facet_grid(vars(Country), vars(Pandemic), scales = "free_x") + 
+  facet_grid(vars(Country), vars(Pandemic), scales = "free") + 
   scale_x_continuous(limits = c(min(plot_data$time)-1, max(plot_data$time)+1),
                      breaks = c(1, 13, 24, 36, 48), 
                      labels = c("-12m", "Start", "End", "+12m", "+24m")) +
   xlab("") + 
   ylab("% above predicted Deaths") +
-  ggtitle("Excess Deaths as % of observed") +
+  ggtitle("Excess deaths as % of observed") +
   scale_y_continuous(labels = percent) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   guides(fill = guide_legend(reverse = TRUE)) +
@@ -314,167 +502,52 @@ plot_data %>%
         panel.background = element_blank(), 
         axis.line = element_line(colour = "grey40")) 
 
-# ggsave("paper/four_pndemics_perc.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_S2.png", dpi = 300, width = 297, height = 210, units = "mm")
+
+rm(plot_years)
 ```
 
-# Table 1
+## Figure S3
 
-```{r}
-pandemic_year <- c("1890","1918","1957","2020")
-
-table_1 <- results_year %>%
-  select(Country, Year, Deaths, Population, pred) %>%
-  filter(Year %in% pandemic_year)%>%
-  group_by(Year, Country) %>%
-  summarise(Expected_Mortality = round(sum(pred), 0),
-            Deaths_num = sum(Deaths),
-            Cum_excess_death = round(sum(Deaths)-sum(pred), 0),
-            Percent_excess_death = round((Cum_excess_death/Expected_Mortality)*100, 1))%>%
-  ungroup()
-
-openxlsx::write.xlsx(table_1,"paper/table1.xlsx", row.names = FALSE, overwrite = TRUE)
-```
-
-```{r echo=FALSE}
-table_1 %>% 
-  kbl() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE) %>% 
-  column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE)
-```
-
-# Appendix 
-
-```{r eval=FALSE}
-## Crude
-results_month %>% 
-  ggplot(aes(x = Date, y = Deaths)) +
-  geom_col() +
-  geom_rect(xmin = as.Date(paste0(1890, "-01-01")),
-            xmax = as.Date(paste0(1890, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(1918, "-01-01")),
-            xmax = as.Date(paste0(1918, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(1957, "-01-01")),
-            xmax = as.Date(paste0(1957, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(2020, "-01-01")),
-            xmax = as.Date(paste0(2020, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  facet_grid(vars(Country), scales = "free_y") + 
-  scale_y_continuous(labels = label_number(accuracy = 1L, suffix = "K", scale = 1e-4)) +
-  theme_minimal() +
-  xlab("") + ylab("Deaths") +
-  ggtitle("Monthly number of Deaths")
-```
-
-```{r eval=FALSE}
-## Per pop
-results_month %>% 
-  ggplot(aes(x = Date, y = (Deaths/pop)*10000, colour = Country)) +
-  geom_line() +
-  theme_minimal() +
-  xlab("") + ylab("Deaths / 10,000 population") +
-  ggtitle("Monthly number of Deaths")
-```
-
-## Deaths per population
-
-```{r echo=FALSE}
-results_month %>% 
-  ggplot(aes(x = Date, y = (Deaths/Population)*10000)) +
-  geom_rect(xmin = as.Date(paste0(1890, "-01-01")),
-            xmax = as.Date(paste0(1890, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(1918, "-01-01")),
-            xmax = as.Date(paste0(1918, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(1957, "-01-01")),
-            xmax = as.Date(paste0(1957, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(2020, "-01-01")),
-            xmax = as.Date(paste0(2020, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) + 
-  facet_grid(vars(Country), scales = "free_y") + 
-  geom_line() +
-  theme_minimal() +
-  xlab("") + ylab("Deaths / 10,000 population") +
-  ggtitle("Monthly number of Deaths")
-```
-
-## Country panel
-
-### Switzerland
-
-```{r echo=FALSE}
-extra_labs <- c("Deaths", "Deaths / 10,000", "Population")
-names(extra_labs) <- c("Deaths", "deaths_pop", "pop")
-
-results_month %>% 
-  filter(Country == "Switzerland") %>%
-  select(Date, Deaths, Population) %>% 
-  mutate(deaths_pop = (Deaths/Population)*10000) %>% 
-  pivot_longer(-Date) %>% 
-  ggplot(aes(x = Date, y = value)) +
-  geom_rect(xmin = as.Date(paste0(1890, "-01-01")),
-            xmax = as.Date(paste0(1890, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(1918, "-01-01")),
-            xmax = as.Date(paste0(1918, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(1957, "-01-01")),
-            xmax = as.Date(paste0(1957, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) +
-  geom_rect(xmin = as.Date(paste0(2020, "-01-01")),
-            xmax = as.Date(paste0(2020, "-12-31")),
-            ymin = 0, ymax = Inf,
-            fill = "#d7191c", alpha = 0.01, inherit.aes = FALSE) + 
-  facet_grid(vars(name), scales = "free_y",
-             labeller = labeller(name = extra_labs)) + 
-  geom_line() +
-  theme_minimal() +
-  xlab("") + ylab("Variable count") +
-  ggtitle("Monthly number of Deaths, population and Deaths per 10,000")
-```
-
-## Impact of extremes
-
-Using 1918 pandemic as an example of impact on estimates from 1919 - 1923.  
-Estimates with extreme year (red) and without (blue).  
+Impact of extremes: using 1918 pandemic as an example of impact on estimates from 1919 - 1923.  
+Estimates with extreme year (blue) and without (red).  
 Converge after 5 year smoothing window stops having effect (ie. in 1924).  
 
 ### Figure 
 
 ```{r echo=FALSE}
-results_month %>% 
-  # filter(Country == "Spain") %>% 
-  filter(Year >= 1918 & Year <= 1924) %>% 
+extreme_data <- 
+  left_join(
+    
+    results_month %>% 
+      select(Country, Year, Month, Date, Deaths, pred, lower, upper),
+    
+    results_month_pand %>% 
+      select(Country, Year, Month, pred, lower, upper) %>% 
+      rename(pred_pand = pred,
+             lower_pand = lower, upper_pand = upper)
+    
+  ) %>% 
+  filter(Year >= 1918 & Year <= 1924) 
+
+extreme_data %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = Deaths), colour = "grey60") + 
-  geom_ribbon(aes(ymin = lpi, ymax = upi), 
-              alpha = 0.1, fill = "#EF8A62") + 
-  geom_line(aes(y = fit), colour = "#EF8A62") +
+  # with pandemics
+  geom_ribbon(aes(ymin = lower_pand, ymax = upper_pand),
+              alpha = 0.1, fill = "#67A9CF") +
+  geom_line(aes(y = pred_pand), colour = "#67A9CF") +
+  # without
   geom_ribbon(aes(ymin = lower, ymax = upper), 
-              alpha = 0.1, fill = "#67A9CF") + 
-  geom_line(aes(y = pred), colour = "#67A9CF") +
+              alpha = 0.1, fill = "#EF8A62") + 
+  geom_line(aes(y = pred), colour = "#EF8A62") +
   scale_x_date(date_breaks = "1 year", date_labels = "%Y", minor_breaks = NULL) +
   # coord_cartesian(ylim = c(NA, 100000)) + 
   xlab("") + ylab("Number of Deaths") + 
   facet_grid(vars(Country), scales = "free_y") + 
   theme_minimal()
+
+ggsave("paper/Figure_S3.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ### Table 
@@ -482,27 +555,24 @@ results_month %>%
 Using 1918 pandemic as an example of impact on estimates from 1919.   
 
 ```{r echo=FALSE}
-table_data <- results_month %>% 
-  # filter(Country == "Spain") %>% 
-  filter(Year >= 1919 & Year <= 1919) %>% 
-  select(Country, Month, Deaths, fit, pred) %>% 
-  mutate(fit = round(fit),
-         fit_diff = fit - Deaths,
-         pred = round(pred),
-         pred_diff = pred - Deaths) %>% 
-  relocate(fit_diff, .after = fit) %>% 
-  relocate(pred_diff, .after = pred)  
+extreme_data %<>% 
+  filter(Year == 1919) %>% 
+  select(-lower, -upper, -lower_pand, -upper_pand, 
+         -Date, -Year) %>% 
+  mutate(diff_1 = Deaths - pred,
+         diff_2 = Deaths - pred_pand) %>% 
+  relocate(diff_1, .after = pred) 
 
-table_data%>% 
+extreme_data %>% 
   kbl(col.names = c("Country", "Month", "Observed", 
-                    "Predicted", "Difference",
-                    "Predicted", "Difference")) %>%
+                  "Predicted", "Difference",
+                  "Predicted (pandemic)", "Difference")) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
-  column_spec(5, color = ifelse(table_data$fit_diff > 0, 
+  column_spec(5, color = ifelse(extreme_data$diff_1 > 0, 
                                 "#EF8A62", "#67A9CF")) %>% 
-  column_spec(7, color = ifelse(table_data$pred_diff > 0, 
+  column_spec(7, color = ifelse(extreme_data$diff_2 > 0, 
                                 "#EF8A62", "#67A9CF")) %>% 
   row_spec(1, italic = FALSE) %>% 
   add_header_above(c(" " = 3, "Including 1918" = 2, "Excluding 1918" = 2)) %>%
@@ -510,256 +580,173 @@ table_data%>%
   collapse_rows(columns = 1, valign = "top")
 ```
 
-## Impact of fit vs CI
-
-### Fit vs. LPI vs. UPI
+## Pandemic compared to last year {.tabset}
 
 ```{r echo=FALSE}
-focus_years <- c(1890, 1918, 1957, 2009, 2020)
+previous <- pandemic_years - 1
 
-table_data <- results_month %>% 
-  filter(Country == "Switzerland") %>%
-  filter(Year %in% focus_years) %>% 
-  group_by(Year) %>% 
-  summarize(Deaths = sum(Deaths),
-            fit = round(sum(fit)),
-            fit_diff = fit - Deaths,
-            lpi = round(sum(lpi)),
-            lpi_diff = lpi - Deaths, 
-            upi = round(sum(upi)),
-            upi_diff = upi - Deaths) %>% 
-  relocate(lpi_diff, .after = lpi) %>% 
-  relocate(upi_diff, .after = upi)  
+data_year <- left_join(
+  
+  age_plot_data %>% 
+    filter(Type == "Pandemic") %>% 
+    select(Pandemic, Year, Country, Age_cat, Deaths) %>% 
+    rename(Deaths_pandemic = Deaths),
+  
+  age_plot_data %>% 
+    filter(Year %in% previous) %>% 
+    select(Pandemic, Year, Country, Age_cat, Deaths) %>% 
+    rename(Deaths_previous = Deaths) %>% 
+    mutate(Year = Year + 1)
+  
+) %>% 
+  mutate(Exc = Deaths_pandemic - Deaths_previous,
+         Exc_perc = (Deaths_pandemic - Deaths_previous) / Deaths_previous)
 
-table_data%>% 
-  kbl(col.names = c("Year", "Observed", 
-                    "Predicted", "Difference",
-                    "Predicted", "Difference",
-                    "Predicted", "Difference")) %>%
+```
+
+### Absolute
+
+```{r echo=FALSE}
+ggplot(data = data_year,
+       aes(x = Age_cat, y = Exc)) + 
+  geom_col() +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic), scales = "free_y") + 
+  scale_y_continuous(labels = label_number(accuracy = 0.1, suffix = "K", scale = 1e-4)) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Age group") + 
+  ylab("Absolute difference in deaths to previous year")
+```
+
+### Relative
+
+```{r echo=FALSE}
+ggplot(data = data_year,
+       aes(x = Age_cat, y = Exc_perc)) + 
+  geom_col() +
+  facet_grid(rows = vars(Country), cols = vars(Pandemic)) + 
+  scale_y_continuous(labels = percent) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  xlab("Age group") + 
+  ylab("% difference in deaths to previous year")
+
+rm(data_year, previous, pandemic_years)
+```
+
+## Comparing to BfS estimates
+
+Data from BfS prepared in `03`. No CI included in comparisons since different age groups are used.  
+
+```{r echo=FALSE}
+excess_2010_2020 <- 
+  left_join(
+    # official counts
+    read_rds("data/BfS/excess_2010_2020.Rds") %>% 
+      rename(Excess_BfS = Excess_expected),
+    
+    # our estimates
+    results_year %>% 
+      filter(Country == "Switzerland") %>% 
+      select(Year, excess_year) %>% 
+      rename(Excess_modelled = excess_year)
+  ) %>% 
+  mutate(Difference = Excess_modelled - Excess_BfS)
+```
+
+```{r}
+excess_2010_2020 %>% 
+  kbl() %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
-  column_spec(4, color = ifelse(table_data$fit_diff > 0, 
-                                "#EF8A62", "#67A9CF")) %>% 
-  column_spec(6, color = ifelse(table_data$lpi_diff > 0, 
-                                "#EF8A62", "#67A9CF")) %>% 
-  column_spec(8, color = ifelse(table_data$upi_diff > 0, 
-                                "#EF8A62", "#67A9CF")) %>% 
   row_spec(1, italic = FALSE) %>% 
-  add_header_above(c(" " = 2, "Fit" = 2, "LPI" = 2, "UPI" = 2)) %>%
-  # collapse not working; issue filled on github
-  collapse_rows(columns = 1, valign = "top")
+  column_spec(4, color = ifelse(excess_2010_2020$Difference > 0, 
+                                "#EF8A62", "#67A9CF"))
 ```
-
-### 2015 & 2020
-
-Comparing BfS and our method for two years.  
-
-```{r echo=FALSE}
-focus_years <- c(2010, 2015, 2020)
-```
-
-```{r eval=FALSE,echo=FALSE}
-p_load(aweek, wktmo)
-# in case proper monthly redistribution is needed?
-# !!! unfinished !!!
-# needs 2020...
-bfs_2015 <- read_rds("data/BfS/deaths_week_2010-2019.Rds") %>%
-  filter(Year == 2015) %>%
-  select(-Ending) %>%
-  mutate(Starting = get_date(week = Week, year = Year, start = "Monday"))
-
-# ... and 65+
-bfs <- bind_rows(
-  
-  weekToMonth(bfs_2015[bfs_2015$Age == "0-64", ]$NumberOfDeaths,
-              datStart = "29-12-2014", wkMethod = "ISO") 
-  
-) %>% 
-  separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
-  filter(Year %in% focus_years) %>% 
-  rename(deaths_month = value) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  relocate(Year, Month, Date)
-
-p_unload(aweek, wktmo)
-```
-
-```{r echo=FALSE}
-# ignoring first & last week problems
-compare <- bind_rows(
-  
-  bind_rows(
-    read_rds("data/BfS/deaths_week_2010-2019.Rds"),
-    read_rds("data/BfS/deaths_week_2020-2021.Rds")) %>% 
-    filter(Year %in% focus_years) %>% 
-    # select(-Ending) %>% 
-    # mutate(
-    #   # Week2 = get_aweek(week = Week, year = Year, 
-    #   #                   start = "Monday", week_start = "Monday"),
-    #   Starting = aweek::get_date(week = Week, year = Year, 
-    #                       start = "Monday")) %>% 
-    mutate(Expected_diff = Expected - NumberOfDeaths,
-           lowerB_diff = lowerB - NumberOfDeaths,
-           upperB_diff = upperB - NumberOfDeaths) %>%
-    group_by(Year) %>% 
-    summarise(NumberOfDeaths = sum(NumberOfDeaths),
-              Expected = sum(Expected),
-              Expected_diff = sum(Expected_diff),
-              lowerB = sum(lowerB), 
-              lowerB_diff = sum(lowerB_diff),
-              upperB = sum(upperB),
-              upperB_diff = sum(upperB_diff)) %>%
-    ungroup() %>% 
-    mutate(Method = "BfS"),
-  
-  results_month %>% 
-    filter(Country == "Switzerland") %>%
-    filter(Year %in% focus_years) %>% 
-    mutate(Expected_diff = fit - Deaths,
-           lowerB_diff = lpi - Deaths, 
-           upperB_diff = upi - Deaths) %>% 
-    group_by(Year) %>% 
-    summarize(NumberOfDeaths = sum(Deaths),
-              Expected = round(sum(fit)),
-              Expected_diff = round(sum(Expected_diff)),
-              lowerB = round(sum(lpi)),
-              lowerB_diff = round(sum(lowerB_diff)), 
-              upperB = round(sum(upi)),
-              upperB_diff = round(sum(upperB_diff))) %>% 
-    ungroup() %>% 
-    mutate(Method = "Our estimates")
-) %>% 
-  relocate(lowerB_diff, .after = lowerB) %>% 
-  relocate(upperB_diff, .after = upperB) %>%
-  relocate(Year, Method) %>% 
-  arrange(Year, Method)
-
-compare %>% 
-  kbl(col.names = c("Year", "Method", "Observed", 
-                    "Predicted", "Difference",
-                    "Predicted", "Difference",
-                    "Predicted", "Difference")) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE) %>% 
-  column_spec(1, italic = TRUE) %>%
-  column_spec(5, color = ifelse(compare$Expected_diff > 0, 
-                                "#EF8A62", "#67A9CF")) %>% 
-  column_spec(7, color = ifelse(compare$lowerB_diff > 0, 
-                                "#EF8A62", "#67A9CF")) %>% 
-  column_spec(9, color = ifelse(compare$upperB_diff > 0, 
-                                "#EF8A62", "#67A9CF")) %>% 
-  row_spec(1, italic = FALSE) %>% 
-  add_header_above(c(" " = 3, "Fit" = 2, "LPI" = 2, "UPI" = 2)) %>%
-  # collapse not working; issue filled on github
-  collapse_rows(columns = 1, valign = "top")
-```
-
 
 <!-- ----------------------------------------------------- -->
 
-# Alt Viz
+# Model diagnostics
 
-## Stacked
+## Rhat
 
-```{r echo=FALSE}
-results_month %>% 
-  # filter(Country == "Switzerland") %>%
-  mutate(Year = as.integer(Year),
-         Month = as.integer(Month)) %>% 
-  ggplot(aes(x = Month)) +
-  geom_line(aes(y = Deaths, group = Year, color = Year), alpha = 0.5) + 
-  scale_x_continuous(breaks = seq(1, 12, 2)) +
-  scale_color_viridis_c() +
-  xlab("Month") + ylab("Observed Deaths") +
-  facet_grid(vars(Country), scales = "free_y") + 
-  theme_minimal() 
+Check that all values <1.1
 
-results_month %>% 
-  mutate(Year = as.integer(Year),
-         Month = as.integer(Month)) %>% 
-  ggplot(aes(x = Month)) +
-  geom_line(aes(y = median_flu_year, group = Year, color = Year), alpha = 0.5) + 
-  scale_x_continuous(breaks = seq(1, 12, 2)) +
-  scale_color_viridis_c() +
-  xlab("Month") + ylab("Median 10y Deaths") +
-  facet_grid(vars(Country), scales = "free_y") + 
-  theme_minimal()
-
-results_month %>% 
-  mutate(Year = as.integer(Year),
-         Month = as.integer(Month)) %>% 
-  ggplot(aes(x = Month)) +
-  geom_line(aes(y = fit_flu, group = Year, color = Year), alpha = 0.5) + 
-  scale_x_continuous(breaks = seq(1, 12, 2)) +
-  scale_color_viridis_c() +
-  xlab("Month") + ylab("Observed Deaths") +
-  facet_grid(vars(Country), scales = "free_y") + 
-  theme_minimal()
+```{r}
+summary(results_month[results_month$Model != "Global Serfling", ]$Rhat) 
 ```
 
-## Diffs 2
+## ESS
 
-```{r echo=FALSE}
-results_month %>% 
-  filter(Year >= 1915 & Year <= 1919) %>% 
-  select(Country, Date, Deaths, fit_flu) %>% 
-  mutate(From = pmin(Deaths, fit_flu),
-         To = pmax(Deaths, fit_flu),
-         Difference = ifelse(Deaths > fit_flu, "More", "Less")) %>% 
-  ggplot(aes(x = Date)) +
-  # geom_line(aes(y = fit_flu), color = "grey80") + 
-  geom_linerange(aes(ymin = From, ymax = To, color = Difference), size = 1) + 
-  scale_y_continuous(labels = comma) +
-  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
-  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
-  xlab("Year") + ylab("Difference observed expected") +
-  facet_grid(vars(Country), scales = "free_y") + 
-  theme_minimal()
+Check that all effective sample sizes are large
 
-results_month %>% 
-  filter(Year >= 2016) %>%
-  select(Country, Date, Deaths, fit_flu) %>% 
-  mutate(From = pmin(Deaths, fit_flu),
-         To = pmax(Deaths, fit_flu),
-         Difference = ifelse(Deaths > fit_flu, "More", "Less")) %>% 
-  ggplot(aes(x = Date)) +
-  # geom_line(aes(y = fit_flu), color = "grey80") + 
-  geom_linerange(aes(ymin = From, ymax = To, color = Difference), size = 1) + 
-  scale_y_continuous(labels = comma) +
-  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
-  scale_colour_manual(values = c("#67A9CF", "#EF8A62")) +  
-  xlab("Year") + ylab("Difference observed expected") +
-  facet_grid(vars(Country), scales = "free_y") + 
-  theme_minimal()
+```{r}
+summary(results_month[results_month$Model != "Global Serfling", ]$n_eff) 
 ```
 
-<!-- ## Animate -->
+## Model agreement
 
-```{r eval=FALSE, message=FALSE, include=FALSE}
-p_load(gganimate)
+Example of last year  
 
-p <- results_month %>% 
-  mutate(Year = as.integer(Year),
-         Month = as.integer(Month)) %>% 
-  ggplot(aes(x = Month)) +
-  geom_ribbon(aes(ymin = lpi_flu, ymax = upi_flu), fill = "#2c7bb6", alpha = 0.1) +
-  geom_line(aes(y = fit_flu), colour = "#2c7bb6") +
-  # geom_line(aes(y = median_flu_year), colour = "firebrick") + 
-  geom_line(aes(y = Deaths), color = "#d7191c", size = 1) + 
-  scale_y_continuous(labels = comma) +
-  scale_x_continuous(breaks = seq(1, 12, 2)) +
-  xlab("Month") + ylab("Observed vs. predicted Deaths") +
-  labs(title = "Year: {closest_state}") +
-  theme_minimal() +
-  transition_states(Year, transition_length = 1, state_length = 1) +
-  ease_aes('linear')  
-
-animate(p, fps = 1)
-
-anim_save("res/mort_anim.gif")
-
-p_unload(gganimate)
+```{r}
+bind_rows(
+  read_rds("data/outputs_2021-07-19/All_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-15/Switzerland_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-16/Sweden_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-16/Spain_results_month.Rds")
+) %>%  
+  filter(Year == 2020) %>% 
+  ggplot() +
+  geom_pointrange(aes(x=Month, y=excess_month, 
+                      ymin=excess_month_lower, ymax=excess_month_upper,
+                      colour=Model),
+                  position=position_dodge(.8)) +
+  facet_grid(Country~Year, scales="free")
 ```
 
-<!-- ![](../res/mort_anim.gif) -->
+And 1918  
+
+```{r}
+bind_rows(
+  read_rds("data/outputs_2021-07-19/All_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-15/Switzerland_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-16/Sweden_results_month.Rds"), 
+  read_rds("data/outputs_2021-07-16/Spain_results_month.Rds")
+) %>%  
+  filter(Year == 1918) %>% 
+  ggplot() +
+  geom_pointrange(aes(x=Month, y=excess_month, 
+                      ymin=excess_month_lower, ymax=excess_month_upper,
+                      colour=Model),
+                  position=position_dodge(.8)) +
+  facet_grid(Country~Year, scales="free")
+```
+
+## Check age
+
+```{r}
+results_age %>% 
+  filter(Year >= 2010) %>% 
+  ggplot() +
+  geom_pointrange(aes(x=Year, y=excess_year,
+                      ymin=excess_year_lower, ymax=excess_year_upper),
+                  position=position_dodge(.8)) +
+  facet_grid(Country~Age_cat)
+```
+
+```{r}
+results_age %>% 
+  filter(Year >= 1914 & Year <= 1922) %>% 
+  ggplot() +
+  geom_pointrange(aes(x=Year, y=excess_year,
+                      ymin=excess_year_lower, ymax=excess_year_upper),
+                  position=position_dodge(.8)) +
+  facet_grid(Country~Age_cat)
+```
+
+<!-- ----------------------------------------------------- -->
+
+# Computing Environment
+
+`r mu$session()`
