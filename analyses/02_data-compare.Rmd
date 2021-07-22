@@ -21,7 +21,7 @@ options(max.print = "75")
 
 library(pacman)
 p_load(tidyverse, magrittr, janitor, scales, 
-       readxl, haven, 
+       readxl, haven,anytime,lubridate,
        kableExtra,
        aweek, wktmo)
 ```
@@ -839,14 +839,18 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
 2020 update (*still labelled as provisional!*) is from  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
 
 ```{r}
-es_2020 <- read_xlsx("data-raw/INE/Spain_2020_death.xlsx", sheet = 1) %>%
-  gather(., Month, Deaths, 2:13, factor_key = TRUE) %>%
+source("R/fn_get_death_data_spain.R")
+
+es_2020 <- fn_get_death_data_spain() %>%
+  gather(., Month, Deaths, January:December, factor_key = TRUE) %>%
   group_by(Month) %>%
   summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
   ungroup() %>% 
   mutate(Year = 2020,
          Deaths = as.integer(Deaths),
-         Date = anytime::anydate(paste0("2020-", Month, "-01")),
+         # Month=as.integer(Month),
+         # Month=as.character(Month),
+         Date = ymd(paste0("2020-", Month, "-01")),
          Month = as.integer(Month)) %>% 
   relocate(Year, Month, Date, Deaths)
 ```
@@ -869,6 +873,8 @@ es_deaths_month %>%
 With update for 2020 from provisional data (see below for source).  
 
 ```{r}
+source("R/fn_get_spain_population.R")
+
 es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
@@ -879,12 +885,12 @@ es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>%
          Population = as.integer(round(Population))) %>% 
   filter(Year != 2020)
 
-es_pop_2020 <- read_xlsx("data-raw/INE/Spain_Population_age_2020.xlsx", sheet = 1) %>%
+es_pop_2020 <- fn_get_spain_population() %>%
   summarize(Population = sum(Population, na.rm = TRUE))%>%
   mutate(Year = as.integer(2020),
          Population = as.integer(Population)) %>% 
   relocate(Year)
- 
+
 es_pop_year %<>% 
   bind_rows(es_pop_2020)
   
@@ -913,6 +919,9 @@ INE data to supplement missing last two years in HMD.
 2019 data available [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available from [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
 
 ```{r}
+
+source("R/fn_get_death_data_spain.R")
+
 es_deaths_age_2019_2020 <- bind_rows(
   
   read_delim("data-raw/INE/Spain2019age.csv",
@@ -926,9 +935,9 @@ es_deaths_age_2019_2020 <- bind_rows(
     ) %>% 
     select(Year, Age, Total) %>% 
     mutate(Total = as.integer(round(Total))), 
-  
-  read_xlsx("data-raw/INE/Spain_2020_death.xlsx", sheet = 1) %>%
-  gather(., Month, Deaths, 2:13, factor_key = TRUE) %>%
+
+  fn_get_death_data_spain() %>%
+  gather(., Month, Deaths, January:December, factor_key = TRUE) %>%
   mutate(Age = as.integer(Age))%>%
   group_by(Age) %>%
   dplyr::summarize(Deaths = sum(Deaths,na.rm = TRUE))%>%
@@ -947,7 +956,10 @@ write_rds(es_deaths_age_2019_2020, "data/INE/es_deaths_age_2019_2020.Rds")
 2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
 
 ```{r echo=FALSE}
-es_pop_age_2020 <- read_xlsx("data-raw/INE/Spain_Population_age_2020.xlsx", sheet = 1) %>%
+
+source("R/fn_get_spain_population.R")
+
+es_pop_age_2020 <- fn_get_spain_population() %>%
   mutate(Year = as.integer(2020),
          Age = as.integer(Age),
          Population = as.integer(Population),
