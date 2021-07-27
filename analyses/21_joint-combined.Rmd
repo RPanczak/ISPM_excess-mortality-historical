@@ -183,7 +183,7 @@ results_month %>%
         axis.ticks = element_line()) +
   xlab("") + ylab("Difference observed - expected") +
   guides(fill = guide_legend(reverse = TRUE)) +
-  ggtitle("Monthly number of Deaths")
+  ggtitle("Monthly number of excess deaths")
 
 rm(hline_pandemic)
 
