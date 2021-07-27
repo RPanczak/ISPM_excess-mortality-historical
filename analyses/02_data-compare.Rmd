@@ -20,7 +20,7 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, magrittr, janitor, scales, 
+p_load(tidyverse, magrittr, janitor, scales, lemon,
        readxl, haven,anytime,lubridate,
        kableExtra,
        aweek, wktmo)
