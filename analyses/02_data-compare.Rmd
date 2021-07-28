@@ -526,13 +526,15 @@ pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>%
 ch_pop_year %<>% 
   bind_rows(pop_2020) %>% 
   mutate(Population = as.integer(round((pop_jan + pop_dec) / 2))) %>% 
-  relocate(Year)
+  relocate(Year) %>%
+  distinct(.)
 
 write_rds(ch_pop_year, "data/BfS/ch_pop_year.Rds")
 rm(pop_2020)
 
 ch_deaths_month %<>% 
-  left_join(ch_pop_year %>% select(Year, Population))
+  left_join(ch_pop_year %>% select(Year, Population))%>%
+  distinct(.)
 
 write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 ```
@@ -828,8 +830,8 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.integer(str_replace(Month, fixed("m"), "")),
          Year = as.integer(Year),
-         Deaths = as.integer(round(Deaths)))  %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+         Deaths = as.integer(round(Deaths)))  %>%
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
   relocate(Year, Month, Date) %>% 
   filter(Year != 2020)
 ```
@@ -990,7 +992,7 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
          Month = match(Month_txt, month.name),
          Deaths = as.integer(round(Deaths))) %>% 
   select(-Month_txt) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
   relocate(Year, Month, Date) %>% 
   arrange(Year, Month)
 ```
@@ -1085,7 +1087,7 @@ deaths_monthly <- bind_rows(
   
   # Spain age&sex distribution in HMD is available from later!
   es_deaths_month %>% mutate(Country = "Spain") %>% 
-    filter(Year >= 1908),
+   filter(Year >= 1908),
   
   se_deaths_month %>% mutate(Country = "Sweden"),
   
