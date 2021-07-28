@@ -344,7 +344,7 @@ stmf_month <- bind_rows(
 ) %>% 
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
   rename(Deaths = value) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month)),
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01")),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Country, Year, Month, Date)
 
@@ -427,10 +427,10 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
   mutate(Year = as.integer(Year)) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
   relocate(Year, Month, Date) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  mutate(Year = as.integer(Year),
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01")),
+         Year = as.integer(Year),
          Month = as.integer(Month),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
