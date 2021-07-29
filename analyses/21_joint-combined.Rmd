@@ -82,6 +82,7 @@ results_year <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-07-16/Spain_results_year.Rds")
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB)") %>% 
+  select(-pred, -lower, -upper) %>% 
   arrange(Country, Year)
 
 results_age <- merge_mort(bind_rows(
@@ -91,6 +92,10 @@ results_age <- merge_mort(bind_rows(
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB)") %>% 
   arrange(Country, Year)
+
+pops <- read_rds("data/deaths_monthly.Rds") %>% 
+      filter(Month == 1) %>% 
+      select(Year, Country, Population)
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -104,9 +109,8 @@ table_1 <-
   
   left_join(
     
-    read_rds("data/deaths_monthly.Rds") %>% 
-      filter(Year %in% pandemic_year,
-             Month == 1) %>% 
+    pops %>% 
+      filter(Year %in% pandemic_year) %>% 
       select(Year, Country, Population), 
     
     results_month %>% 
