@@ -1,6 +1,6 @@
-fn_get_spain_population <- function(){
+fn_get_spain_population <- function(data){
   
-  pop_spain <-  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",sheet=1,range="A8:E212") %>%
+  pop_spain <-  read_excel(data,sheet=1,range="A8:E212") %>%
     slice(., -(1:2)) %>%
     select(1,5) %>%
     rename(Population=`Both sexes...5`) %>%
