@@ -56,9 +56,6 @@ results_month <- tibble(Country = character(),
 
 results_year <- tibble(Country = character(), 
                        Year = double(), 
-                       pred = double(), 
-                       lower = double(), 
-                       upper = double(),
                        excess_year = double(), 
                        excess_year_lower = double(), 
                        excess_year_upper = double(),
@@ -132,7 +129,6 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     extract_year <- global_serfling_stan$pred_total_deaths %>% 
       filter(row_number() == 1) %>% 
       select(Country, Year, 
-             pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
       mutate(Model = "Global Serfling (Stan, NB)",
              mutate(across(pred:excess_year_upper, round)))
@@ -196,9 +192,6 @@ results_month_pand <- tibble(Country = character(),
 
 results_year_pand <- tibble(Country = character(), 
                             Year = double(), 
-                            pred = double(), 
-                            lower = double(), 
-                            upper = double(),
                             excess_year = double(), 
                             excess_year_lower = double(), 
                             excess_year_upper = double(),
@@ -272,7 +265,6 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     extract_year <- global_serfling_stan$pred_total_deaths %>% 
       filter(row_number() == 1) %>% 
       select(Country, Year, 
-             pred, lower, upper,
              excess_year, excess_year_lower, excess_year_upper) %>% 
       mutate(Model = "Global Serfling (Stan, NB, pandemic)",
              mutate(across(pred:excess_year_upper, round)))
