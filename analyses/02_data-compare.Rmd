@@ -20,8 +20,8 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, magrittr, janitor, scales, 
-       readxl, haven, 
+p_load(tidyverse, magrittr, janitor, scales, lemon,
+       readxl, haven,anytime,lubridate,
        kableExtra,
        aweek, wktmo)
 ```
@@ -344,7 +344,7 @@ stmf_month <- bind_rows(
 ) %>% 
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
   rename(Deaths = value) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month)),
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01")),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Country, Year, Month, Date)
 
@@ -427,10 +427,10 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
   mutate(Year = as.integer(Year)) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
   relocate(Year, Month, Date) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
-  mutate(Year = as.integer(Year),
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01")),
+         Year = as.integer(Year),
          Month = as.integer(Month),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
@@ -526,13 +526,15 @@ pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>%
 ch_pop_year %<>% 
   bind_rows(pop_2020) %>% 
   mutate(Population = as.integer(round((pop_jan + pop_dec) / 2))) %>% 
-  relocate(Year)
+  relocate(Year) %>%
+  distinct(.)
 
 write_rds(ch_pop_year, "data/BfS/ch_pop_year.Rds")
 rm(pop_2020)
 
 ch_deaths_month %<>% 
-  left_join(ch_pop_year %>% select(Year, Population))
+  left_join(ch_pop_year %>% select(Year, Population))%>%
+  distinct(.)
 
 write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 ```
@@ -828,8 +830,8 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.integer(str_replace(Month, fixed("m"), "")),
          Year = as.integer(Year),
-         Deaths = as.integer(round(Deaths)))  %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+         Deaths = as.integer(round(Deaths)))  %>%
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
   relocate(Year, Month, Date) %>% 
   filter(Year != 2020)
 ```
@@ -839,14 +841,18 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
 2020 update (*still labelled as provisional!*) is from  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
 
 ```{r}
-es_2020 <- read_xlsx("data-raw/INE/Spain_2020_death.xlsx", sheet = 1) %>%
-  gather(., Month, Deaths, 2:13, factor_key = TRUE) %>%
+source("R/fn_get_death_data_spain.R")
+
+es_2020 <- fn_get_death_data_spain() %>%
+  gather(., Month, Deaths, January:December, factor_key = TRUE) %>%
   group_by(Month) %>%
   summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
   ungroup() %>% 
   mutate(Year = 2020,
          Deaths = as.integer(Deaths),
-         Date = anytime::anydate(paste0("2020-", Month, "-01")),
+         # Month=as.integer(Month),
+         # Month=as.character(Month),
+         Date = ymd(paste0("2020-", Month, "-01")),
          Month = as.integer(Month)) %>% 
   relocate(Year, Month, Date, Deaths)
 ```
@@ -869,6 +875,8 @@ es_deaths_month %>%
 With update for 2020 from provisional data (see below for source).  
 
 ```{r}
+source("R/fn_get_spain_population.R")
+
 es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
@@ -879,12 +887,12 @@ es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>%
          Population = as.integer(round(Population))) %>% 
   filter(Year != 2020)
 
-es_pop_2020 <- read_xlsx("data-raw/INE/Spain_Population_age_2020.xlsx", sheet = 1) %>%
+es_pop_2020 <- fn_get_spain_population() %>%
   summarize(Population = sum(Population, na.rm = TRUE))%>%
   mutate(Year = as.integer(2020),
          Population = as.integer(Population)) %>% 
   relocate(Year)
- 
+
 es_pop_year %<>% 
   bind_rows(es_pop_2020)
   
@@ -913,6 +921,9 @@ INE data to supplement missing last two years in HMD.
 2019 data available [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available from [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
 
 ```{r}
+
+source("R/fn_get_death_data_spain.R")
+
 es_deaths_age_2019_2020 <- bind_rows(
   
   read_delim("data-raw/INE/Spain2019age.csv",
@@ -926,9 +937,9 @@ es_deaths_age_2019_2020 <- bind_rows(
     ) %>% 
     select(Year, Age, Total) %>% 
     mutate(Total = as.integer(round(Total))), 
-  
-  read_xlsx("data-raw/INE/Spain_2020_death.xlsx", sheet = 1) %>%
-  gather(., Month, Deaths, 2:13, factor_key = TRUE) %>%
+
+  fn_get_death_data_spain() %>%
+  gather(., Month, Deaths, January:December, factor_key = TRUE) %>%
   mutate(Age = as.integer(Age))%>%
   group_by(Age) %>%
   dplyr::summarize(Deaths = sum(Deaths,na.rm = TRUE))%>%
@@ -947,7 +958,10 @@ write_rds(es_deaths_age_2019_2020, "data/INE/es_deaths_age_2019_2020.Rds")
 2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
 
 ```{r echo=FALSE}
-es_pop_age_2020 <- read_xlsx("data-raw/INE/Spain_Population_age_2020.xlsx", sheet = 1) %>%
+
+source("R/fn_get_spain_population.R")
+
+es_pop_age_2020 <- fn_get_spain_population() %>%
   mutate(Year = as.integer(2020),
          Age = as.integer(Age),
          Population = as.integer(Population),
@@ -978,7 +992,7 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
          Month = match(Month_txt, month.name),
          Deaths = as.integer(round(Deaths))) %>% 
   select(-Month_txt) %>% 
-  mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
   relocate(Year, Month, Date) %>% 
   arrange(Year, Month)
 ```
@@ -1073,7 +1087,7 @@ deaths_monthly <- bind_rows(
   
   # Spain age&sex distribution in HMD is available from later!
   es_deaths_month %>% mutate(Country = "Spain") %>% 
-    filter(Year >= 1908),
+   filter(Year >= 1908),
   
   se_deaths_month %>% mutate(Country = "Sweden"),
   
