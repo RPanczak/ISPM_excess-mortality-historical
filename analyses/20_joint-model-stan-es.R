@@ -16,7 +16,7 @@ set.seed(12345)
 options(scipen = 999)
 theme_set(theme_minimal())
 options(mc.cores = parallel::detectCores())
-rstan_options(auto_write = TRUE)
+rstan_options(auto_write = FALSE)
 
 # Set up
 
