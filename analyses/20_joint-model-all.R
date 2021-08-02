@@ -91,7 +91,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   
   print(paste("Analysing", COUNTRY))
   
-  for (YEAR in YEARS$MIN+5:2020) {
+  for (YEAR in (YEARS$MIN+5):2020) {
   # for (YEAR in 1918:1919) {
     
     print(paste("     Analysing year", YEAR))
