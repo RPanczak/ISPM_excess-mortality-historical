@@ -1,7 +1,7 @@
 # install.packages(c("StanHeaders", "rstan"), repos = "https://cloud.r-project.org/", dependencies = TRUE, type = "source")
 
-# setwd("~/ISPM_excess-mortality/")
-setwd("C:/projects/ISPM_excess-mortality/")
+setwd("~/ISPM_excess-mortality/")
+# setwd("C:/projects/ISPM_excess-mortality/")
 
 library(pacman)
 p_load(tidyverse, magrittr, rstan)
