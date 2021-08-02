@@ -59,15 +59,15 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, p
   pp = summary(ss, pars="pred_total_deaths",probs=c(lp,.5,up))[[1]] %>%
     as_tibble() %>%
     bind_cols(pp) %>%
-    dplyr::rename(pred=5,lower=4,upper=6) %>%
+    dplyr::rename(pred=1,lower=4,upper=6) %>%
     dplyr::select(Country,Year,Month,Date,Deaths,Population,pred,lower,upper,n_eff,Rhat)
   pp = summary(ss, pars="excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
     as_tibble() %>%
-    dplyr::select(excess_month=5,excess_month_lower=4,excess_month_upper=6) %>%
+    dplyr::select(excess_month=1,excess_month_lower=4,excess_month_upper=6) %>%
     bind_cols(pp,.)
   pp = summary(ss, pars="yearly_excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
     as_tibble() %>%
-    dplyr::select(excess_year=5,excess_year_lower=4,excess_year_upper=6) %>%
+    dplyr::select(excess_year=1,excess_year_lower=4,excess_year_upper=6) %>%
     bind_cols(pp,.)
   return(list(samples=ss,pred_total_deaths=pp))
 }
