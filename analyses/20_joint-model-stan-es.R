@@ -37,6 +37,7 @@ pandemic <- c(1918, 1957, 2020)
 pandemic_affected <- c(seq(1918 + 1, 1918 + year_smooth),
                        seq(1957 + 1, 1957 + year_smooth))
 
+
 # Modelling 
 
 ## Excluding pandemic years
