@@ -131,9 +131,9 @@ table_1 <-
     
   ) %>% 
   mutate(Percent_excess = 
-           round((Excess / Expected) * 100, 1)) %>% 
-  relocate(Year, Country, Population, Expected, Observed, 
-           starts_with("Excess"), Percent_excess) %>% 
+           percent(Excess / Expected, accuracy = 0.1)) %>% 
+  relocate(Year, Country, Population, Observed, Expected, 
+           starts_with("Excess"), Percent_excess) %>%  
   arrange(Year, Country)
 
 openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
@@ -142,7 +142,7 @@ openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx",
 
 ```{r echo=FALSE}
 table_1 %>% 
-  kbl() %>%
+  kbl(align = "rlrrrrrrr") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
