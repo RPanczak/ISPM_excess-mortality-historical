@@ -175,8 +175,8 @@ results_month %>%
   geom_vline(data=vline_pandemic,aes(xintercept=Date+365/2),size=2,colour="#ffffbf",alpha=.8) +
   geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25) +
-  geom_hline(yintercept=0,linetype=2, size = 0.25) +
   geom_col(aes(y = excess_month, fill = Difference,colour=Difference),width=1) +
+  geom_hline(yintercept=0,linetype=2, size = 0.25) +
   scale_x_date(date_labels = "%Y",
                date_breaks="10 years",
                # breaks = c(as.Date("1860-01-01"), 
@@ -447,7 +447,7 @@ results_age %>%
   theme(legend.position = c(.1,.85),
         legend.background = element_blank(),
         axis.text.x = element_text(angle=45,hjust=1)) +
-  labs(x="Age group",y="Relative excess deaths",
+  labs(x="Age group",y="Excess deaths (in proportion of expected)",
        colour="Country")
 
 
