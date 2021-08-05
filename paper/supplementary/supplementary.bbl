@@ -1,0 +1,32 @@
+\begin{thebibliography}{1}
+
+\bibitem{hauser2020estimation}
+Hauser A, Counotte MJ, Margossian CC, Konstantinoudis G, Low N, Althaus CL,
+  et~al.
+\newblock Estimation of SARS-CoV-2 mortality during the early stages of an
+  epidemic: A modeling study in Hubei, China, and six regions in Europe.
+\newblock PLoS medicine. 2020;17(7):e1003189.
+
+\bibitem{carpenter2017stan}
+Carpenter B, Gelman A, Hoffman MD, Lee D, Goodrich B, Betancourt M, et~al.
+\newblock Stan: A probabilistic programming language.
+\newblock Journal of statistical software. 2017;76(1):1--32.
+
+\bibitem{gelman2020regression}
+Gelman A, Hill J, Vehtari A.
+\newblock Regression and other stories.
+\newblock Cambridge University Press; 2020.
+
+\bibitem{gelman2008weakly}
+Gelman A, Jakulin A, Pittau MG, Su YS.
+\newblock A weakly informative default prior distribution for logistic and
+  other regression models.
+\newblock The annals of applied statistics. 2008;2(4):1360--1383.
+
+\bibitem{hoffman2014no}
+Hoffman MD, Gelman A, et~al.
+\newblock The No-U-Turn sampler: adaptively setting path lengths in Hamiltonian
+  Monte Carlo.
+\newblock J Mach Learn Res. 2014;15(1):1593--1623.
+
+\end{thebibliography}
