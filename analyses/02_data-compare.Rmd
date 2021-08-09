@@ -54,6 +54,7 @@ Available on yearly resolution only but for one year age bands & separate by sex
 ```{r eval=FALSE}
 p_load(HMDHFDplus)
 
+# text file with password or modify password in calls below
 password <- readr::read_file("secrets/HMD.txt")
 
 # CH
@@ -115,6 +116,8 @@ p_unload(HMDHFDplus)
 ```
 
 ## Yearly deaths
+
+Combining three countries into one dataset.  
 
 ```{r}
 hmd_deaths_age_sex <- 
@@ -234,7 +237,7 @@ hmd_pop_year  %>%
   scale_y_continuous(labels = comma)
 ```
 
-Again, age structure is available yearly.  
+Again, age structure is available on yearly resolution.  
 
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
@@ -262,7 +265,7 @@ hmd_pop_age_sex %>%
 
 # HMD - STMF data series
 
-Short-term Mortality Fluctuations weekly dataset covering 2000-2020 period
+Short-term Mortality Fluctuations weekly dataset covering 2000-2020 period.  
 
 ```{r eval=FALSE}
 download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
@@ -323,7 +326,7 @@ stmf_week %>%
 
 ## Monthly
 
-Weekly data converted to monthly using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package. 
+Weekly data converted to monthly using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package.  
 
 ```{r}
 stmf_month <- bind_rows(
