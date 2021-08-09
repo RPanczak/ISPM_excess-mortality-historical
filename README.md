@@ -1,6 +1,6 @@
 # Tracking excess mortality in Switzerland, Spain & Sweden.  
 
-Visual summary of main results.
+Visual summary of main results. Full details of data preparation and analysis [here](https://rpanczak.github.io/ISPM_excess-mortality/). 
 
 ## Estimates of excess
 
@@ -21,9 +21,5 @@ Absolute excess deaths
 Relative excess deaths
 
 ![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S2.png)
-
-## Impact of "heavy hitters"
-
-![Heavy hitters](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S3.png)
 
  
