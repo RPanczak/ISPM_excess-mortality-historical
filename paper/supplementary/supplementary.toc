@@ -3,4 +3,5 @@
 \contentsline {subsection}{\numberline {1.2}Data preparation}{2}{subsection.1.2}%
 \contentsline {subsection}{\numberline {1.3}Statistical model}{2}{subsection.1.3}%
 \contentsline {subsection}{\numberline {1.4}Estimating excess deaths}{3}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Monthly vs. weekly data}{3}{subsection.1.5}%
 \contentsline {section}{\numberline {2}Supplementary figures}{4}{section.2}%
