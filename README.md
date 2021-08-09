@@ -10,7 +10,7 @@ Monthly differences
 
 Yearly differences
 
-![Monthly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S1.png)
+![Yearly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S1.png)
 
 ## Four pandemics
 
@@ -24,23 +24,6 @@ Relative excess deaths
 
 ## Impact of "heavy hitters"
 
-
 ![Heavy hitters](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S3.png)
 
-## Data sources
-
-### All countries
-
-  1. [The Human Mortality Database](https://www.mortality.org/): mortality, population and Short-Term Mortality Fluctuation data series (STMF).
-  
-### Switzerland
-
-Data from [Swiss Federal Statistical Office](https://www.bfs.admin.ch).  
-
-### Sweden
-
-Data from [Statistics Sweden](https://www.scb.se/en/).  
-
-### Spain
-
-Data from [Spanish Statistical Office](https://www.ine.es/en/index.htm).  
+ 
