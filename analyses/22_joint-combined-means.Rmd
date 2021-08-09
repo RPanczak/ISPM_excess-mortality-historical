@@ -10,6 +10,8 @@ self_contained: true
 highlight: pygments
 editor_options: 
   chunk_output_type: console
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
 ---
 
 <!-- ----------------------------------------------------- -->
