@@ -1,6 +1,6 @@
-# ISPM_excess-mortality
+# Tracking excess mortality in Switzerland, Spain & Sweden.  
 
-Tracking excess mortality in Switzerland, Spain & Sweden.  
+Visual summary of main results.
 
 ## Estimates of excess
 
