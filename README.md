@@ -1,10 +1,14 @@
 # Tracking excess mortality in Switzerland, Spain & Sweden.  
 
-Visual summary of main results. Full details of the sources, data preparation and analyses [here](https://rpanczak.github.io/ISPM_excess-mortality/). 
+Data & code to reproduce paper Of Staub K, Panczak R *et al.* (forthcoming).  
+
+Full details of the data sources, data preparation and analyses [on the project pages](https://rpanczak.github.io/ISPM_excess-mortality/). 
 
 Visual summary of repo content [here](https://octo-repo-visualization.vercel.app/?repo=RPanczak%2FISPM_excess-mortality). 
 
-## Estimates of excess
+## Visual summary of main results
+
+### Estimates of excess
 
 Monthly differences
 
@@ -14,7 +18,7 @@ Yearly differences
 
 ![Yearly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S1.png)
 
-## Four pandemics
+### Four pandemics
 
 Absolute excess deaths
 
