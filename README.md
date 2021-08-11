@@ -1,6 +1,8 @@
 # Tracking excess mortality in Switzerland, Spain & Sweden.  
 
-Visual summary of main results. Full details of data preparation and analysis [here](https://rpanczak.github.io/ISPM_excess-mortality/). 
+Visual summary of main results. Full details of the sources, data preparation and analyses [here](https://rpanczak.github.io/ISPM_excess-mortality/). 
+
+Visual summary of repo content [here](https://octo-repo-visualization.vercel.app/?repo=RPanczak%2FISPM_excess-mortality). 
 
 ## Estimates of excess
 
