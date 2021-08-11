@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  9 AUG 2021 16:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  11 AUG 2021 11:56
 entering extended mode
 **./supplementary.tex
 (supplementary.tex
@@ -762,8 +762,8 @@ File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 [1
 
 {C:/Users/panczak/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-LaTeX Font Info:    Trying to load font information for U+dsrom on input line 9
-8.
+LaTeX Font Info:    Trying to load font information for U+dsrom on input line 1
+00.
 
 (C:\Users\panczak\AppData\Roaming\MiKTeX\2.9\tex/latex/doublestroke\udsrom.fd
 File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
@@ -774,47 +774,47 @@ File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
 <../Figure_S1.png, id=102, 844.8363pt x 597.432pt>
 File: ../Figure_S1.png Graphic file (type png)
 <use ../Figure_S1.png>
-Package pdftex.def Info: ../Figure_S1.png  used on input line 139.
+Package pdftex.def Info: ../Figure_S1.png  used on input line 141.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [3]
 <../Figure_S2.png, id=115, 844.8363pt x 597.432pt>
 File: ../Figure_S2.png Graphic file (type png)
 <use ../Figure_S2.png>
-Package pdftex.def Info: ../Figure_S2.png  used on input line 146.
+Package pdftex.def Info: ../Figure_S2.png  used on input line 148.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [4pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.149 
+l.151 
        <../Figure_S1.png>]
 <../Figure_S3.png, id=122, 844.8363pt x 597.432pt>
 File: ../Figure_S3.png Graphic file (type png)
 <use ../Figure_S3.png>
-Package pdftex.def Info: ../Figure_S3.png  used on input line 153.
+Package pdftex.def Info: ../Figure_S3.png  used on input line 155.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [5pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.156 
+l.158 
        <../Figure_S2.png>]
 <../plot_appendix_week_month.pdf, id=129, 722.7pt x 722.7pt>
 File: ../plot_appendix_week_month.pdf Graphic file (type pdf)
 <use ../plot_appendix_week_month.pdf>
-Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 15
-9.
+Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 16
+1.
 (pdftex.def)             Requested size: 338.5863pt x 338.58835pt.
  [6pdfTeX warning (ext4): destination with the same identifier (name{figure.3})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.162 
+l.164 
        <../Figure_S3.png>] [7pdfTeX warning (ext4): destination with the same i
 dentifier (name{figure.4}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.166 	\clearpage
+l.168 	\clearpage
                   <../plot_appendix_week_month.pdf>] (supplementary.bbl)
 [8
 
@@ -829,7 +829,7 @@ Here is how much of TeX's memory you used:
  34407 multiletter control sequences out of 15000+200000
  418106 words of font info for 60 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 113i,10n,116p,1595b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 113i,10n,116p,1126b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
 pdfTeX warning (dest): name{Hfootnote.4} has been referenced but does not exi
 st, replaced by a fixed one
 
@@ -867,9 +867,9 @@ Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/MiKT
 eX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/f
 onts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/panczak/AppData/Roaming/MiKTe
 X/2.9/fonts/type1/public/doublestroke/dsrom10.pfb>
-Output written on supplementary.pdf (8 pages, 575482 bytes).
+Output written on supplementary.pdf (8 pages, 576331 bytes).
 PDF statistics:
- 654 PDF objects out of 1000 (max. 8388607)
+ 653 PDF objects out of 1000 (max. 8388607)
  42 named destinations out of 1000 (max. 500000)
  89 words of extra memory for PDF output out of 10000 (max. 10000000)
 
