@@ -180,7 +180,7 @@ results_month %>%
   ggplot(aes(x = Date)) +
   geom_vline(data = vline_pandemic, 
              aes(xintercept = Date+365/2), 
-             size = 2, colour = "#ffffbf", alpha = .7) +
+             size = 2, colour = "#ffffbf", alpha = 0.7) +
   geom_hline(data = hline_pandemic, 
              aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25) +
@@ -265,7 +265,7 @@ for(country in unique(results_month$Country)) {
       geom_rect(xmin = as.Date(paste0(year, "-01-01")),
                 xmax = as.Date(paste0(year, "-12-31")),
                 ymin = -Inf, ymax = Inf,
-                fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +
+                fill = "#ffffbf", alpha = 0.05, inherit.aes = FALSE) +
       geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
       geom_line(aes(y = pred), colour = "grey50") +
       geom_line(aes(y = Deaths), color = "#EF8A62", size = 0.5) +
@@ -303,7 +303,9 @@ rm(Spain_1918, Spain_1957, Spain_2020,
    focus_years, max)
 ```
 
-```{r echo=FALSE, eval=FALSE}
+Alternative version of facets.  
+
+```{r echo=FALSE}
 focus_years <- c(1890, 1918, 1957, 2020)
 
 shown_years = NULL
@@ -313,7 +315,7 @@ for(i in focus_years) {
                                  focus_year=i,
                                  shown_years=paste0(i-2,"-",min(2020,i+2))))
 }
-# shown_years %<>% filter(Year <= 2020)
+shown_years %<>% filter(Year <= 2020)
 
 gg = results_month %>%
   mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain")) %>% 
@@ -323,12 +325,12 @@ gg = results_month %>%
   geom_rect(aes(xmin = as.Date(paste0(focus_year, "-01-01")),
                 xmax = as.Date(paste0(focus_year, "-12-31")),
                 ymin = -Inf, ymax = Inf), 
-            fill = "#ffffbf", alpha = 0.01) +
+            fill = "#ffffbf", alpha = 0.05) +
   geom_ribbon(aes(x=Date,ymin=lower,ymax=upper), alpha=0.1) +
   geom_line(aes(x=Date,y=pred)) +
   geom_line(aes(x=Date,y=Deaths),colour="#EF8A62",size=0.5) +
   geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
-  facet_grid(Country ~ shown_years, scales="free") +
+  facet_grid(Country ~ shown_years,scales="free", spac="free_x") +
   scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
                                            scale = 1e-3)) +
   theme_bw()+
@@ -338,6 +340,9 @@ gg = results_month %>%
 #gg
 require(grid)
 g_data_grob = ggplotGrob(gg)
+
+# View(g_data_grob$layout)
+# gtable::gtable_show_layout(ggplotGrob(gg)) 
 
 ## remove unused facets
 idx <- which(g_data_grob$layout$name %in% c("panel-3-1"))
@@ -351,12 +356,12 @@ g_data_grob$layout[idx, c("l", "r")] <- g_data_grob$layout[idx, c("l", "r")] + 2
 ## move x axis up
 # axis-b-1 needs to move 1 column up
 idx <- which(g_data_grob$layout$name %in% c("axis-b-1"))
-g_data_grob$layout[idx, c("l", "r")] <- g_data_grob$layout[idx, c("l", "r")] + 1
+g_data_grob$layout[idx, c("t")] <- g_data_grob$layout[idx, c("t")] - 2
 
 grid.newpage()
 grid.draw(g_data_grob)
 
-# ggsave("paper/Figure_2.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_2_alt.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ## Figure 3
@@ -473,9 +478,14 @@ hline_pandemic <- results_year %>%
   summarise(yintercept = max(excess_year)) %>% 
   ungroup()
 
+vline_pandemic <- tibble(Year=c(1890,1918,1957,1968,1977,2009,2020)) 
+
 results_year %>% 
   mutate(Difference = ifelse(excess_year > 0, "More than expected", "Less than expected")) %>% 
   ggplot(aes(x = Year)) +
+  geom_vline(data = vline_pandemic, 
+             aes(xintercept = Year), 
+                 size = 3, colour = "#ffffbf", alpha = 0.7) +  
   geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25, linetype = "dashed") +
   geom_hline(yintercept = 0, colour = "grey80") +
