@@ -287,9 +287,9 @@ for(country in unique(results_month$Country)) {
   }
 }
 
-Switzerland_1890 + Switzerland_1918 + Switzerland_1957 + Switzerland_2020 +
+plot_spacer() + Spain_1918 + Spain_1957 + Spain_2020 +
   Sweden_1890 + Sweden_1918 + Sweden_1957 + Sweden_2020 +
-  plot_spacer() + Spain_1918 + Spain_1957 + Spain_2020 +
+  Switzerland_1890 + Switzerland_1918 + Switzerland_1957 + Switzerland_2020 +
   plot_layout(widths = rep(c(2, 2, 2, 1), 3)) +
   plot_layout(ncol = 4) + 
   theme(plot.margin = margin(0, 0, 0, 0))
@@ -323,33 +323,35 @@ gg = results_month %>%
   geom_rect(aes(xmin = as.Date(paste0(focus_year, "-01-01")),
                 xmax = as.Date(paste0(focus_year, "-12-31")),
                 ymin = -Inf, ymax = Inf), 
-            fill = "#ffffbf", alpha = 0.05) +
+            fill = "#ffffbf", alpha = 0.01) +
   geom_ribbon(aes(x=Date,ymin=lower,ymax=upper), alpha=0.1) +
   geom_line(aes(x=Date,y=pred)) +
-  geom_line(aes(x=Date,y=Deaths),colour="#EF8A62") +
+  geom_line(aes(x=Date,y=Deaths),colour="#EF8A62",size=0.5) +
   geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
   facet_grid(Country ~ shown_years, scales="free") +
   scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
                                            scale = 1e-3)) +
   theme_bw()+
   theme(plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x="Year",y="Montly deaths")
+  labs(x="Year",y="Monthly deaths")
 
-gg
+#gg
 require(grid)
 g_data_grob = ggplotGrob(gg)
-
 
 ## remove unused facets
 idx <- which(g_data_grob$layout$name %in% c("panel-3-1"))
 for (i in idx) g_data_grob$grobs[[i]] <- nullGrob()
 
 ## move y axis right
-# axis-l-1 needs to move 1 columns to the right
+# axis-l-1 needs to move 1 column to the right
 idx <- which(g_data_grob$layout$name %in% c("axis-l-3"))
 g_data_grob$layout[idx, c("l", "r")] <- g_data_grob$layout[idx, c("l", "r")] + 2
 
 ## move x axis up
+# axis-b-1 needs to move 1 column up
+idx <- which(g_data_grob$layout$name %in% c("axis-b-1"))
+g_data_grob$layout[idx, c("l", "r")] <- g_data_grob$layout[idx, c("l", "r")] + 1
 
 grid.newpage()
 grid.draw(g_data_grob)
@@ -529,7 +531,7 @@ plot_data %>%
   geom_vline(xintercept = 13, colour = "grey80") +
   geom_vline(xintercept = 24, colour = "grey80") +
   geom_rect(aes(xmin = 13, xmax = 24,
-            ymin = -Inf, ymax = Inf),
+                ymin = -Inf, ymax = Inf),
             fill = "#ffffbf", alpha = 0.01, inherit.aes = FALSE) +
   geom_col(aes(y = Percent, fill = Difference), size = 0.5) +
   facet_grid(vars(Country), vars(Pandemic), scales = "free") + 
