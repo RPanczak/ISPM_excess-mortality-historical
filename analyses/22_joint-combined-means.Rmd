@@ -165,7 +165,8 @@ hline_pandemic <- results_month %>%
   filter(Year == 2020) %>% 
   group_by(Country) %>% 
   summarise(yintercept = max(excess_month)) %>% 
-  ungroup()
+  ungroup() %>%
+  mutate(Country2 = factor(Country, levels=c("Switzerland","Sweden","Spain")))
 
 vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
                                 as.Date("1918-01-01"),
@@ -177,10 +178,11 @@ vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
 
 results_month %>% 
   mutate(Difference = ifelse(excess_month > 0, "More than expected", "Fewer than expected")) %>% 
+  mutate(Country2 = factor(Country, levels=c("Switzerland","Sweden","Spain"))) %>%
   ggplot(aes(x = Date)) +
   geom_vline(data = vline_pandemic, 
              aes(xintercept = Date+365/2), 
-             size = 2, colour = "#ffffbf", alpha = 0.7) +
+             size = 2, colour = "grey90") +
   geom_hline(data = hline_pandemic, 
              aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25) +
@@ -193,7 +195,7 @@ results_month %>%
                expand = c(0.01, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
-  facet_grid(vars(Country), scales = "free_y") + 
+  facet_grid(Country2~., scales = "free_y") + 
   scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", scale = 1e-3)) +
   theme_bw() +
   theme(legend.position = c(.12, .95),
@@ -201,9 +203,9 @@ results_month %>%
   labs(x = "Year",y = "Monthly excess deaths", fill = NULL) +
   guides(fill = guide_legend(reverse = TRUE)) 
 
-rm(hline_pandemic)
+# rm(hline_pandemic)
 
-ggsave("paper/Figure_1.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
 
@@ -265,7 +267,7 @@ for(country in unique(results_month$Country)) {
       geom_rect(xmin = as.Date(paste0(year, "-01-01")),
                 xmax = as.Date(paste0(year, "-12-31")),
                 ymin = -Inf, ymax = Inf,
-                fill = "#ffffbf", alpha = 0.05, inherit.aes = FALSE) +
+                fill = "grey90", inherit.aes = FALSE) +
       geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.1) +
       geom_line(aes(y = pred), colour = "grey50") +
       geom_line(aes(y = Deaths), color = "#EF8A62", size = 0.5) +
@@ -325,19 +327,21 @@ gg = results_month %>%
   geom_rect(aes(xmin = as.Date(paste0(focus_year, "-01-01")),
                 xmax = as.Date(paste0(focus_year, "-12-31")),
                 ymin = -Inf, ymax = Inf), 
-            fill = "#ffffbf", alpha = 0.05) +
-  geom_ribbon(aes(x=Date,ymin=lower,ymax=upper), alpha=0.1) +
-  geom_line(aes(x=Date,y=pred)) +
+            fill = "grey90") +
+  geom_ribbon(aes(x=Date,ymin=lower,ymax=upper),fill="aquamarine3",alpha=.5) +
+  geom_line(aes(x=Date,y=pred),colour="aquamarine4") +
   geom_line(aes(x=Date,y=Deaths),colour="#EF8A62",size=0.5) +
   geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
   facet_grid(Country ~ shown_years,scales="free", spac="free_x") +
   scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
                                            scale = 1e-3)) +
+  scale_x_date(date_breaks="2 years",date_labels = "%Y") +
   theme_bw()+
   theme(plot.margin = margin(0.5, 0.5, 0, 0))+
   labs(x="Year",y="Monthly deaths")
 
-#gg
+# gg
+
 require(grid)
 g_data_grob = ggplotGrob(gg)
 
@@ -361,7 +365,9 @@ g_data_grob$layout[idx, c("t")] <- g_data_grob$layout[idx, c("t")] - 2
 grid.newpage()
 grid.draw(g_data_grob)
 
-ggsave("paper/Figure_2_alt.png", dpi = 300, width = 297, height = 210, units = "mm")
+gg = ggplotify::as.ggplot(g_data_grob)
+
+ggsave(plot = gg,"paper/Figure_2_alt.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
 ## Figure 3
@@ -394,14 +400,14 @@ results_age %>%
   scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
   # coord_cartesian(ylim=c(-0.02,.07)) +
   labs(x="Year",y="Montly deaths") +
-  theme(legend.position = c(.1,.85),
+  theme(legend.position = c(.1,.8),
         legend.background = element_blank(),
         axis.text.x = element_text(angle=45,hjust=1),
         plot.margin = margin(0, 0, 0, 0)) +
   labs(x="Age group",y="Excess deaths (in proportion of expected)",
        colour="Country")
 
-ggsave("paper/Figure_3.png", dpi = 300, width = 297, height = 150, units = "mm")
+ggsave("paper/Figure_3.png", dpi = 300, width = 200, height = 100, units = "mm")
 ```
 
 <!-- ----------------------------------------------------- -->
