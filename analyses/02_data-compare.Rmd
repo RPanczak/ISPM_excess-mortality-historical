@@ -463,6 +463,8 @@ ggplot(data = ch_deaths_month,
 
 BfS delivered data to supplement missing last two years in HMD.  
 
+Data seem to be now publicly available [here](https://www.bfs.admin.ch/bfs/en/home/statistics/population.assetdetail.17664400.html) or custom tabs [here](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020206_103/px-x-0102020206_103/px-x-0102020206_103.px/).  
+
 ```{r}
 ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
                                         col_types = cols(KalJahr = col_integer(),
@@ -803,7 +805,7 @@ ggplot(compare, aes(x = Date, y = diff)) +
   geom_hline(yintercept = 0, colour = "lightblue") +
   geom_line() +
   theme_bw() +
-  xlab("") + ylab("Yearly difference in number of deaths")
+  xlab("") + ylab("Absolute difference in number of deaths")
 ```
 
 #### Percentage
@@ -817,7 +819,7 @@ ggplot(compare, aes(x = Date, y = perc*100)) +
   geom_hline(yintercept = 0, colour = "lightblue") +
   geom_line() +
   theme_bw() +
-  xlab("") + ylab("Yearly difference in number of deaths")
+  xlab("") + ylab("% difference in number of deaths")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -1078,10 +1080,11 @@ hmd_pop_age_sex %>%
 
 ## Monthly deaths with yearly pops
 
+Spain age&sex distribution in HMD is [available from later](https://github.com/RPanczak/ISPM_excess-mortality/issues/81)!
+
 ```{r}
 deaths_monthly <- bind_rows(
   
-  # Spain age&sex distribution in HMD is available from later!
   es_deaths_month %>% mutate(Country = "Spain") %>% 
     filter(Year >= 1908),
   
