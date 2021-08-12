@@ -45,7 +45,7 @@
 \author[d]{Christoph Junker}
 \author[d]{Rolf Weitkunat}
 \author[e]{Svenn-Erik Mamelund}
-\author[b,*]{Matthias Egger}
+\author[b,f,g]{Matthias Egger}
 \author[b,$\ddagger$]{Marcel Zwahlen}
 \author[b,$\ddagger$]{Julien Riou}
 
@@ -74,9 +74,9 @@
 	
 	\subsection{Data sources and availability }
 
-	Monthly all-cause death numbers for Switzerland (1877-2020) and Sweden (1851-2020) were provided by the Swiss Federal Statistical Office\footnote{Swiss Federal Statistical Office, Todesfälle nach Monat und Sterblichkeit seit 1803 (2021), (available at \url{https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html}).} and Statistics Sweden\footnote{Statistics Sweden (SCB), Births and deaths per month by sex. Year 1851 - 2020 (2021), (available at \url{https://www.statistikdatabasen.scb.se/pxweb/en/ssd/START__BE__BE0101__BE0101G/ManadFoddDod/}).}, they are freely available. For Spain, the monthly death figures 1941-2020 were accessible through the Spanish Statistical Office, the years 1908-1940 had to be transcribed from historical reports provided on their webpage \footnote{Instituto Nacional de Estadistica (INE), Anuarios Estadísticos (2021), (available at \url{https://www.ine.es/inebaseweb/libros.do?tntp=25687}).}. It should be noted that all statistical authorities still consider the 2020 figures as provisional. 
+	Monthly all-cause death numbers for Switzerland (1877-2020) and Sweden (1851-2020) were provided by the Swiss Federal Statistical Office\footnote{Swiss Federal Statistical Office, Todesfälle nach Monat und Sterblichkeit seit 1803 (2021), (available at \url{https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html}).} and Statistics Sweden\footnote{Statistics Sweden (SCB), Births and deaths per month by sex. Year 1851-2020 (2021), (available at \url{https://www.statistikdatabasen.scb.se/pxweb/en/ssd/START__BE__BE0101__BE0101G/ManadFoddDod/}).}, they are freely available. For Spain, the monthly death figures 1941-2020 were accessible through the Spanish Statistical Office, the years 1908-1940 had to be transcribed from historical reports provided on their webpage \footnote{Instituto Nacional de Estadistica (INE), Anuarios Estadísticos (2021), (available at \url{https://www.ine.es/inebaseweb/libros.do?tntp=25687}).}. It should be noted that all statistical authorities still consider the 2020 figures as provisional. 
 	
-	The annual population numbers as well as annual deaths by age group (in 1-year bands) were obtained from the Human Mortality Database (HMD, www.mortality.org). Most recent annual death counts (2019-2020 for Spain and Switzerland; 2020 for Sweden) and population structure (2020 for Spain) unavailable in HMD were obtained from provisional publicly accessible data repositories of the national statistics services of the three countries. In case of Switzerland we used 2019 population structure due to lack of reasonable estimates for 2020. All data and code used in this analysis are provided in the study github repository \footnote{\url{https://github.com/RPanczak/ISPM_excess-mortality/}}.
+	The annual population numbers as well as annual deaths by age group (in 1-year bands) were obtained from the Human Mortality Database (HMD, www.mortality.org). Most recent annual death counts (2019-2020 for Spain and Switzerland; 2020 for Sweden) and population structure (2020 for Spain) unavailable in HMD were obtained from provisional publicly accessible data repositories of the national statistics services of the three countries. In case of Switzerland we used 2019 population structure due to lack of reasonable estimates for 2020. All raw and prepared data as well as R code used in this analysis are provided in the study's GitHub repository \footnote{\url{https://GitHub.com/RPanczak/ISPM_excess-mortality/}}.
 	
 	\subsection{Data preparation}
 	
@@ -116,7 +116,7 @@
 	\end{equation}
 	This approach of ``stratification and joint likelihood'' was inspired by a recent work focusing on the COVID-19 infection-fatality ratio \cite{hauser2020estimation}.
 	
-	The model was implemented in Stan (the full code is available in the study github repository) \cite{carpenter2017stan}. We selected weakly informative prior distributions for all model parameters \cite{gelman2020regression,gelman2008weakly}, that is normal distributions with mean 0 and standard deviation 10 for intercept and yearly and seasonal slope parameters and a Cauchy distribution with location 0 and scale 5 for the inverse of the overdispersion parameter. We estimated the posterior distributions with Stan's default Hamiltonian Monte Carlo algorithm \cite{hoffman2014no} by sampling 1000 iterations after 1000 iterations for warm-up in four independent chains. We assessed convergence using the Gelman-Rubin convergence diagnostic and sampling efficiency using effective sample size. These diagnostics did not reveal any issues with mixing and convergence in all settings.
+	The model was implemented in Stan (the full code is available in the texttt{stan} folder in study's GitHub repository) \cite{carpenter2017stan}. We selected weakly informative prior distributions for all model parameters \cite{gelman2020regression,gelman2008weakly}, that is normal distributions with mean 0 and standard deviation 10 for intercept and yearly and seasonal slope parameters and a Cauchy distribution with location 0 and scale 5 for the inverse of the overdispersion parameter. We estimated the posterior distributions with Stan's default Hamiltonian Monte Carlo algorithm \cite{hoffman2014no} by sampling 1000 iterations after 1000 iterations for warm-up in four independent chains. We assessed convergence using the Gelman-Rubin convergence diagnostic and sampling efficiency using effective sample size. These diagnostics did not reveal any issues with mixing and convergence in all settings.
 	
 	\subsection{Estimating excess deaths}
 	
@@ -132,7 +132,7 @@
 
 	\subsection{Monthly vs. weekly data}
 	
-	A comparison with the same seasonality adjustments between weekly and monthly aggregated calculation of excess mortality for Switzerland, Spain, and Sweden showed small differences in the expected number of deaths (between -0.4\% and +0.9\%) for the full calendar years where the data was available between 2005 and 2020 (Supplementary Figure S4).	
+	A comparison with the same seasonality adjustments between weekly\footnote{Short-term Mortality Fluctuations (STMF) data series, (available at \url{https://www.mortality.org/}).} and monthly aggregated calculation of excess mortality (unadjusted for age) for Switzerland, Spain, and Sweden showed small differences in the expected number of deaths (between -0.4\% and +0.9\%) for the full calendar years where the data was available between 2005 and 2020 (Supplementary Figure S4).	
 	
 	\section{Supplementary figures}
 	
@@ -159,7 +159,7 @@
 	\begin{figure}[H]
 	\centering	
 	\includegraphics[width=.7\linewidth]{../plot_appendix_week_month}
-	\caption{Comparison of weekly (original data from Human Mortality Database) vs. monthly aggregated calculation of excess mortality for Switzerland, Spain, and Sweden and entire calendar years between 2005 and 2020. The differences between weekly and monthly calculated percentages of excess mortality range from -0.4\% to 0.9\%. }
+	\caption{Comparison of weekly (STMF data from Human Mortality Database) vs. monthly (data as described and used in the main analyses) aggregated calculation of excess mortality for Switzerland, Spain, and Sweden and entire calendar years between 2005 and 2020. The differences between weekly and monthly calculated percentages of excess mortality range from -0.4\% to 0.9\%. }
 \end{figure}
 
 %\section{Supplementary table }
