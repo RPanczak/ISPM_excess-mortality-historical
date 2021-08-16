@@ -6,6 +6,8 @@ Staub, K., Panczak, R., Matthes, K.L., Floris, J., Berlin, C., Junker, C., Weitk
 
 Full details of the data sources, data preparation and analyses [on the project pages](https://rpanczak.github.io/ISPM_excess-mortality/). 
 
+Archived on [![DOI](https://zenodo.org/badge/341273510.svg)](https://zenodo.org/badge/latestdoi/341273510)  
+
 Visual summary of repo content [here](https://octo-repo-visualization.vercel.app/?repo=RPanczak%2FISPM_excess-mortality). 
 
 ## Visual summary of main results
