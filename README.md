@@ -1,6 +1,8 @@
 # Tracking excess mortality in Switzerland, Spain & Sweden.  
 
-Data & code to reproduce paper Of Staub K, Panczak R *et al.* (forthcoming).  
+Data & code to reproduce paper:  
+
+Staub, K., Panczak, R., Matthes, K.L., Floris, J., Berlin, C., Junker, C., Weitkunat, R., Mamelund, S.-E., Egger, M., Zwahlen, M., Riou, J., 2021. Pandemic excess mortality in Spain, Sweden, and Switzerland during the COVID-19 pandemic in 2020 was at its highest since 1918. medRxiv 2021.08.12.21261825. doi:https://doi.org/10.1101/2021.08.12.21261825  
 
 Full details of the data sources, data preparation and analyses [on the project pages](https://rpanczak.github.io/ISPM_excess-mortality/). 
 
