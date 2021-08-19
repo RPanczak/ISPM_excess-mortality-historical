@@ -15,7 +15,7 @@ data.schmid <- read.xlsx("data-raw/Schmid/Schmid_Tabelle_XX.xlsx") %>%
          Age=Altersklassen,
          Age=replace(Age, Age=="Unter 1 Jahr","<1"),
          Age=replace(Age, Age=="1-4 Jahre","1-4"),
-         Age=replace(Age, Age=="5-19 Jahre","5-9"),
+         Age=replace(Age, Age=="5-19 Jahre","5-19"),
          Age=replace(Age, Age=="20-39 Jahre","20-39"),
          Age=replace(Age, Age=="40-59 Jahre","40-59"),
          Age=replace(Age, Age=="60-79 Jahre ","60-79"),
