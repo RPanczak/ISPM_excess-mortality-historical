@@ -151,7 +151,8 @@ Sweden has one more year of data than other two countries:
 ```{r}
 hmd_deaths_age_sex %>% 
   group_by(Country) %>% 
-  summarize(Max = max(Year))
+  summarize(Max = max(Year)) %>% 
+  ungroup()
 ```
 
 Yearly totals per country indicating different time frames of data.  
@@ -225,7 +226,8 @@ Again, Sweden has more data - and already includes 2020:
 ```{r}
 hmd_pop_age_sex %>% 
   group_by(Country) %>% 
-  summarize(Max = max(Year))
+  summarize(Max = max(Year)) %>% 
+  ungroup()
 ```
 
 Yearly totals  
@@ -326,6 +328,16 @@ stmf_week %>%
   xlab("") + ylab("Weekly number of deaths")
 ```
 
+This time, Sweden has slightly less data:  
+
+```{r}
+stmf_week %>% 
+  filter(Year == 2021) %>% 
+  group_by(Country) %>% 
+  summarize(Max = max(Week)) %>% 
+  ungroup()
+```
+
 ## Monthly
 
 Weekly data converted to monthly using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package.  
@@ -360,7 +372,7 @@ write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
 
 ```{r echo=FALSE}
 stmf_month %>% 
-  filter(Date != as.Date("2021-06-01")) %>%
+  filter(Date != as.Date("2021-08-01")) %>%
   filter(Year >= 2019) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = Deaths, group = Country, color = Country)) +
@@ -368,7 +380,7 @@ stmf_month %>%
   xlab("") + ylab("Monthly number of deaths")
 ```
 
-*Note: Excluding June 2021.*  
+*Note: Excluding partial data for Aug 2021.*  
 
 ## Yearly totals
 
@@ -399,13 +411,13 @@ left_join(
   row_spec(1, italic = FALSE)
 ```
 
-Showing small imperfections of the `week -> month` transition!
+Showing small imperfections of the `week -> month` transition! 2020 seems to be always a bit in `+` and 2021 in `-`.  
 
 <!-- ----------------------------------------------------- -->
 
 # Switzerland 
 
-## Monthly deaths 
+## Monthly deaths {.tabset}
 
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).
 
@@ -443,13 +455,7 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
   relocate(Year, Month, Date)
 ```
 
-```{r echo=FALSE}
-ggplot(data = ch_deaths_year, 
-       aes(x = Year)) +
-  geom_line(aes(y = Deaths)) +
-  theme_bw() +
-  xlab("") + ylab("Yearly number of deaths")
-```
+### Monthly
 
 ```{r echo=FALSE}
 ggplot(data = ch_deaths_month, 
@@ -459,11 +465,21 @@ ggplot(data = ch_deaths_month,
   xlab("") + ylab("Monthly number of deaths")
 ```
 
+### Yearly 
+
+```{r echo=FALSE}
+ggplot(data = ch_deaths_year, 
+       aes(x = Year)) +
+  geom_line(aes(y = Deaths)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly number of deaths")
+```
+
 ## 2019-2020 deaths with age & sex structure
 
 BfS delivered data to supplement missing last two years in HMD.  
 
-Data seem to be now publicly available [here](https://www.bfs.admin.ch/bfs/en/home/statistics/population.assetdetail.17664400.html) or custom tabs [here](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020206_103/px-x-0102020206_103/px-x-0102020206_103.px/).  
+Note: data now seem to be now publicly available [here](https://www.bfs.admin.ch/bfs/en/home/statistics/population.assetdetail.17664400.html) or in custom tabs [here](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020206_103/px-x-0102020206_103/px-x-0102020206_103.px/).  
 
 ```{r}
 ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
@@ -487,6 +503,8 @@ write_rds(ch_deaths_age_sex_2019_2020, "data/BfS/ch_deaths_age_sex_2019_2020.Rds
 ## Yearly pops 
 
 [Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html). Population of Jan and Dec averaged.  
+
+<!-- Alternative source might be [here](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.14819631.html).   -->
 
 ```{r}
 ch_pop_year <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx", 
@@ -563,7 +581,7 @@ ggplot(ch_pop_year, aes(x = Year)) +
 
 ## 2020 pops with age structure
 
-Using provisional figures - see above for source. Same as previously mean of Jan and Dec is taken, apart from `0 Jahre` age group where only figures from `31 Dec` are taken (`1st Jan` value is strangely `0` for this group).  
+Using provisional figures - see above for source. Same as previously mean of Jan and Dec is taken, apart from `0 Jahre` age group where only figures from `31 Dec` are taken (`1st Jan` value is `0` for this group).  
 
 ```{r}
 ch_pop_age_sex_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
@@ -613,6 +631,8 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16404495/mast
               destfile = "data-raw/BfS/cc-d-01.02.03.03.xlsx",
               method = "curl")
 ```
+
+
 
 ## Comparison - pops
 
