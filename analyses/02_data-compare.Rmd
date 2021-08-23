@@ -726,10 +726,6 @@ compare %>%
   xlab("") + ylab("% difference in population estimates across age groups")
 ```
 
-
-```{r echo=FALSE}
-```
-
 ## Comparison - pops
 
 ### Totals
