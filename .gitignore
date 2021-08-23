@@ -37,3 +37,5 @@ stan/*.rds
 paper/*.docx
 ubelix/mgmt.txt
 Stata-rp
+
+/data-raw/BfS/STATPOP_2010_2020_detailliert.csv
