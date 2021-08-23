@@ -181,7 +181,7 @@ hmd_deaths_age_sex %>%
   ggplot(mapping = aes(x = ifelse(test = Sex == "Male", 
                                   yes = -pop, no = pop), 
                        y = Age_cat, fill = Sex)) +
-  geom_col(width = 1) +
+  geom_col() +
   scale_x_symmetric(labels = abs) +
   labs(x = "Deaths", y = "Age at death") +
   facet_grid(vars(Year)) +
@@ -257,7 +257,7 @@ hmd_pop_age_sex %>%
   ggplot(mapping = aes(x = ifelse(test = Sex == "Male", 
                                   yes = -pop, no = pop), 
                        y = Age_cat, fill = Sex)) +
-  geom_col(width = 1) +
+  geom_col() +
   scale_x_symmetric(labels = abs) +
   labs(x = "Population", y = "Age") +
   facet_grid(vars(Year)) +
@@ -372,7 +372,7 @@ write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
 
 ```{r echo=FALSE}
 stmf_month %>% 
-  filter(Date != as.Date("2021-08-01")) %>%
+  filter(Date < as.Date("2021-07-01")) %>%
   filter(Year >= 2019) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = Deaths, group = Country, color = Country)) +
@@ -380,7 +380,7 @@ stmf_month %>%
   xlab("") + ylab("Monthly number of deaths")
 ```
 
-*Note: Excluding partial data for Aug 2021.*  
+*Note: Excluding partial data for Jul & Aug 2021.*  
 
 ## Yearly totals
 
@@ -668,7 +668,7 @@ compare <- left_join(
 compare %>% 
   ggplot(aes(x = Age, y = diff)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_line() +
+  geom_col() +
   scale_y_continuous(labels = comma) +
   theme_bw() +
   xlab("") + ylab("Difference in population estimates across age groups")
@@ -676,7 +676,7 @@ compare %>%
 compare %>% 
   ggplot(aes(x = Age, y = diff_perc)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_line() +
+  geom_col() +
   scale_y_continuous(labels = percent) +
   theme_bw() +
   xlab("") + ylab("% difference in population estimates across age groups")
@@ -708,7 +708,7 @@ summary(compare$diff1)
 compare %>% 
   ggplot(aes(x = Year, y = diff1)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_line() +
+  geom_col() +
   scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
   theme_bw() +
   xlab("") + ylab("Yearly difference in population estimates")
@@ -724,7 +724,7 @@ summary(compare$diff2)
 compare %>% 
   ggplot(aes(x = Year, y = diff2)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_line() +
+  geom_col() +
   scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
   theme_bw() +
   xlab("") + ylab("Yearly difference in population estimates")
@@ -740,7 +740,7 @@ summary(compare$diff3)
 compare %>% 
   ggplot(aes(x = Year, y = diff3)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_line() +
+  geom_col() +
   scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
   theme_bw() +
   xlab("") + ylab("Yearly difference in population estimates")
@@ -859,7 +859,7 @@ summary(compare$diff)
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Year, y = diff)) +
   geom_hline(yintercept = 0, colour = "lightblue") +
-  geom_line() +
+  geom_col() +
   theme_bw() +
   xlab("") + ylab("Yearly difference in number of deaths")
 ```
@@ -873,7 +873,7 @@ summary(compare$perc*100)
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Year, y = perc*100)) +
   geom_hline(yintercept = 0, colour = "lightblue") +
-  geom_line() +
+  geom_col() +
   theme_bw() +
   xlab("") + ylab("Yearly difference in number of deaths")
 ```
@@ -905,7 +905,7 @@ summary(compare$diff)
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Date, y = diff)) +
   geom_hline(yintercept = 0, colour = "lightblue") +
-  geom_line() +
+  geom_col() +
   theme_bw() +
   xlab("") + ylab("Absolute difference in number of deaths")
 ```
@@ -919,7 +919,7 @@ summary(compare$perc*100)
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Date, y = perc*100)) +
   geom_hline(yintercept = 0, colour = "lightblue") +
-  geom_line() +
+  geom_col() +
   theme_bw() +
   xlab("") + ylab("% difference in number of deaths")
 ```
@@ -1076,6 +1076,8 @@ write_rds(es_pop_age_2020, "data/INE/es_pop_age_2020.Rds")
 
 # Sweden
 
+## Monthly deaths 
+
 ```{r}
 se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
                             skip = 2) %>% 
@@ -1096,8 +1098,6 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
   relocate(Year, Month, Date) %>% 
   arrange(Year, Month)
 ```
-
-## Monthly deaths 
 
 ```{r echo=FALSE}
 se_deaths_month %>% 
@@ -1138,19 +1138,68 @@ se_pop_year %>%
   xlab("") + ylab("Yearly population")
 ```
 
-### 2019-2020 deaths with age & sex structure
+### Comparison with HMD {.tabset}
+
+SCB vs HMD  
 
 ```{r}
-se_deaths_age_sex_2019_2020 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
+compare <- left_join(
+  se_pop_year %>% rename(SCB_pop = Population), 
+  hmd_pop_year %>% filter(Country == "Sweden") %>% rename(HMD_pop = Population)) %>% 
+  select(-Country) %>% 
+  mutate(diff = SCB_pop - HMD_pop,
+         diff_perc = (SCB_pop - HMD_pop) / SCB_pop)
+```
+
+Difference between yearly SCB and HMD pops.  
+
+#### Absolute
+
+```{r}
+summary(compare$diff)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Year, y = diff)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_col() +
+  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in population estimates")
+```
+
+#### Realtive 
+
+```{r}
+summary(compare$diff_perc)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Year, y = diff_perc)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_col() +
+  scale_y_continuous(labels = percent) +
+  theme_bw() +
+  xlab("") + ylab("% yearly difference in population estimates")
+```
+
+## 2020 deaths with age & sex structure
+
+2019 is already in HMD for Sweden so getting only 2020.  
+
+```{r}
+se_deaths_age_sex_2020 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
                                          col_types = c("text", "text", "text", "numeric", "numeric"), 
                                          skip = 2) %>% 
   remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
-  filter(!is.na(x2019)) %>% 
-  select(-x1) %>% 
+  filter(!is.na(x2020)) %>% 
+  select(-x1, -x2019) %>% 
   mutate(x3 = if_else(x3 == "men", "Male", "Female")) %>% 
   fill(x2) %>% 
-  pivot_longer(cols = x2019:x2020, names_to = "Year") %>% 
+  pivot_longer(cols = x2020, names_to = "Year") %>% 
   rename(Age = x2, Sex = x3) %>% 
   mutate(Year = as.integer(str_replace(Year, fixed("x"), "")),
          Age = word(Age, 1),
@@ -1163,10 +1212,10 @@ se_deaths_age_sex_2019_2020 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.
   arrange(Year, Age) %>% 
   mutate(Country = "Sweden") %>% relocate(Country)
 
-write_rds(se_deaths_age_sex_2019_2020, "data/SCB/se_deaths_age_sex_2019_2020.Rds")
+write_rds(se_deaths_age_sex_2020, "data/SCB/se_deaths_age_sex_2020.Rds")
 ```
 
-### 2020 pops with age structure
+## 2020 pops with age structure
 
 HMD already has data for Sweden for 2020 =)  
 
@@ -1238,8 +1287,7 @@ deaths_yearly_age_sex <- bind_rows(
   hmd_deaths_age_sex,
   
   # 2019 is already in HMD for Sweden so only 2020
-  se_deaths_age_sex_2019_2020 %>% 
-    filter(Year == 2020),
+  se_deaths_age_sex_2020,
   
   es_deaths_age_2019_2020,
   
