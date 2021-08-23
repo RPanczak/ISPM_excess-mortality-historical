@@ -632,7 +632,55 @@ download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/16404495/mast
               method = "curl")
 ```
 
+## 2020 pops with age structure - alternative source
 
+Mr Ullmann delivered custom data as an alternative source. They however cover:
+
+> -	Data as per 31st of December of every year
+
+```{r}
+ch_pop_age_sex_2020_alt <- read_delim("data-raw/BfS/STATPOP_2010_2020_detailliert.csv", 
+                                      delim = ";", escape_double = FALSE, 
+                                      col_types = cols(Year = col_integer(), 
+                                                       Sex = col_integer(), 
+                                                       Age = col_integer(), 
+                                                       Number = col_integer()), 
+                                      trim_ws = TRUE) %>% 
+  filter(Year == 2020) %>% 
+  pivot_wider(names_from = Sex, values_from = Number) %>% 
+  rename(Male = `1`, Female = `2`) %>% 
+  mutate(Total = Male + Female,
+         Country = "Switzerland") %>% 
+  relocate(Country, Year, Age ,Female, Male, Total)
+
+# write_rds(ch_pop_age_sex_2020_alt, "data/BfS/ch_pop_age_sex_2020_alt.Rds")
+```
+
+```{r}
+compare <- left_join(
+  ch_pop_age_sex_2020 %>% select(Age, Total) %>% rename(Total_old = Total), 
+  ch_pop_age_sex_2020_alt %>% select(Age, Total) %>% rename(Total_new = Total)) %>% 
+  mutate(diff = Total_old - Total_new,
+         diff_perc = (Total_old - Total_new) / Total_new)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Age, y = diff)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  xlab("") + ylab("Difference in population estimates across age groups")
+
+compare %>% 
+  ggplot(aes(x = Age, y = diff_perc)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_line() +
+  scale_y_continuous(labels = percent) +
+  theme_bw() +
+  xlab("") + ylab("% difference in population estimates across age groups")
+```
 
 ## Comparison - pops
 
@@ -718,6 +766,40 @@ hmd_pop_age_sex %>%
   ungroup() %>% 
   bind_rows(
     ch_pop_age_sex_2020 %>% 
+      mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                           include.lowest = TRUE,
+                           right = FALSE,
+                           labels=c("0-9","10-19","20-29","30-39","40-49",
+                                    "50-59","60-69","70-79","80-89","90+"))) %>% 
+      group_by(Year, Age_cat) %>% 
+      summarise(Population = sum(Total))
+  ) %>% 
+  ggplot(
+    aes(x = Age_cat, y = Population, 
+        fill = factor(Year), factor(Year))) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  scale_fill_viridis_d(option = "E", direction = -1) +
+  xlab("") + ylab("Yearly population by age group")
+```
+
+Problem still exist when newly delivered data are used.  
+
+```{r}
+hmd_pop_age_sex %>% 
+  filter(Country == "Switzerland") %>% 
+  filter(Year >= 2010) %>% 
+  mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                       include.lowest = TRUE,
+                       right = FALSE,
+                       labels=c("0-9","10-19","20-29","30-39","40-49",
+                                "50-59","60-69","70-79","80-89","90+"))) %>% 
+  group_by(Year, Age_cat) %>% 
+  summarise(Population = sum(Total)) %>% 
+  ungroup() %>% 
+  bind_rows(
+    ch_pop_age_sex_2020_alt %>% 
       mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                            include.lowest = TRUE,
                            right = FALSE,
