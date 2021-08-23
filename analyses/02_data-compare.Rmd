@@ -1022,6 +1022,53 @@ es_pop_year %>%
   xlab("") + ylab("Yearly population")
 ```
 
+### Comparison with HMD {.tabset}
+
+INE vs HMD  
+
+```{r}
+compare <- left_join(
+  es_pop_year %>% rename(INE_pop = Population), 
+  hmd_pop_year %>% filter(Country == "Spain") %>% rename(HMD_pop = Population)) %>% 
+  select(-Country) %>% 
+  mutate(diff = INE_pop - HMD_pop,
+         diff_perc = (INE_pop - HMD_pop) / INE_pop)
+```
+
+Difference between yearly SCB and HMD pops.  
+
+#### Absolute
+
+```{r}
+summary(compare$diff)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Year, y = diff)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_col() +
+  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in population estimates")
+```
+
+#### Realtive 
+
+```{r}
+summary(compare$diff_perc)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Year, y = diff_perc)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_col() +
+  scale_y_continuous(labels = percent) +
+  theme_bw() +
+  xlab("") + ylab("% yearly difference in population estimates")
+```
+
 ## 2019-2020 deaths with age structure
 
 INE data to supplement missing last two years in HMD.  
