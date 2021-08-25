@@ -19,7 +19,7 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, p
   # remove special year (e.g. 1918 because of the flu pandemic)
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))
   
-  # extract prediction data
+  # extract prediction data excluding last 6 mo of 2021
   pp = dplyr::filter(monthly_data, Year == pred_year) %>% 
     dplyr::filter(!is.na(Deaths))
   
