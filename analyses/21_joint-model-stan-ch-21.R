@@ -1,13 +1,13 @@
 # install.packages(c("StanHeaders", "rstan"), repos = "https://cloud.r-project.org/", dependencies = TRUE, type = "source")
 
-setwd("~/projects/ISPM_excess-mortality/")
-# setwd("C:/projects/ISPM_excess-mortality/")
+# setwd("~/projects/ISPM_excess-mortality/")
+setwd("C:/projects/ISPM_excess-mortality/")
 
 library(pacman)
 p_load(tidyverse, magrittr, rstan)
 
-source("R/fn_global_serfling_nb_stan.R")
-source("R/fn_age_serfling_nb_stan.R")
+source("R/fn_global_serfling_nb_stan_21.R")
+source("R/fn_age_serfling_nb_stan_21.R")
 
 path0 = paste0("data/outputs_",Sys.Date(),"/")
 dir.create(path0, showWarnings = FALSE)
@@ -69,7 +69,7 @@ results_age <- tibble(Country = character(),
 # Model 2
 print("Global Serfling (Stan, NB)")
 
-global_serfling_stan <- fn_global_serfling_nb_stan(YEAR, deaths_monthly, pandemic_years = pandemic)
+global_serfling_stan <- fn_global_serfling_nb_stan(2021, deaths_monthly, pandemic_years = pandemic)
 
 extract_month <- global_serfling_stan$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
@@ -92,7 +92,7 @@ results_year <- bind_rows(results_year, extract_year)
 # Model 3
 print("Age Serfling (Stan, NB)")
 
-age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic)
+age_serfling_nb_stan <- fn_age_serfling_nb_stan(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic)
 
 extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
@@ -163,7 +163,7 @@ results_age_pand <- tibble(Country = character(),
 # Model 2
 print("Global Serfling (Stan, NB, pandemic)")
 
-global_serfling_stan <- fn_global_serfling_nb_stan(YEAR, deaths_monthly, pandemic_years = NULL)
+global_serfling_stan <- fn_global_serfling_nb_stan(2021, deaths_monthly, pandemic_years = NULL)
 
 extract_month <- global_serfling_stan$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
@@ -186,7 +186,7 @@ results_year_pand <- bind_rows(results_year_pand, extract_year)
 # Model 3
 print("Age Serfling (Stan, NB, pandemic)")
 
-age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = NULL)
+age_serfling_nb_stan <- fn_age_serfling_nb_stan(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = NULL)
 
 extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
