@@ -38,4 +38,8 @@ paper/*.docx
 ubelix/mgmt.txt
 Stata-rp
 
+# not publicaly available
 /data-raw/BfS/STATPOP_2010_2020_detailliert.csv
+
+/data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv
+/data/BfS/ch_deaths_age_sex_2021.Rds
