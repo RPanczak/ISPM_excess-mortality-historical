@@ -863,6 +863,8 @@ hmd_pop_age_sex %>%
   theme_bw() +
   scale_fill_viridis_d(option = "E", direction = -1) +
   xlab("") + ylab("Yearly population by age group")
+
+rm(ch_pop_age_sex_2020_alt)
 ```
 
 ## Comparison - deaths
@@ -1365,16 +1367,41 @@ deaths_monthly <- bind_rows(
   es_deaths_month %>% mutate(Country = "Spain") %>% 
     filter(Year >= 1908),
   
+  stmf_month %>% 
+    filter(Country == "Spain" & Year == 2021 & Month <= 6),
+  
+  stmf_month %>% 
+    filter(Country == "Spain" & Year == 2020 & Month > 6) %>% 
+    mutate(Year = 2021, 
+           Deaths = NA_integer_),
+  
   se_deaths_month %>% mutate(Country = "Sweden"),
   
-  ch_deaths_month %>% mutate(Country = "Switzerland") 
+  se_deaths_month %>% 
+    mutate(Country = "Sweden") %>% 
+    filter(Year == 2020 & Month > 6) %>% 
+    mutate(Year = 2021, 
+           Deaths = NA_integer_),
+  
+  ch_deaths_month %>% mutate(Country = "Switzerland"),
+  
+  stmf_month %>% 
+    filter(Country == "Switzerland" & Year == 2021 & Month <= 6),
+  
+  stmf_month %>% 
+    filter(Country == "Switzerland" & Year == 2020 & Month > 6) %>% 
+    mutate(Year = 2021, 
+           Deaths = NA_integer_)
   
 ) %>% 
-  arrange(Country, Year) %>% 
+  arrange(Country, Year, Month) %>% 
   mutate(si_one = sin(2*pi*Month/12),
          si_two = sin(4*pi*Month/12),
          co_one = cos(2*pi*Month/12),
-         co_two = cos(4*pi*Month/12))
+         co_two = cos(4*pi*Month/12)) %>% 
+  
+  # 2021 pops in STMF filled from 2020 values!
+  fill(Population, .direction = "down")
 
 write_rds(deaths_monthly, "data/deaths_monthly.Rds")
 ```
@@ -1387,17 +1414,24 @@ pop_yearly_age_sex <- bind_rows(
   hmd_pop_age_sex,
   
   # 2020 is already in HMD for Sweden so only using HMD
-  # 2021 is derived from 2020
-  hmd_pop_age_sex %>% 
-    filter(Country == "Sweden" & Year == 2020) %>% 
-    mutate(Year = 2021),
   
+  # 2020 for es
   es_pop_age_2020,
   
   # !!! temp solution for CH for 2020 !!!
   hmd_pop_age_sex %>% 
     filter(Country == "Switzerland" & Year == 2019) %>% 
-    mutate(Year = as.integer(2020))
+    mutate(Year = as.integer(2020)),
+  
+  # 2021 is derived from 2020 HMD for CH & SE
+  hmd_pop_age_sex %>% 
+    filter(Country != "Spain") %>% 
+    filter(Year == 2020) %>% 
+    mutate(Year = as.integer(2021)),
+  
+  # 2021 for ES
+  es_pop_age_2020 %>% 
+    mutate(Year = as.integer(2021))
   
 ) %>% 
   select(-Female, -Male) %>% 
@@ -1420,14 +1454,25 @@ deaths_yearly_age_sex <- bind_rows(
   
   # 2019 is already in HMD for Sweden so only using SCD for 2020
   se_deaths_age_sex_2020,
+  
   # 2021 is derived from 2020
   se_deaths_age_sex_2020 %>% 
-    filter(Country == "Sweden" & Year == 2020) %>% 
-    mutate(Year = 2021),
+    filter(Year == 2020) %>% 
+    mutate(Year = as.integer(2021)),
   
   es_deaths_age_2019_2020,
   
-  ch_deaths_age_sex_2019_2020
+  # 2021 is derived from 2020
+  es_deaths_age_2019_2020 %>% 
+    filter(Year == 2020) %>% 
+    mutate(Year = as.integer(2021)),
+  
+  ch_deaths_age_sex_2019_2020,
+  
+  # 2021 is derived from 2020
+  ch_deaths_age_sex_2019_2020 %>% 
+    filter(Year == 2020) %>% 
+    mutate(Year = as.integer(2021))
   
 ) %>% 
   select(-Female, -Male) %>% 
