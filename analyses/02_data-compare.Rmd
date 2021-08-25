@@ -363,7 +363,7 @@ stmf_month <- bind_rows(
 ) %>% 
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
   rename(Deaths = value) %>% 
-  mutate(Date = ymd(paste0(Year, "-", Month,"-01")),
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Country, Year, Month, Date)
 
@@ -453,9 +453,9 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
   mutate(Year = as.integer(Year)) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
-  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01"))) %>% 
   relocate(Year, Month, Date) %>% 
-  mutate(Date = ymd(paste0(Year, "-", Month,"-01")),
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
          Year = as.integer(Year),
          Month = as.integer(Month),
          Deaths = as.integer(Deaths)) %>% 
@@ -759,23 +759,6 @@ compare %>%
   xlab("") + ylab("Yearly difference in population estimates")
 ```
 
-Difference between **Dec** pop from BfS and **yearly** pop from HMD
-
-```{r}
-summary(compare$diff2)
-```
-
-```{r echo=FALSE}
-compare %>% 
-  ggplot(aes(x = Year, y = diff2)) +
-  geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_vline(aes(xintercept = 1990), color = "lightblue") +
-  geom_col() +
-  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
-  theme_bw() +
-  xlab("") + ylab("Yearly difference in population estimates")
-```
-
 Difference between **mean** pop from BfS and **yearly** pop from HMD
 
 ```{r}
@@ -785,6 +768,23 @@ summary(compare$diff3)
 ```{r echo=FALSE}
 compare %>% 
   ggplot(aes(x = Year, y = diff3)) +
+  geom_hline(aes(yintercept = 0), color = "lightblue") +
+  geom_vline(aes(xintercept = 1990), color = "lightblue") +
+  geom_col() +
+  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly difference in population estimates")
+```
+
+Difference between **Dec** pop from BfS and **yearly** pop from HMD
+
+```{r}
+summary(compare$diff2)
+```
+
+```{r echo=FALSE}
+compare %>% 
+  ggplot(aes(x = Year, y = diff2)) +
   geom_hline(aes(yintercept = 0), color = "lightblue") +
   geom_vline(aes(xintercept = 1990), color = "lightblue") +
   geom_col() +
@@ -988,7 +988,7 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
   mutate(Month = as.integer(str_replace(Month, fixed("m"), "")),
          Year = as.integer(Year),
          Deaths = as.integer(round(Deaths)))  %>%
-  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01"))) %>% 
   relocate(Year, Month, Date) %>% 
   filter(Year != 2020)
 ```
@@ -1188,7 +1188,7 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
          Month = match(Month_txt, month.name),
          Deaths = as.integer(round(Deaths))) %>% 
   select(-Month_txt) %>% 
-  mutate(Date = ymd(paste0(Year, "-", Month,"-01"))) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01"))) %>% 
   relocate(Year, Month, Date) %>% 
   arrange(Year, Month)
 ```
@@ -1319,6 +1319,38 @@ hmd_pop_age_sex %>%
   summarize(Max = max(Year))
 ```
 
+## 2021 deaths
+
+[Preliminär statistik över döda (Excel)](https://www.scb.se/hitta-statistik/sverige-i-siffror/manniskorna-i-sverige/doda-i-sverige/) file is available from SCB. 
+
+```{r eval=FALSE}
+# doesn't work with this url
+download.file(url = "https://www.scb.se/hitta-statistik/statistik-efter-amne/befolkning/befolkningens-sammansattning/befolkningsstatistik/pong/tabell-och-diagram/preliminar-statistik-over-doda/",
+              destfile = "data-raw/SCB/2021-08-23-preliminar_statistik_over_doda_inkl_eng.xlsx",
+              method = "curl")
+```
+
+```{r}
+se_deaths_month_2021 <- read_excel("data-raw/SCB/2021-08-23-preliminar_statistik_over_doda_inkl_eng.xlsx", sheet = "Tabell 10", skip = 10) %>% 
+  filter(Region == "Hela riket" & Period == "2021 antal") %>% 
+  select(Januari:Juni) %>% 
+  pivot_longer(Januari:Juni) %>% 
+  mutate(Year = 2021,
+         Month = 1:6,
+         Date = ymd(paste0(Year, "-", Month, "-01")),
+         Deaths = as.integer(value),
+         se_deaths_month %>% 
+           filter(Year == 2020 & Month == 12) %>% 
+           select(Population) %>% pluck()
+  ) %>% 
+  select(-name, -value)
+
+se_deaths_month %<>% 
+  bind_rows(se_deaths_month_2021)
+
+rm(se_deaths_month_2021)
+```
+
 <!-- ----------------------------------------------------- -->
 
 # Combined analysis datasets
@@ -1355,6 +1387,10 @@ pop_yearly_age_sex <- bind_rows(
   hmd_pop_age_sex,
   
   # 2020 is already in HMD for Sweden so only using HMD
+  # 2021 is derived from 2020
+  hmd_pop_age_sex %>% 
+    filter(Country == "Sweden" & Year == 2020) %>% 
+    mutate(Year = 2021),
   
   es_pop_age_2020,
   
@@ -1384,6 +1420,10 @@ deaths_yearly_age_sex <- bind_rows(
   
   # 2019 is already in HMD for Sweden so only using SCD for 2020
   se_deaths_age_sex_2020,
+  # 2021 is derived from 2020
+  se_deaths_age_sex_2020 %>% 
+    filter(Country == "Sweden" & Year == 2020) %>% 
+    mutate(Year = 2021),
   
   es_deaths_age_2019_2020,
   
