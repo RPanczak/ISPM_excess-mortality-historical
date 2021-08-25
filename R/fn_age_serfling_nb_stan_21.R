@@ -1,14 +1,14 @@
 # function for the joint Serfling model, negative binomial version
 
 # pred_year = 2021
-# monthly_data = filter(deaths_monthly, Country == "Sweden")
-# yearly_data = filter(deaths_yearly_age_sex, Country == "Sweden")
+# monthly_data = filter(deaths_monthly, Country == "Switzerland")
+# yearly_data = filter(deaths_yearly_age_sex, Country == "Switzerland")
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
 # prior=10
 # prior_intercept=10
 # p=0.95
 
-fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
+fn_age_serfling_nb_stan_21 = function(pred_year, monthly_data, yearly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -28,6 +28,7 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemi
   pp = dplyr::filter(monthly_data, Year == pred_year) %>% 
     dplyr::filter(!is.na(Deaths))
   qq = dplyr::filter(yearly_data, Year == pred_year)
+  
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
   years = years - min(years) + 1
@@ -105,11 +106,11 @@ if(FALSE) {
     geom_point(data=qq,aes(x=Age_cat,y=Population),col="firebrick")
   
   # check computations
-  # here something goes bonkers with 12 vs 6 :/
-  uu = stan(file="stan/age_serfling_nb.stan",
-            data=dd_list,
-            chains=1,
-            iter=1)
+  # here something goes bonkers with 12 vs 6 :/ # JR: solved
+  uu = sampling(mm,
+                data=dd_list,
+                chains=1,
+                iter=1)
   uu = extract(uu)
   
   lin = uu$lin[1,,,]
@@ -131,7 +132,7 @@ if(FALSE) {
   exp_pred_lin_total_deaths = uu$exp_pred_lin_total_deaths[1,]
   exp_pred_lin_total_deaths
   apply(exp_pred_lin,1,sum)
-  
+
   exp_pred_lin_grouped_deaths = uu$exp_pred_lin_grouped_deaths[1,]
   exp_pred_lin_grouped_deaths
   apply(exp_pred_lin,2,sum)
