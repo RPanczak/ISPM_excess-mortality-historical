@@ -13,7 +13,6 @@ set.seed(12345)
 options(scipen = 999)
 theme_set(theme_minimal())
 registerDoParallel(cores = parallel::detectCores())
-rstan_options(auto_write = TRUE)
 
 # Set up
 
