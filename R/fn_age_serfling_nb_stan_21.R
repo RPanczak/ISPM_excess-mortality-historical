@@ -2,6 +2,7 @@
 
 # pred_year = 2021
 # monthly_data = filter(deaths_monthly, Country=="Sweden")
+# yearly_data = filter(deaths_yearly_age_sex, Country=="Sweden")
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
 # prior=10
 # prior_intercept=10
@@ -23,28 +24,32 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemi
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))
   ee %<>% dplyr::filter(!(Year %in% pandemic_years))
   
-  # extract prediction data
-  pp = dplyr::filter(monthly_data, Year == pred_year)
+  # extract prediction data excluding last 6 mo of 2021
+  pp = dplyr::filter(monthly_data, Year == pred_year) %>% 
+    dplyr::filter(!is.na(Deaths))
   qq = dplyr::filter(yearly_data, Year == pred_year)
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
   years = years - min(years) + 1
   months = unique(dd$Month)
+  months2 = unique(pp$Month)
   I = length(years)
   J = length(months)
+  J2 = length(months2)
   K = length(unique(ee$Age_cat))
   total_deaths = array(dd$Deaths, dim=c(I,J))
   total_population = array(dd$Population, dim=c(I,J))
   grouped_deaths = round(array(ee$Deaths, dim=c(I,K)))
   grouped_population = array(ee$Population, dim=c(I,K))
-  predyear_total_deaths = array(pp$Deaths, dim=J)
-  predyear_total_population = array(pp$Population, dim=J)
+  predyear_total_deaths = array(pp$Deaths, dim=J2)
+  predyear_total_population = array(pp$Population, dim=J2)
   predyear_grouped_deaths = round(array(qq$Deaths, dim=K))
   predyear_grouped_population = qq$Population
   # transform data into list
-  dd_list = list(I=I,J=J,K=K,
+  dd_list = list(I=I,J=J,J2=J2,K=K,
                  years=years,
                  months=months,
+                 months2=months2,
                  total_deaths = total_deaths,
                  total_population = total_population,
                  grouped_deaths = round(grouped_deaths),
@@ -100,6 +105,7 @@ if(FALSE) {
     geom_point(data=qq,aes(x=Age_cat,y=Population),col="firebrick")
   
   # check computations
+  # here something goes bonkers with 12 vs 6 :/
   uu = stan(file="stan/age_serfling_nb.stan",
             data=dd_list,
             chains=1,
@@ -196,7 +202,10 @@ if(FALSE) {
   
   # expected deaths
   ll = list(samples=ss,pred_total_deaths=pp,pred_grouped_deaths=qq)
+  
+  source("R/fn_plot_global_serfling.R")
   fn_plot_global_serfling(ll, title="Expected deaths for 2020", ylim=c(0,10000))
+  source("R/fn_plot_age_serfling.R")
   fn_plot_age_serfling(list(samples=ss,pred_total_deaths=pp,pred_grouped_deaths=qq))
 }
 

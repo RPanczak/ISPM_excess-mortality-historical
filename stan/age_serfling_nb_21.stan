@@ -2,16 +2,18 @@ data {
   // past years
   int I; // number of years (generally 5 except if some year is ignored)
   int J; // number of months (12)
+  int J2; // number of months in 2021 (6)
   int K; // number of age groups (10)
   vector[I] years;
   vector[J] months;
+  vector[J2] months2;
   int total_deaths[I,J];
   int total_population[I,J];
   int grouped_deaths[I,K];
   int grouped_population[I,K];
   // prediction year
-  int predyear_total_deaths[J];
-  int predyear_total_population[J];
+  int predyear_total_deaths[J2];
+  int predyear_total_population[J2];
   int predyear_grouped_deaths[K];
   int predyear_grouped_population[K];
   // priors
@@ -77,37 +79,37 @@ model {
     target += multinomial_lpmf(to_array_1d(grouped_deaths[i,]) | prop_lin_grouped_deaths[i]);
 }
 generated quantities {
-  real pred_lin[J,K];
-  real<lower=0> exp_pred_lin[J,K];
-  real<lower=0> exp_pred_lin_total_deaths[J];
+  real pred_lin[J2,K];
+  real<lower=0> exp_pred_lin[J2,K];
+  real<lower=0> exp_pred_lin_total_deaths[J2];
   real<lower=0> exp_pred_lin_grouped_deaths[K];
   simplex[K] prop_pred_lin_grouped_deaths;
   
-  int pred_total_deaths[J];
-  int excess_total_deaths[J];
+  int pred_total_deaths[J2];
+  int excess_total_deaths[J2];
   int yearly_excess_total_deaths;
   
   int pred_grouped_deaths[K];
   int excess_grouped_deaths[K];
   int yearly_excess_grouped_deaths;
   
-  for(j in 1:J) 
+  for(j in 1:J2) 
     for(k in 1:K) 
       pred_lin[j,k] = alpha[k] + 
         beta_year*(years[I]+1) + 
-        beta_periodic[1]*sin(2*pi()*months[j]/12) + 
-        beta_periodic[2]*sin(4*pi()*months[j]/12) + 
-        beta_periodic[3]*cos(2*pi()*months[j]/12) + 
-        beta_periodic[4]*cos(4*pi()*months[j]/12) + 
+        beta_periodic[1]*sin(2*pi()*months2[j]/12) + 
+        beta_periodic[2]*sin(4*pi()*months2[j]/12) + 
+        beta_periodic[3]*cos(2*pi()*months2[j]/12) + 
+        beta_periodic[4]*cos(4*pi()*months2[j]/12) + 
         log(predyear_grouped_population[k]);
   exp_pred_lin = exp(pred_lin);
-  for(j in 1:J)
+  for(j in 1:J2)
     exp_pred_lin_total_deaths[j] = sum(to_array_1d(exp_pred_lin[j,]));
   for(k in 1:K) 
     exp_pred_lin_grouped_deaths[k] = sum(to_array_1d(exp_pred_lin[,k]));
   prop_pred_lin_grouped_deaths = ( to_vector(to_array_1d(exp_pred_lin_grouped_deaths)) ) ./ sum( to_vector(to_array_1d(exp_pred_lin_grouped_deaths)) );
   
-  for(j in 1:J) {
+  for(j in 1:J2) {
     if(exp_pred_lin_total_deaths[j] < overflow_limit && phi > 1e-3) // avoid overflow
       pred_total_deaths[j] = neg_binomial_2_rng(exp_pred_lin_total_deaths[j], phi);
     else 
