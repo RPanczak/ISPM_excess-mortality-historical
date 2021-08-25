@@ -1,8 +1,8 @@
 # function for the joint Serfling model, negative binomial version
 
 # pred_year = 2021
-# monthly_data = filter(deaths_monthly, Country=="Sweden")
-# yearly_data = filter(deaths_yearly_age_sex, Country=="Sweden")
+# monthly_data = filter(deaths_monthly, Country == "Sweden")
+# yearly_data = filter(deaths_yearly_age_sex, Country == "Sweden")
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
 # prior=10
 # prior_intercept=10
