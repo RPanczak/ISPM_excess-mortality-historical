@@ -2,7 +2,7 @@ library(pacman)
 p_load(tidyverse, magrittr, 
        doParallel, foreach)
 
-setwd("C:/projects/ISPM_excess-mortality/")
+# setwd("C:/projects/ISPM_excess-mortality/")
 
 source("R/fn_global_serfling.R")
 
