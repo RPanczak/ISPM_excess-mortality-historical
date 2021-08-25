@@ -572,7 +572,7 @@ pop_2020 <- pxR::read.px("data-raw/BfS/px-x-0102020000_202.px") %>%
   relocate(Year)
 
 pop_2021 <- pop_2020 %>% 
-  mutate(Year = as.integer(2020))
+  mutate(Year = as.integer(2021))
 
 ch_pop_year %<>% 
   bind_rows(pop_2020) %>% 
@@ -1510,7 +1510,8 @@ deaths_monthly <- bind_rows(
   ch_deaths_month %>% 
     filter(Year == 2020 & Month > 6) %>% 
     mutate(Year = as.integer(2021), 
-           Deaths = NA_integer_)
+           Deaths = NA_integer_,
+           Date = Date + years(1))
   
 ) %>% 
   arrange(Country, Year, Month) %>% 
