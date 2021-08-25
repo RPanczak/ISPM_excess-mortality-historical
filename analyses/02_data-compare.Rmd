@@ -895,6 +895,8 @@ compare <- left_join(
     rename(deaths_year_hmd = Deaths)) %>% 
   mutate(diff = deaths_year_bfs - deaths_year_hmd,
          perc = (deaths_year_bfs - deaths_year_hmd) / deaths_year_bfs)
+
+rm(hmd_deaths_year)
 ```
 
 Timeline of differences between yearly BfS and HMD figures. 
@@ -1364,16 +1366,25 @@ Spain age&sex distribution in HMD is [available from later](https://github.com/R
 ```{r}
 deaths_monthly <- bind_rows(
   
-  es_deaths_month %>% mutate(Country = "Spain") %>% 
+  es_deaths_month %>% 
+    mutate(Country = "Spain") %>% 
+    relocate(Country) %>% 
     filter(Year >= 1908),
   
   stmf_month %>% 
-    filter(Country == "Spain" & Year == 2021 & Month <= 6),
+    filter(Country == "Spain" & Year == 2021 & Month <= 6) %>% 
+    mutate(es_deaths_month %>% 
+             filter(Year == 2020 & Month == 12) %>% 
+             select(Population)),
   
+  # NAs for second half of year
   stmf_month %>% 
     filter(Country == "Spain" & Year == 2020 & Month > 6) %>% 
     mutate(Year = 2021, 
-           Deaths = NA_integer_),
+           Deaths = NA_integer_) %>% 
+    mutate(es_deaths_month %>% 
+             filter(Year == 2020 & Month == 12) %>% 
+             select(Population)),
   
   se_deaths_month %>% mutate(Country = "Sweden"),
   
@@ -1381,17 +1392,24 @@ deaths_monthly <- bind_rows(
     mutate(Country = "Sweden") %>% 
     filter(Year == 2020 & Month > 6) %>% 
     mutate(Year = 2021, 
-           Deaths = NA_integer_),
+           Deaths = NA_integer_,
+           Date = Date + years(1)),
   
   ch_deaths_month %>% mutate(Country = "Switzerland"),
   
   stmf_month %>% 
-    filter(Country == "Switzerland" & Year == 2021 & Month <= 6),
+    filter(Country == "Switzerland" & Year == 2021 & Month <= 6) %>% 
+    mutate(ch_deaths_month %>% 
+             filter(Year == 2020 & Month == 12) %>% 
+             select(Population)),
   
   stmf_month %>% 
     filter(Country == "Switzerland" & Year == 2020 & Month > 6) %>% 
     mutate(Year = 2021, 
-           Deaths = NA_integer_)
+           Deaths = NA_integer_) %>% 
+    mutate(ch_deaths_month %>% 
+             filter(Year == 2020 & Month == 12) %>% 
+             select(Population))
   
 ) %>% 
   arrange(Country, Year, Month) %>% 
@@ -1411,7 +1429,8 @@ write_rds(deaths_monthly, "data/deaths_monthly.Rds")
 ```{r}
 pop_yearly_age_sex <- bind_rows(
   
-  hmd_pop_age_sex,
+  hmd_pop_age_sex %>% 
+    select(-Female, -Male),
   
   # 2020 is already in HMD for Sweden so only using HMD
   
@@ -1420,12 +1439,19 @@ pop_yearly_age_sex <- bind_rows(
   
   # !!! temp solution for CH for 2020 !!!
   hmd_pop_age_sex %>% 
+    select(-Female, -Male) %>% 
     filter(Country == "Switzerland" & Year == 2019) %>% 
     mutate(Year = as.integer(2020)),
-  
-  # 2021 is derived from 2020 HMD for CH & SE
+  # and once again for 2021
   hmd_pop_age_sex %>% 
-    filter(Country != "Spain") %>% 
+    select(-Female, -Male) %>% 
+    filter(Country == "Switzerland" & Year == 2019) %>% 
+    mutate(Year = as.integer(2021)),
+  
+  # 2021 is derived from 2020 HMD for SE
+  hmd_pop_age_sex %>% 
+    select(-Female, -Male) %>% 
+    filter(Country == "Sweden") %>% 
     filter(Year == 2020) %>% 
     mutate(Year = as.integer(2021)),
   
@@ -1434,7 +1460,6 @@ pop_yearly_age_sex <- bind_rows(
     mutate(Year = as.integer(2021))
   
 ) %>% 
-  select(-Female, -Male) %>% 
   mutate(# Age_cat = cut(Age, 
     # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
     # # labels = c("<1", "1-4", "5-19", "20-39", "40-59", "60-79","80+"), 
