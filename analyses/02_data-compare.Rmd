@@ -489,11 +489,7 @@ BfS delivered data to supplement missing last two years in HMD.
 Note: data now seem to be now publicly available [here](https://www.bfs.admin.ch/bfs/en/home/statistics/population.assetdetail.17664400.html) or in custom tabs [here](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020206_103/px-x-0102020206_103/px-x-0102020206_103.px/).  
 
 ```{r}
-ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", 
-                                        col_types = cols(KalJahr = col_integer(),
-                                                         Alter = col_integer(),
-                                                         COUNT = col_integer()), 
-                                        trim_ws = TRUE) %>% 
+ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", col_types = cols(KalJahr = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
   rename(Year = KalJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
   pivot_wider(names_from = Sex, values_from = Deaths) %>% 
   rename(Female = F, Male = M) %>% 
@@ -505,6 +501,25 @@ ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv",
   relocate(Country)
 
 write_rds(ch_deaths_age_sex_2019_2020, "data/BfS/ch_deaths_age_sex_2019_2020.Rds")
+```
+
+## 2021 deaths with age & sex structure
+
+BfS delivered data to supplement missing six months of 2021.  
+
+```{r}
+ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
+  rename(Year = TodJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
+  pivot_wider(names_from = Sex, values_from = Deaths) %>% 
+  rename(Female = F, Male = M) %>% 
+  mutate_at(vars(Female:Male), ~replace(., is.na(.), 0)) %>% 
+  mutate(Country = "Switzerland",
+         Female = as.integer(round(Female)),
+         Male = as.integer(round(Male)), 
+         Total = Female + Male) %>% 
+  relocate(Country)
+
+write_rds(ch_deaths_age_sex_2021, "data/BfS/ch_deaths_age_sex_2021.Rds")
 ```
 
 ## Yearly pops untill 2019
@@ -1016,11 +1031,42 @@ es_2020 <- fn_get_death_data_spain("data-raw/INE/Spain_2020.xlsx") %>%
   relocate(Year, Month, Date, Deaths)
 ```
 
+## Monthly deaths 2021
+
+2021 data available from [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+
+Note: data are in weekly format and converted with methods (and caveats!) described above in STMF chapter.  
+
+```{r}
+temp <- read_xlsx("data-raw/INE/Spain_2021_death.xlsx", skip = 9) %>%   
+  remove_empty(which = c("rows", "cols")) %>% 
+  clean_names() %>% 
+  rename(Week = x1) %>% 
+  filter(!is.na(de_0_a_4_anos)) %>% 
+  mutate(Deaths = rowSums(.[-1])) %>% 
+  select(Week, Deaths)
+
+es_2021 <- weekToMonth(rev(temp$Deaths), datStart = "31-12-2018") %>% 
+  mutate(Age = 0) %>% as_tibble() %>% 
+  as_tibble() %>% 
+  mutate(Country = "Spain") %>%
+  separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
+  rename(Deaths = value) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
+         Deaths = as.integer(Deaths)) %>% 
+  relocate(Country, Year, Month, Date) %>% 
+  filter(Year == 2021) %>% 
+  filter(Month <= 6)
+
+rm(temp)
+```
+
 ```{r echo=FALSE}
 es_deaths_month %<>% 
-  bind_rows(es_2020)
+  bind_rows(es_2020) %>% 
+  bind_rows(es_2021)
 
-rm(es_2020)
+rm(es_2020, es_2021)
 
 es_deaths_month %>% 
   ggplot(aes(x = Date, y = Deaths)) +
@@ -1028,6 +1074,7 @@ es_deaths_month %>%
   theme_bw() +
   xlab("") + ylab("Monthly deaths")
 ```
+
 
 ## Yearly pops 
 
@@ -1153,6 +1200,98 @@ es_deaths_age_2019_2020 <- bind_rows(
   mutate(Country = "Spain") %>% relocate(Country)
 
 write_rds(es_deaths_age_2019_2020, "data/INE/es_deaths_age_2019_2020.Rds")
+```
+
+## 2021 deaths with age structure
+
+INE data to supplement missing last two years in HMD.  
+
+2021 data available from [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+
+Note: data are in weekly format and converted with methods (and caveats!) described above in STMF chapter.  
+
+```{r}
+temp <- read_xlsx("data-raw/INE/Spain_2021_death.xlsx", skip = 9) %>%   
+  remove_empty(which = c("rows", "cols")) %>% 
+  clean_names() %>% 
+  rename(Week = x1) %>% 
+  filter(!is.na(de_0_a_4_anos))
+
+es_deaths_age_2021 <- bind_rows(
+  
+  weekToMonth(rev(temp$de_0_a_4_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 0) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_5_a_9_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 5) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_10_a_14_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 10) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_15_a_19_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 15) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_20_a_24_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 20) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_25_a_29_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 25) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_30_a_34_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 30) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_35_a_39_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 35) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_40_a_44_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 40) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_45_a_49_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 45) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_50_a_54_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 50) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_0_a_4_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 0) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_55_a_59_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 55) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_60_a_64_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 60) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_65_a_69_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 65) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_70_a_74_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 70) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_75_a_79_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 75) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_80_a_84_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 80) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$de_85_a_89_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 85) %>% as_tibble(),
+  
+  weekToMonth(rev(temp$x90_y_mas_anos), datStart = "31-12-2018") %>% 
+    mutate(Age = 90) %>% as_tibble()
+  
+) %>% 
+  as_tibble() %>% 
+  mutate(Country = "Spain") %>%
+  separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
+  rename(Deaths = value) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
+         Deaths = as.integer(Deaths)) %>% 
+  relocate(Country, Year, Month, Date) %>% 
+  filter(Year > 2018) %>% 
+  filter(! (Year == 2021 & Month == 8)) %>% 
+  filter(! (Year == 2021 & Month == 7))
+
+rm(temp)
 ```
 
 ## 2020 pops with age structure
@@ -1494,10 +1633,7 @@ deaths_yearly_age_sex <- bind_rows(
   
   ch_deaths_age_sex_2019_2020,
   
-  # 2021 is derived from 2020
-  ch_deaths_age_sex_2019_2020 %>% 
-    filter(Year == 2020) %>% 
-    mutate(Year = as.integer(2021))
+  ch_deaths_age_sex_2021
   
 ) %>% 
   select(-Female, -Male) %>% 
