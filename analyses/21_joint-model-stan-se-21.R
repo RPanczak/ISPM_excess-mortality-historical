@@ -7,7 +7,7 @@ library(pacman)
 p_load(tidyverse, magrittr, rstan)
 
 source("R/fn_global_serfling_nb_stan_21.R")
-source("R/fn_age_serfling_nb_stan_21.R")
+# source("R/fn_age_serfling_nb_stan_21.R")
 
 path0 = paste0("data/outputs_",Sys.Date(),"/")
 dir.create(path0, showWarnings = FALSE)
@@ -55,16 +55,16 @@ results_year <- tibble(Country = character(),
                        excess_year_upper = double(),
                        Model = character())
 
-results_age <- tibble(Country = character(), 
-                      Year = double(), 
-                      Age_cat = factor(), 
-                      pred = double(), 
-                      lower = double(), 
-                      upper = double(),
-                      excess_year = double(), 
-                      excess_year_lower = double(), 
-                      excess_year_upper = double(),
-                      Model = character())
+# results_age <- tibble(Country = character(), 
+#                       Year = double(), 
+#                       Age_cat = factor(), 
+#                       pred = double(), 
+#                       lower = double(), 
+#                       upper = double(),
+#                       excess_year = double(), 
+#                       excess_year_lower = double(), 
+#                       excess_year_upper = double(),
+#                       Model = character())
 
 # Model 2
 print("Global Serfling (Stan, NB)")
@@ -148,16 +148,16 @@ results_year_pand <- tibble(Country = character(),
                             excess_year_upper = double(),
                             Model = character())
 
-results_age_pand <- tibble(Country = character(), 
-                           Year = double(), 
-                           Age_cat = factor(), 
-                           pred = double(), 
-                           lower = double(), 
-                           upper = double(),
-                           excess_year = double(), 
-                           excess_year_lower = double(), 
-                           excess_year_upper = double(),
-                           Model = character())
+# results_age_pand <- tibble(Country = character(), 
+#                            Year = double(), 
+#                            Age_cat = factor(), 
+#                            pred = double(), 
+#                            lower = double(), 
+#                            upper = double(),
+#                            excess_year = double(), 
+#                            excess_year_lower = double(), 
+#                            excess_year_upper = double(),
+#                            Model = character())
 
 # Model 2
 print("Global Serfling (Stan, NB, pandemic)")
