@@ -429,7 +429,6 @@ results_month %>%
 ggsave(plot = gg, "paper/Figure_2c.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
-
 ```{r echo=FALSE}
 focus_years <- c(1890, 1918, 1957, 2020, 2021)
 
@@ -440,7 +439,8 @@ for(i in focus_years) {
                                  focus_year=i,
                                  shown_years=paste0(i-5,"-",i)))
 }
-shown_years %<>% filter(Year <= 2021) %>% 
+shown_years %<>% 
+  filter(Year <= 2021) %>% 
   mutate(shown_years = ifelse(shown_years == "2018-2020", 
                               "2018-2021", shown_years))
 
@@ -453,7 +453,9 @@ gg = results_month %>%
   left_join(shown_years) %>%
   filter(!is.na(shown_years)) %>%
   mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain")) %>% 
-  filter(!(Country=="Sweden" & Year==2021)) %>%
+  filter(!(shown_years=="2016-2021" & Year==2020)) %>%
+  filter(!(shown_years=="2016-2021" & Country=="Sweden")) %>%
+  filter(!(shown_years=="2016-2021" & Month>6)) %>%
   mutate(pandyear=ifelse(Year %in% c(1890, 1918, 1957, 2020, 2021),"Pandemic year","Normal year")) %>%
   mutate(lower=ifelse(Year==focus_year,lower,NA),
          upper=ifelse(Year==focus_year,upper,NA)) %>%
@@ -468,11 +470,12 @@ gg = results_month %>%
                                            scale = 1e-3)) +
   scale_x_continuous(breaks=seq(1,12,by=2),
                      labels=c("Jan.","March","May","July","Sept.","Nov.")) +
-  scale_size_manual(values=c(.2,.8),guide=FALSE) +
+  scale_size_manual(values=c(.2,1),guide=FALSE) +
   scale_colour_manual(values=c("grey20","#EF8A62"),guide=FALSE) +
-    theme_bw()+
-  theme(plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x="Year",y="Monthly deaths")
+  theme_bw()+
+  theme(plot.margin = margin(0.5, 0.5, 0, 0),
+        axis.text.x = element_text(angle=45,hjust=1))+
+  labs(x="Month",y="Monthly deaths")
 
 gg
 
