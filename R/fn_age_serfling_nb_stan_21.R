@@ -106,7 +106,7 @@ if(FALSE) {
     geom_point(data=qq,aes(x=Age_cat,y=Population),col="firebrick")
   
   # check computations
-  # here something goes bonkers with 12 vs 6 :/ # JR: solved
+  # here something goes bonkers with 12 vs 6 :/ # JR: solved using sampling() instead of stan()
   uu = sampling(mm,
                 data=dd_list,
                 chains=1,
