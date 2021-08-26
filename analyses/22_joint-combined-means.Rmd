@@ -269,10 +269,10 @@ gg = results_month %>%
                                "Switzerland", "Sweden", "Spain"), 
          Difference = ifelse(Deaths > pred, "More than expected", "Fewer than expected")) %>% 
   filter(!is.na(Difference)) %>%
-    mutate(focus_year1 = as.Date(paste0(focus_year, "-01-01")),
+  mutate(focus_year1 = as.Date(paste0(focus_year, "-01-01")),
          focus_year2 = as.Date(paste0(focus_year, "-12-31")),
          focus_year2 = if_else(focus_year==2020,as.Date(paste0(focus_year+1, "-06-30")),focus_year2)) %>%
-
+  
   ggplot() +
   geom_rect(aes(xmin = focus_year1,
                 xmax = focus_year2,
@@ -398,37 +398,6 @@ gg = ggplotify::as.ggplot(g_data_grob)
 ggsave(plot = gg, "paper/Figure_2b.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
-
-```{r echo=FALSE}
-pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
-
-results_month %>% 
-  filter(Year %in% pandemic_years) %>%
-  ggplot() +
-  geom_pointrange(aes(x=Month,
-                      y=excess_month/pred,
-                      ymin=excess_month_lower/pred,
-                      ymax=excess_month_upper/pred,
-                      colour=factor(Country))) +
-  geom_line(aes(x=Month,
-                y=excess_month/pred,
-                colour=factor(Country))) +
-  geom_hline(yintercept=0,linetype=2) +
-  facet_grid(.~Year,scale="free_x",spac="free_x") +
-  scale_y_continuous(labels= label_number(accuracy = 1, suffix = "%", scale = 100)) +
-  theme_bw() +
-  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
-  scale_x_continuous(breaks=seq(1,12,by=2),
-                     labels=c("Jan.","March","May","July","Sept.","Nov.")) +
-  theme(legend.position = c(.1,.8),
-        legend.background = element_blank(),
-        axis.text.x = element_text(angle=45,hjust=1),
-        plot.margin = margin(0, 0, 0, 0)) +
-  labs(x="Month",y="Excess deaths (relatively to expected)",
-       colour="Country")
-ggsave(plot = gg, "paper/Figure_2c.png", dpi = 300, width =  190, height = 140, units = "mm")
-```
-
 ```{r echo=FALSE}
 focus_years <- c(1890, 1918, 1957, 2020, 2021)
 
@@ -472,12 +441,12 @@ gg = results_month %>%
                      labels=c("Jan.","March","May","July","Sept.","Nov.")) +
   scale_size_manual(values=c(.2,1),guide=FALSE) +
   scale_colour_manual(values=c("grey20","#EF8A62"),guide=FALSE) +
-  theme_bw()+
+  theme_bw() +
   theme(plot.margin = margin(0.5, 0.5, 0, 0),
         axis.text.x = element_text(angle=45,hjust=1))+
   labs(x="Month",y="Monthly deaths")
 
-gg
+# gg
 
 require(grid)
 g_data_grob = ggplotGrob(gg)
@@ -504,10 +473,8 @@ grid.draw(g_data_grob)
 
 gg = ggplotify::as.ggplot(g_data_grob)
 
-ggsave(plot = gg, "paper/Figure_2d.png", dpi = 300, width =  190, height = 140, units = "mm")
+ggsave(plot = gg, "paper/Figure_2c.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
-
-
 
 ## Figure 3
 
@@ -1045,7 +1012,8 @@ bind_rows(
                       ymin=excess_month_lower, ymax=excess_month_upper,
                       colour=Model),
                   position=position_dodge(.8)) +
-  facet_grid(Country~Year, scales="free")
+  facet_grid(Country~Year, scales="free") + 
+  theme_bw()
 ```
 
 And 1918  
@@ -1063,7 +1031,8 @@ bind_rows(
                       ymin=excess_month_lower, ymax=excess_month_upper,
                       colour=Model),
                   position=position_dodge(.8)) +
-  facet_grid(Country~Year, scales="free")
+  facet_grid(Country~Year, scales="free") + 
+  theme_bw()
 ```
 
 ## Check age
@@ -1075,7 +1044,8 @@ results_age %>%
   geom_pointrange(aes(x=Year, y=excess_year,
                       ymin=excess_year_lower, ymax=excess_year_upper),
                   position=position_dodge(.8)) +
-  facet_grid(Country~Age_cat)
+  facet_grid(Country~Age_cat) + 
+  theme_bw()
 ```
 
 ```{r echo=FALSE}
@@ -1085,7 +1055,8 @@ results_age %>%
   geom_pointrange(aes(x=Year, y=excess_year,
                       ymin=excess_year_lower, ymax=excess_year_upper),
                   position=position_dodge(.8)) +
-  facet_grid(Country~Age_cat)
+  facet_grid(Country~Age_cat) + 
+  theme_bw()
 ```
 
 <!-- ----------------------------------------------------- -->
