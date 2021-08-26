@@ -493,17 +493,36 @@ table_s1 <- bind_rows(
            `excess_year_lower_Age Serfling (Stan, NB)`, 
            `excess_year_upper_Age Serfling (Stan, NB)`) %>% 
   select(-`excess_year_lower_Global Serfling`, -`excess_year_upper_Global Serfling`,
-  )
+  ) %>% 
+  
+  mutate(excess_stan_global = str_c("(", `excess_year_lower_Global Serfling (Stan, NB)`, ", ", `excess_year_upper_Global Serfling (Stan, NB)`, ")")) %>% 
+  relocate(excess_stan_global, .after = `excess_year_Global Serfling (Stan, NB)`) %>% 
+  select(-`excess_year_lower_Global Serfling (Stan, NB)`, -`excess_year_upper_Global Serfling (Stan, NB)`) %>% 
+  
+  mutate(excess_stan_age = str_c("(", `excess_year_lower_Age Serfling (Stan, NB)`, ", ", `excess_year_upper_Age Serfling (Stan, NB)`, ")")) %>% 
+  relocate(excess_stan_age, .after = `excess_year_Age Serfling (Stan, NB)`) %>% 
+  select(-`excess_year_lower_Age Serfling (Stan, NB)`, -`excess_year_upper_Age Serfling (Stan, NB)`)
 ```
 
 ```{r echo=FALSE}
 table_s1 %>% 
-  kbl() %>%
+  select(-Country) %>% 
+  kbl(align = "lrrrrrr",
+      col.names = c("Year", 
+                    "Excess", 
+                    "Excess", "95% CrI", 
+                    "Excess", "95% CrI")) %>% 
+  add_header_above(c(" " = 1, 
+                     "Poisson Serfling" = 1, 
+                     "NB Serfling" = 2, 
+                     "NB serfling (age)" = 2)) %>%   
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
-  # add_header_above(c(" " = 1, "Group 1" = 2, "Group 2" = 2, "Group 3" = 2)) %>%
   column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE)
+  row_spec(1, italic = FALSE) %>% 
+  pack_rows("Switzerland", 1, 12) %>%
+  pack_rows("Sweden", 13, 24) %>% 
+  pack_rows("Spain", 25, 33)
 
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
