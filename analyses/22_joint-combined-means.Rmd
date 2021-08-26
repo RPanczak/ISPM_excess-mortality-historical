@@ -169,15 +169,22 @@ openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx",
 
 ```{r echo=FALSE}
 table_1 %>% 
-  kbl(align = "rlrrrrrrrrr",
-      col.names = c("Year", "Country", "Population", 
+  filter(!(Country == "Sweden" & Year == 2021)) %>% 
+  select(-Year) %>% 
+  kbl(align = "lrrrrrrr",
+      col.names = c("Country", "Population", 
                     "Observed", "Expected", 
                     "No.", "95% CrI", 
                     "%", "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
-  add_header_above(c(" " = 5, 
+  add_header_above(c(" " = 4, 
                      "Excess" = 2, "% excess" = 2)) %>% 
+  pack_rows("1890", 1, 2) %>%
+  pack_rows("1918", 3, 5) %>% 
+  pack_rows("1957", 6, 8) %>% 
+  pack_rows("2020", 9, 11) %>% 
+  pack_rows("2021", 12, 13) %>% 
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE)
 ```
