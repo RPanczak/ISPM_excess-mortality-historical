@@ -17,8 +17,6 @@ knit: (function(inputFile, encoding) {
 <!-- ----------------------------------------------------- -->
 
 ```{r setup, include = FALSE}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-
 set.seed(12345)
 options(scipen = 999)
 options(max.print = "75")
@@ -28,6 +26,8 @@ p_load(tidyverse, magrittr, scales, patchwork, kableExtra)
 ```
 
 ```{r knit-setup, include = FALSE}
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+
 knitr::opts_chunk$set(cache = FALSE,
                       prompt = FALSE,
                       tidy = FALSE,
@@ -155,6 +155,12 @@ table_1 <-
            percent(Excess_uci / Expected, accuracy = 0.1)) %>% 
   relocate(Year, Country, Population, Observed, Expected, 
            starts_with("Excess"), starts_with("Percent")) %>% 
+  mutate(excess_cri = str_c("(", Excess_lci, ", ", Excess_uci, ")")) %>% 
+  relocate(excess_cri, .after = Excess) %>% 
+  select(-Excess_lci, -Excess_uci) %>% 
+  mutate(percent_cri = str_c("(", Percent_lci, ", ", Percent_uci, ")")) %>% 
+  relocate(percent_cri, .after = Percent_excess) %>% 
+  select(-Percent_lci, -Percent_uci) %>% 
   arrange(Year, desc(Country))
 
 openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
@@ -163,9 +169,22 @@ openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx",
 
 ```{r echo=FALSE}
 table_1 %>% 
-  kbl(align = "rlrrrrrrrr") %>%
+  filter(!(Country == "Sweden" & Year == 2021)) %>% 
+  select(-Year) %>% 
+  kbl(align = "lrrrrrrr",
+      col.names = c("Country", "Population", 
+                    "Observed", "Expected", 
+                    "No.", "95% CrI", 
+                    "%", "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
+  add_header_above(c(" " = 4, 
+                     "Excess" = 2, "% excess" = 2)) %>% 
+  pack_rows("1890", 1, 2) %>%
+  pack_rows("1918", 3, 5) %>% 
+  pack_rows("1957", 6, 8) %>% 
+  pack_rows("2020", 9, 11) %>% 
+  pack_rows("2021", 12, 13) %>% 
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE)
 ```
@@ -537,6 +556,8 @@ ggsave("paper/Figure_3.png", dpi = 300, width = 200, height = 100, units = "mm")
 Comparing estimates of excess from different methods
 
 ```{r echo=FALSE}
+pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
+
 table_s1 <- bind_rows(
   
   # needs all models
@@ -597,6 +618,7 @@ table_s1 %>%
   kbl() %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
+  # add_header_above(c(" " = 1, "Group 1" = 2, "Group 2" = 2, "Group 3" = 2)) %>%
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE)
 
