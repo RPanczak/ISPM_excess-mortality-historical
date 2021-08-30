@@ -33,6 +33,9 @@
 
 \renewcommand{\thefigure}{S\arabic{figure}}
 \renewcommand{\thetable}{S\arabic{table}}
+\usepackage[square,comma,numbers]{natbib}
+\bibliographystyle{natbib}
+
 
 \title{Supplementary appendix to: \\ {\Large Pandemic excess mortality in Spain, Sweden, and Switzerland during the COVID-19 pandemic in 2020 was at its highest since 1918 }}
 
@@ -71,6 +74,13 @@
 	\clearpage
 	
 	\section{Material and methods}
+	
+	\subsection{Excess mortality and history }
+	
+	Demographers have used excess mortality since the 1830s to describe monthly and seasonal mortality fluctuations \cite{mallet1837,quetelet1838}. In the 1850s, William Farr used expected versus observed crude death rates to identify places and populations that might benefit from sanitary interventions in England \cite{graham1997profess}. An early application of the concept of excess mortality during a pandemic occurred when Switzerland's federal authorities compared monthly deaths in 1890 with adjacent years in the 1890 influenza pandemic \cite{schmid1895}.
+	
+	The concept of excess mortality has frequently been used to assess the overall impact of historical pandemics on specific populations. For example, international comparisons have been made for specific pandemics \cite{dahai2018,viboud2016,ramiro2018,viboud2005,pastor2020}, and different historical pandemics have been compared with each other for particular countries \cite{bucholz2016,weinberger2012}. Recently, a few studies based on non-continuous data have been published comparing excess mortality in 2020 with 1918 \cite{faust2020,appleby2021}. A study comparable to ours based on weekly data focused exclusively on Sweden and showed similar results \cite{ledberg2021}.
+	
 	
 	\subsection{Data sources and availability }
 
@@ -114,9 +124,9 @@
 	\begin{equation}
 		\Pr(\mathds{M},\mathds{A} | \alpha, \beta_1, \ldots, \beta_5,\phi) = \prod_{i,j} \text{neg-bin}\left(\mathds{M}_{i,j} | M_{i,j},\phi\right) \times \prod_{i,k} \text{multinom}\left(\mathds{A}_{i,k} \middle| N_i, \frac{A_{i,k}}{N_i}\right)
 	\end{equation}
-	This approach of ``stratification and joint likelihood'' was inspired by a recent work focusing on the COVID-19 infection-fatality ratio \cite{hauser2020estimation}.
+	This approach of ``stratification and joint likelihood'' was inspired by a recent work focusing on the COVID-19 infection-fatality ratio \cite{hauser2020}.
 	
-	The model was implemented in Stan (the full code is available in the texttt{stan} folder in study's GitHub repository) \cite{carpenter2017stan}. We selected weakly informative prior distributions for all model parameters \cite{gelman2020regression,gelman2008weakly}, that is normal distributions with mean 0 and standard deviation 10 for intercept and yearly and seasonal slope parameters and a Cauchy distribution with location 0 and scale 5 for the inverse of the overdispersion parameter. We estimated the posterior distributions with Stan's default Hamiltonian Monte Carlo algorithm \cite{hoffman2014no} by sampling 1000 iterations after 1000 iterations for warm-up in four independent chains. We assessed convergence using the Gelman-Rubin convergence diagnostic and sampling efficiency using effective sample size. These diagnostics did not reveal any issues with mixing and convergence in all settings.
+	The model was implemented in Stan (the full code is available in the texttt{stan} folder in study's GitHub repository) \cite{carpenter2017}. We selected weakly informative prior distributions for all model parameters \cite{gelman2020regression,gelman2008weakly}, that is normal distributions with mean 0 and standard deviation 10 for intercept and yearly and seasonal slope parameters and a Cauchy distribution with location 0 and scale 5 for the inverse of the overdispersion parameter. We estimated the posterior distributions with Stan's default Hamiltonian Monte Carlo algorithm \cite{hoffman2014no} by sampling 1000 iterations after 1000 iterations for warm-up in four independent chains. We assessed convergence using the Gelman-Rubin convergence diagnostic and sampling efficiency using effective sample size. These diagnostics did not reveal any issues with mixing and convergence in all settings.
 	
 	\subsection{Estimating excess deaths}
 	
@@ -166,9 +176,10 @@
 
 	
 	\clearpage
-	
-	\bibliography{sup_bib}
-	\bibliographystyle{vancouver}
-	
+
+
+		\bibliography{sup_bib}
+
+		
 	
 \end{document}
