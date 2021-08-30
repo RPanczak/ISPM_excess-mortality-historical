@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  12 AUG 2021 12:57
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  30 AUG 2021 14:15
 entering extended mode
 **./supplementary.tex
 (supplementary.tex
@@ -657,22 +657,22 @@ File: l3backend-pdftex.def 2021-01-09 L3 backend support: PDF output (pdfTeX)
 (supplementary.aux)
 \openout1 = `supplementary.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 64.
-LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -708,7 +708,7 @@ LaTeX Font Info:    ... okay on input line 64.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 64.
+Package hyperref Info: Link coloring OFF on input line 65.
 ("C:\Program Files\MiKTeX 2.9\tex/latex/hyperref\nameref.sty"
 Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
 
@@ -721,9 +721,9 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count311
 )
-LaTeX Info: Redefining \ref on input line 64.
-LaTeX Info: Redefining \pageref on input line 64.
-LaTeX Info: Redefining \nameref on input line 64.
+LaTeX Info: Redefining \ref on input line 65.
+LaTeX Info: Redefining \pageref on input line 65.
+LaTeX Info: Redefining \nameref on input line 65.
  (supplementary.out) (supplementary.out)
 \@outlinefile=\write4
 \openout4 = `supplementary.out'.
@@ -748,9 +748,9 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 85.
 )
 ABD: EverySelectfont initializing macros
-LaTeX Info: Redefining \selectfont on input line 64.
+LaTeX Info: Redefining \selectfont on input line 65.
 LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 6
-6.
+7.
 
 ("C:\Program Files\MiKTeX 2.9\tex/latex/base\t1cmtt.fd"
 File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
@@ -763,7 +763,7 @@ File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 
 {C:/Users/panczak/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
 LaTeX Font Info:    Trying to load font information for U+dsrom on input line 1
-00.
+10.
 
 (C:\Users\panczak\AppData\Roaming\MiKTeX\2.9\tex/latex/doublestroke\udsrom.fd
 File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
@@ -771,65 +771,76 @@ File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
 [2
 
 ]
-<../Figure_S1.png, id=103, 540.5796pt x 398.2077pt>
+<../Figure_S1.png, id=129, 540.5796pt x 398.2077pt>
 File: ../Figure_S1.png Graphic file (type png)
 <use ../Figure_S1.png>
-Package pdftex.def Info: ../Figure_S1.png  used on input line 141.
+Package pdftex.def Info: ../Figure_S1.png  used on input line 151.
 (pdftex.def)             Requested size: 483.69684pt x 356.31165pt.
  [3]
-<../Figure_S2.png, id=118, 844.8363pt x 597.432pt>
+<../Figure_S2.png, id=151, 844.8363pt x 597.432pt>
 File: ../Figure_S2.png Graphic file (type png)
 <use ../Figure_S2.png>
-Package pdftex.def Info: ../Figure_S2.png  used on input line 148.
+Package pdftex.def Info: ../Figure_S2.png  used on input line 158.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [4pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.151 
+l.161 
        <../Figure_S1.png>]
-<../Figure_S3.png, id=125, 844.8363pt x 597.432pt>
-File: ../Figure_S3.png Graphic file (type png)
-<use ../Figure_S3.png>
-Package pdftex.def Info: ../Figure_S3.png  used on input line 155.
+<../Figure_S3a.png, id=158, 844.8363pt x 597.432pt>
+File: ../Figure_S3a.png Graphic file (type png)
+<use ../Figure_S3a.png>
+Package pdftex.def Info: ../Figure_S3a.png  used on input line 165.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [5pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.158 
-       <../Figure_S2.png>]
-<../plot_appendix_week_month.pdf, id=132, 722.7pt x 722.7pt>
-File: ../plot_appendix_week_month.pdf Graphic file (type pdf)
-<use ../plot_appendix_week_month.pdf>
-Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 16
-1.
-(pdftex.def)             Requested size: 338.5863pt x 338.58835pt.
+l.168 	
+        <../Figure_S2.png>]
+<../Figure_S3b.png, id=165, 844.8363pt x 597.432pt>
+File: ../Figure_S3b.png Graphic file (type png)
+<use ../Figure_S3b.png>
+Package pdftex.def Info: ../Figure_S3b.png  used on input line 171.
+(pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [6pdfTeX warning (ext4): destination with the same identifier (name{figure.3})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.164 
-       <../Figure_S3.png>] [7pdfTeX warning (ext4): destination with the same i
-dentifier (name{figure.4}) has been already used, duplicate ignored
+l.174 
+       <../Figure_S3a.png>]
+<../plot_appendix_week_month.pdf, id=172, 722.7pt x 722.7pt>
+File: ../plot_appendix_week_month.pdf Graphic file (type pdf)
+<use ../plot_appendix_week_month.pdf>
+Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 17
+7.
+(pdftex.def)             Requested size: 338.5863pt x 338.58835pt.
+ [7pdfTeX warning (ext4): destination with the same identifier (name{figure.4})
+ has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.168 	\clearpage
+l.180 
+       <../Figure_S3b.png>] [8pdfTeX warning (ext4): destination with the same 
+identifier (name{figure.5}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.184 	\clearpage
                   <../plot_appendix_week_month.pdf>] (supplementary.bbl)
-[8
+[9
 
 ] (supplementary.aux)
 Package rerunfilecheck Info: File `supplementary.out' has not changed.
-(rerunfilecheck)             Checksum: 76988263CDF57D9883D6655FED45B73E;466.
+(rerunfilecheck)             Checksum: 82A469E500644C88AC2ABD7C8903A44A;564.
  ) 
 Here is how much of TeX's memory you used:
- 17666 strings out of 479618
- 330565 string characters out of 2872950
- 626109 words of memory out of 3000000
- 34410 multiletter control sequences out of 15000+200000
- 418298 words of font info for 62 fonts, out of 3000000 for 9000
+ 17706 strings out of 479618
+ 331133 string characters out of 2872950
+ 624567 words of memory out of 3000000
+ 34431 multiletter control sequences out of 15000+200000
+ 418611 words of font info for 63 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 113i,10n,116p,1124b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 113i,10n,116p,951b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
 pdfTeX warning (dest): name{Hfootnote.5} has been referenced but does not exi
 st, replaced by a fixed one
 
@@ -846,33 +857,34 @@ pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exist
 , replaced by a fixed one
 
  <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\
-ecrm0600.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappe
-n/ec/dpi600\ectt0800.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/lj
-four/jknappen/ec/dpi600\tcrm0600.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9
-\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0700.pk> <C:\Users\panczak\AppData\Loca
-l\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm0700.pk> <C:\Users\panczak\
-AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Us
-ers\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm100
+ectt1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappe
+n/ec/dpi600\ecrm0600.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/lj
+four/jknappen/ec/dpi600\ectt0800.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9
+\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm0600.pk> <C:\Users\panczak\AppData\Loca
+l\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0700.pk> <C:\Users\panczak\
+AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm0700.pk> <C:\Us
+ers\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx120
 0.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dp
-i600\ecbx1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jk
-nappen/ec/dpi600\ecbx1440.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/
-pk/ljfour/jknappen/ec/dpi600\ectt0900.pk> <C:\Users\panczak\AppData\Local\MiKTe
-X\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\panczak\AppData
-\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0800.pk> <C:\Users\pan
-czak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <
+i600\ecrm1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jk
+nappen/ec/dpi600\ecbx1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/
+pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\panczak\AppData\Local\MiKTe
+X\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ectt0900.pk> <C:\Users\panczak\AppData
+\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\pan
+czak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0800.pk> <
 C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ec
-rm1440.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/
-ec/dpi600\ecrm1728.pk><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/
-cm/cmex10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi1
-0.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:
-/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program 
-Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/MiKT
-eX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/f
-onts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/panczak/AppData/Roaming/MiKTe
-X/2.9/fonts/type1/public/doublestroke/dsrom10.pfb>
-Output written on supplementary.pdf (8 pages, 488810 bytes).
+rm1200.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/
+ec/dpi600\ecrm1440.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfo
+ur/jknappen/ec/dpi600\ecrm1728.pk><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
+ic/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfo
+nts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
+mmi7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb>
+<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Progra
+m Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/
+MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/panczak/AppData/R
+oaming/MiKTeX/2.9/fonts/type1/public/doublestroke/dsrom10.pfb>
+Output written on supplementary.pdf (9 pages, 575903 bytes).
 PDF statistics:
- 664 PDF objects out of 1000 (max. 8388607)
- 43 named destinations out of 1000 (max. 500000)
- 89 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 755 PDF objects out of 1000 (max. 8388607)
+ 60 named destinations out of 1000 (max. 500000)
+ 102 words of extra memory for PDF output out of 10000 (max. 10000000)
 
