@@ -27,7 +27,9 @@ Yearly differences
 
 Absolute excess deaths
 
-![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2.png)
+![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2b.png)
+
+![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2c.png)
 
 Relative excess deaths
 
