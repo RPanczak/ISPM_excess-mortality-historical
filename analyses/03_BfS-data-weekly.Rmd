@@ -49,10 +49,12 @@ mu <- Hmisc::markupSpecs$html
 ## Weekly number of deaths, 2010-2019
 
 ```{r eval=FALSE}
-# download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/12607335/master",
-#               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv",
-#               method = "curl")
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/12607335/master",
+              destfile = "data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv",
+              method = "curl")
+```
 
+```{r include=FALSE}
 week_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
                              escape_double = FALSE, 
                              col_types = cols(CY = col_integer(), 
@@ -66,12 +68,6 @@ week_2010_2019 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr_ZR.csv", ";",
                              trim_ws = TRUE) %>% 
   rename(Year = CY) %>% 
   filter(!is.na(Year))
-
-write_rds(week_2010_2019, "data/BfS/deaths_week_2010-2019.Rds")
-```
-
-```{r include=FALSE}
-week_2010_2019 <- read_rds("data/BfS/deaths_week_2010-2019.Rds") 
 ```
 
 Last five years with two age groups
@@ -89,8 +85,10 @@ week_2010_2019 %>%
 
 ## Weekly number of deaths, 2020-2021
 
+[Source](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.18584585.html).  
+
 ```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/17824496/master",
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/18584585/master",
               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr.csv",
               method = "curl")
 
@@ -99,6 +97,10 @@ zip(zipfile = "data-raw/BfS/ts-e-14.03.04.03-wr.zip",
 
 file.remove("data-raw/BfS/ts-e-14.03.04.03-wr.csv")
 
+
+```
+
+```{r include=FALSE}
 week_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.zip", 
                              ";", escape_double = FALSE, 
                              col_types = cols(Year = col_integer(), 
@@ -114,12 +116,6 @@ week_2020_2021 <- read_delim("data-raw/BfS/ts-e-14.03.04.03-wr.zip",
          lowerB = LowerB, upperB = UpperB,
          Excess = Diff) %>% 
   filter(!is.na(Year))
-
-write_rds(week_2020_2021, "data/BfS/deaths_week_2020-2021.Rds")
-```
-
-```{r include=FALSE}
-week_2020_2021 <- read_rds("data/BfS/deaths_week_2020-2021.Rds")
 ```
 
 ```{r echo=FALSE}
@@ -135,7 +131,7 @@ week_2020_2021 %>%
 
 ```{r echo=FALSE,eval=FALSE}
 # projected goes on; with a funny dip at the end?
-week_2020_2021 %>% 
+week_2010_2021 %>% 
   filter(Ending >= as.Date("2020-11-01")) %>% 
   ggplot(aes(x = Ending)) +
   # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
@@ -145,11 +141,21 @@ week_2020_2021 %>%
   theme_minimal()
 ```
 
+```{r include=FALSE}
+week_2010_2021 <- week_2010_2019 %>% 
+  bind_rows(week_2020_2021) %>% 
+  write_rds("data/BfS/deaths_week_2010-2021.Rds")
+
+rm(week_2010_2019, week_2020_2021)
+```
+
 ## Yearly totals of excess deaths
 
+**2021 calculated untill week 25 (`2021-06-27`)**  
+
 ```{r}
-excess_2010_2020 <- week_2010_2019 %>% 
-  bind_rows(week_2020_2021 %>% filter(Ending <= as.Date("2020-12-31"))) %>% 
+excess_2010_2020 <- week_2010_2021 %>% 
+  filter(Ending <= as.Date("2021-06-27")) %>% 
   mutate(Excess_expected = NumberOfDeaths - Expected) %>% 
   # mutate(Excess_upperB = NumberOfDeaths - upperB) %>% 
   # group_by(Year, Age) %>% 
@@ -157,11 +163,11 @@ excess_2010_2020 <- week_2010_2019 %>%
   summarise(Excess_expected = sum(Excess_expected)) %>% 
   # summarise(Excess_upperB = sum(Excess_upperB)) %>% 
   ungroup()
+
+write_rds(excess_2010_2020, "data/BfS/excess_2010_2020.Rds")
 ```
 
 ```{r echo=FALSE}
-write_rds(excess_2010_2020, "data/BfS/excess_2010_2020.Rds")
-
 ggplot(excess_2010_2020) + 
   geom_col(aes(x = factor(Year), y = Excess_expected)) + 
   theme_minimal() + xlab("") + ylab("Excess deaths")
@@ -176,7 +182,7 @@ Data from 2020 onwards, weekly resolution.
 ```{r}
 bfs_stmf <- left_join(
   
-  week_2020_2021 %>% 
+  week_2010_2021 %>% 
     filter(Ending <= as.Date("2021-05-23")) %>% 
     group_by(Year, Week) %>%
     summarise(NumberOfDeaths = sum(NumberOfDeaths)) %>% 
@@ -189,26 +195,30 @@ bfs_stmf <- left_join(
   mutate(diff = NumberOfDeaths - Deaths)
 ```
 
-Until May, all seems to be OKish, except some end of the year correction (?):
+Some end of the year corrections (?):
 
 ## Absolute 
 
-```{r}
-ggplot(bfs_stmf, aes(x = Week_start, y = diff)) + 
+```{r echo=FALSE}
+bfs_stmf %>% 
+  filter(Year >= 2015) %>% 
+  ggplot(aes(x = Week_start, y = diff)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
   geom_vline(xintercept = as.Date("2021-05-01"), color = "orange") +
-  geom_line() + 
+  geom_col() + 
   theme_bw() +
   xlab("") + ylab("Weekly absolute difference in number of deaths")
 ```
 
-# Percentages 
+## Percentages 
 
-```{r}
-ggplot(bfs_stmf, aes(x = Week_start, y = diff / NumberOfDeaths)) + 
+```{r echo=FALSE}
+bfs_stmf %>% 
+  filter(Year >= 2015) %>% 
+  ggplot(aes(x = Week_start, y = diff / NumberOfDeaths)) + 
   geom_hline(yintercept = 0, color = "darkorchid") +
   geom_vline(xintercept = as.Date("2021-05-01"), color = "orange") +
-  geom_line() + 
+  geom_col() + 
   theme_bw() +
   xlab("") + ylab("Weekly % difference in number of deaths") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))

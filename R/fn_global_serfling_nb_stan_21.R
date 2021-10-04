@@ -1,12 +1,13 @@
 # function for the global Serfling model, negative binomial version
 
 # pred_year = 2021
-# monthly_data = filter(deaths_monthly, Country=="Sweden")
+# monthly_data = filter(deaths_monthly, Country == "Switzerland")
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
 # prior=10
 # prior_intercept=10
+# p=0.95
 
-fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
+fn_global_serfling_nb_stan_21 = function(pred_year, monthly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -18,23 +19,28 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, p
   # remove special year (e.g. 1918 because of the flu pandemic)
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))
   
-  # extract prediction data
-  pp = dplyr::filter(monthly_data, Year == pred_year)
+  # extract prediction data excluding last 6 mo of 2021
+  pp = dplyr::filter(monthly_data, Year == pred_year) %>% 
+    dplyr::filter(!is.na(Deaths))
   
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
   years = years - min(years) + 1
   months = unique(dd$Month)
+  months2 = unique(pp$Month) # for 2021
   I = length(years)
   J = length(months)
+  J2 = length(months2) # for 2021
   total_deaths = array(dd$Deaths, dim=c(I,J))
   total_population = array(dd$Population, dim=c(I,J))
-  predyear_total_deaths = array(pp$Deaths, dim=J)
-  predyear_total_population = array(pp$Population, dim=J)
+  predyear_total_deaths = array(pp$Deaths, dim=J2)
+  predyear_total_population = array(pp$Population, dim=J2)
   # transform data into list
   dd_list = list(I=I,J=J,
+                 J2=J2, # for 2021
                  years=years,
                  months=months,
+                 months2=months2, # for 2021
                  total_deaths = total_deaths,
                  total_population = total_population,
                  predyear_total_deaths = predyear_total_deaths,
@@ -43,7 +49,7 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, p
   dd_list$p_beta = prior
   dd_list$p_alpha = prior_intercept
   # compiling and save compiled model (need to recompile on a new machine)
-  mm = stan_model(file="stan/global_serfling_nb.stan", save_dso = TRUE)
+  mm = stan_model(file="stan/global_serfling_nb_21.stan", save_dso = TRUE)
   # sampling
   ss = sampling(mm,
             data=dd_list,
