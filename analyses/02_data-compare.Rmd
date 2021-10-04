@@ -320,7 +320,7 @@ stmf_week %>%
   xlab("") + ylab("Weekly number of deaths")
 ```
 
-This time, Sweden has slightly less data:  
+This time, Spain & Sweden have slightly less data:  
 
 ```{r}
 stmf_week %>% 
@@ -364,7 +364,7 @@ write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
 
 ```{r echo=FALSE}
 stmf_month %>% 
-  filter(Date < as.Date("2021-07-01")) %>%
+  filter(Date < as.Date("2021-09-01")) %>%
   filter(Year >= 2019) %>% 
   ggplot(aes(x = Date)) +
   geom_line(aes(y = Deaths, group = Country, color = Country)) +
@@ -372,7 +372,7 @@ stmf_month %>%
   xlab("") + ylab("Monthly number of deaths")
 ```
 
-*Note: Excluding partial data for Jul & Aug 2021.*  
+*Note: Excluding partial data for Sep 2021.*  
 
 ## Yearly totals
 
