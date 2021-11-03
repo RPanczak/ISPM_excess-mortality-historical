@@ -657,9 +657,9 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
   relocate(Country)
 ```
 
-## Yearly pops untill 2019
+## Yearly pops untill 2020
 
-[Demographic balance of the permanent resident population, 1861-2019](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html). Population of Jan and Dec averaged.  
+[Demographic balance of the permanent resident population, 1861-2020](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.13707412.html). Population of Jan and Dec averaged.  
 
 <!-- Alternative source might be [here](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/data.assetdetail.14819631.html).   -->
 
@@ -678,40 +678,32 @@ ch_pop_year <- read_xlsx("data-raw/BfS/su-e-01.02.04.05.xlsx",
   select(Year, starts_with("pop_"))
 ```
 
-## Yearly pops 2020 
+## Yearly pops 2021 
 
-2020 data from [Demographic balance by age and canton](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020000_104/-/px-x-0102020000_104.px/)(`px-x-0102020000_104` table).     
+2021 population is simply assumed to be the same as 2020 ftm.     
 
 ```{r}
-pop_2020 <- read_xlsx("data-raw/BfS/px-x-0102020000_104_ALL.xlsx", 
-                      skip = 2) %>% 
-  filter(! is.na(`...2`)) %>% 
-  select(`Population on 1 January`, `Population on 31 December`) %>% 
-  mutate(Year = 2020) %>% 
-  rename(pop_jan = `Population on 1 January`, 
-         pop_dec = `Population on 31 December`)
-
-pop_2021 <- pop_2020 %>% 
-  mutate(Year = as.integer(2021))
-
 ch_pop_year %<>% 
-  bind_rows(pop_2020) %>% 
-  bind_rows(pop_2021) %>% 
+  bind_rows(
+    ch_pop_year %>% 
+      filter(Year == 2020) %>% 
+      mutate(Year = as.integer(2021))
+  ) %>% 
   mutate(Population = as.integer(round((pop_jan + pop_dec) / 2))) %>% 
   relocate(Year)
 ```
 
 ```{r include=FALSE}
-rm(pop_2020, pop_2021)
-
 ch_deaths_month %<>% 
   left_join(ch_pop_year %>% select(Year, Population))
 ```
 
-## Monthly pops datasets combined 
+## Monthly pops  
 
 ```{r echo=FALSE}
-ggplot(ch_pop_year, aes(x = Year)) +
+ch_pop_year %>% 
+  filter(Year < 2021) %>% 
+  ggplot(aes(x = Year)) +
   geom_line(aes(y = Population)) +
   theme_bw() +
   xlab("") + ylab("Yearly population [million]") +
@@ -834,6 +826,31 @@ hmd_pop_age_sex %>%
   group_by(Year, Age_cat) %>% 
   summarise(Population = sum(Total)) %>% 
   ungroup() %>% 
+  ggplot(
+    aes(x = Age_cat, y = Population, 
+        fill = factor(Year))) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  scale_fill_viridis_d(option = "E", direction = -1) +
+  xlab("") + ylab("Yearly population by age group")
+```
+
+## Comparison - HMD vs BfS  
+
+```{r}
+hmd_pop_age_sex %>% 
+  filter(Country == "Switzerland") %>% 
+  filter(Year >= 2020) %>% 
+  mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                       include.lowest = TRUE,
+                       right = FALSE,
+                       labels=c("0-9","10-19","20-29","30-39","40-49",
+                                "50-59","60-69","70-79","80-89","90+"))) %>% 
+  group_by(Year, Age_cat) %>% 
+  summarise(Population = sum(Total)) %>% 
+  ungroup() %>% 
+  mutate(Source = "HMD") %>% 
   bind_rows(
     ch_pop_age_sex_2020 %>% 
       mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
@@ -844,14 +861,15 @@ hmd_pop_age_sex %>%
       group_by(Year, Age_cat) %>% 
       summarise(Population = sum(
         # population_on_1_january
-        Total
-        # population_on_31_december
+        # Total
+        population_on_31_december
       )) %>% 
-      ungroup()
+      ungroup() %>% 
+      mutate(Source = "BfS") 
   ) %>% 
   ggplot(
     aes(x = Age_cat, y = Population, 
-        fill = factor(Year), factor(Year))) +
+        fill = factor(Source))) +
   geom_col(position = "dodge") +
   scale_y_continuous(labels = comma) +
   theme_bw() +
