@@ -368,7 +368,7 @@ write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
 stmf_month %>% 
   filter(
     (Date <= as.Date("2021-08-01") & Country == "Spain") |
-    (Date <= as.Date("2021-09-01") & Country != "Spain") 
+      (Date <= as.Date("2021-09-01") & Country != "Spain") 
   ) %>%
   filter(Year >= 2019) %>% 
   ggplot(aes(x = Date)) +
@@ -429,9 +429,29 @@ Showing small imperfections of the `week -> month` transition! 2020 seems to be 
 
 ~~Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).~~  
 
-**Updated** historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.16664926.html).  
+**Updated** historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.18584915.html).  
 
 Using data since 1877 only where monthly registration starts.  
+
+```{r}
+ch_deaths_month_alt <- pxR::read.px("data-raw/BfS/px-x-0102020206_111.px") %>% 
+  as_tibble() %>% remove_empty() %>% clean_names() %>% 
+  rename(Year = jahr,
+         Deaths = value) %>% 
+  mutate(Year = as.numeric(as.character(Year))) %>% 
+  filter(Year >= 1877) %>% 
+  filter(str_detect(demografisches_merkmal_und_indikator, 'Todesfälle im')) %>% 
+  droplevels(.) %>% 
+  mutate(Month = rep(seq(1:12), times = nrow(.)/12) ) %>% 
+  select(-demografisches_merkmal_und_indikator) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
+         Year = as.integer(Year),
+         Deaths = as.integer(Deaths)) %>% 
+  relocate(Year, Month, Date)
+
+# with(ch_deaths_month_alt, table(demografisches_merkmal_und_indikator, Month))
+```
+
 With important update from @Christof **covering missing months between 1886 and 1900**!  
 
 ```{r message=FALSE, warning=FALSE}
@@ -442,13 +462,24 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
   mutate(Year = as.integer(Year)) %>% 
   pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
   mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
-  mutate(Date = ymd(paste0(Year, "-", Month, "-01"))) %>% 
-  relocate(Year, Month, Date) %>% 
   mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
          Year = as.integer(Year),
          Month = as.integer(Month),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
+```
+
+```{r}
+# summary(ch_deaths_month_alt$Deaths - ch_deaths_month$Deaths)
+
+ch_deaths_month %>% 
+  rename(Deaths_custom = Deaths) %>% 
+  left_join(ch_deaths_month_alt %>% 
+              rename(Deaths_web = Deaths)) %>% 
+  mutate(diff = Deaths_custom - Deaths_web,
+         diff_p = ((Deaths_web - Deaths_custom) / Deaths_custom) *100) %>% 
+  select(-Date) %>% 
+  filter(diff != 0)
 ```
 
 ## Monthly 2021 deaths 

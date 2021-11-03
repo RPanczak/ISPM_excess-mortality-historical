@@ -16,10 +16,11 @@ DESCRIPTION="Todesfälle nach Monat und Sterblichkeit seit 1803";
 DESCRIPTION[fr]="Décès par mois et mortalité depuis 1803";
 DESCRIPTION[it]="Decessi per mese e mortalità dal 1803";
 DESCRIPTION[en]="Deaths per month and mortality since 1803";
-TITLE="Todesfälle nach Monat und Sterblichkeit seit 1803 nach Jahr und Demografisches Merkmal und Indikator";
-TITLE[fr]="Décès par mois et mortalité depuis 1803 selon Année et Caractéristique démographique et indicateur";
-TITLE[it]="Decessi per mese e mortalità dal 1803 da Anno e Caratteristica demografia ed indicatore";
-TITLE[en]="Deaths per month and mortality since 1803 by Year and Demographic characteristic and indicator";
+TITLE="Todesfälle nach Monat und Sterblichkeit seit 1803";
+TITLE[fr]="Décès par mois et mortalité depuis 1803";
+TITLE[it]="Decessi per mese e mortalità dal 1803";
+TITLE[en]="Deaths per month and mortality since 1803";
+DESCRIPTIONDEFAULT=YES;
 CONTENTS="Todesfälle nach Monat und Sterblichkeit seit 1803";
 CONTENTS[fr]="Décès par mois et mortalité depuis 1803";
 CONTENTS[it]="Decessi per mese e mortalità dal 1803";
@@ -51,7 +52,7 @@ VALUES("Jahr")="1803","1804","1805","1806","1807","1808","1809","1810","1811","1
 "1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981","1982",
 "1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995","1996",
 "1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009","2010",
-"2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 VALUES[fr]("Année")="1803","1804","1805","1806","1807","1808","1809","1810","1811","1812","1813",
 "1814","1815","1816","1817","1818","1819","1820","1821","1822","1823","1824","1825","1826","1827",
 "1828","1829","1830","1831","1832","1833","1834","1835","1836","1837","1838","1839","1840","1841",
@@ -67,7 +68,7 @@ VALUES[fr]("Année")="1803","1804","1805","1806","1807","1808","1809","1810","181
 "1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981",
 "1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995",
 "1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
-"2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 VALUES[it]("Anno")="1803","1804","1805","1806","1807","1808","1809","1810","1811","1812","1813",
 "1814","1815","1816","1817","1818","1819","1820","1821","1822","1823","1824","1825","1826","1827",
 "1828","1829","1830","1831","1832","1833","1834","1835","1836","1837","1838","1839","1840","1841",
@@ -83,7 +84,7 @@ VALUES[it]("Anno")="1803","1804","1805","1806","1807","1808","1809","1810","1811
 "1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981",
 "1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995",
 "1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
-"2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 VALUES[en]("Year")="1803","1804","1805","1806","1807","1808","1809","1810","1811","1812","1813",
 "1814","1815","1816","1817","1818","1819","1820","1821","1822","1823","1824","1825","1826","1827",
 "1828","1829","1830","1831","1832","1833","1834","1835","1836","1837","1838","1839","1840","1841",
@@ -99,7 +100,7 @@ VALUES[en]("Year")="1803","1804","1805","1806","1807","1808","1809","1810","1811
 "1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980","1981",
 "1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994","1995",
 "1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
-"2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 VALUES("Demografisches Merkmal und Indikator")="Todesfälle - Total","Todesfälle im Januar",
 "Todesfälle im Februar","Todesfälle im März","Todesfälle im April","Todesfälle im Mai",
 "Todesfälle im Juni","Todesfälle im Juli","Todesfälle im August","Todesfälle im September",
@@ -151,7 +152,7 @@ TIMEVAL("Jahr")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809","1810
 "1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980",
 "1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994",
 "1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008",
-"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 TIMEVAL[fr]("Année")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809","1810","1811",
 "1812","1813","1814","1815","1816","1817","1818","1819","1820","1821","1822","1823","1824","1825",
 "1826","1827","1828","1829","1830","1831","1832","1833","1834","1835","1836","1837","1838","1839",
@@ -167,7 +168,7 @@ TIMEVAL[fr]("Année")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809",
 "1966","1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979",
 "1980","1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993",
 "1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007",
-"2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 TIMEVAL[it]("Anno")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809","1810","1811","1812",
 "1813","1814","1815","1816","1817","1818","1819","1820","1821","1822","1823","1824","1825","1826",
 "1827","1828","1829","1830","1831","1832","1833","1834","1835","1836","1837","1838","1839","1840",
@@ -183,7 +184,7 @@ TIMEVAL[it]("Anno")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809","
 "1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980",
 "1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994",
 "1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008",
-"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 TIMEVAL[en]("Year")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809","1810","1811","1812",
 "1813","1814","1815","1816","1817","1818","1819","1820","1821","1822","1823","1824","1825","1826",
 "1827","1828","1829","1830","1831","1832","1833","1834","1835","1836","1837","1838","1839","1840",
@@ -199,7 +200,7 @@ TIMEVAL[en]("Year")=TLIST(A1),"1803","1804","1805","1806","1807","1808","1809","
 "1967","1968","1969","1970","1971","1972","1973","1974","1975","1976","1977","1978","1979","1980",
 "1981","1982","1983","1984","1985","1986","1987","1988","1989","1990","1991","1992","1993","1994",
 "1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005","2006","2007","2008",
-"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019";
+"2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020";
 PRECISION("Demografisches Merkmal und Indikator","Todesfälle je 1000 Einwohner")=1;
 PRECISION[fr]("Caractéristique démographique et indicateur","Décès pour 1000 habitants")=1;
 PRECISION[it]("Caratteristica demografia ed indicatore","Decessi ogni 1000 abitanti")=1;
@@ -236,31 +237,31 @@ PRECISION("Demografisches Merkmal und Indikator","Geschlechterverhältnis beim To
 PRECISION[fr]("Caractéristique démographique et indicateur","Rapport de masculinité au décès")=1;
 PRECISION[it]("Caratteristica demografia ed indicatore","Rapporto di mascolinità al decesso")=1;
 PRECISION[en]("Demographic characteristic and indicator","Ratio of male deaths")=1;
-LAST-UPDATED="20210406 08:30";
+LAST-UPDATED="20210930 08:30";
 CONTACT="Sektion Demografie und Migration, +41 58 463 67 11, E-Mail: info.dem@bfs.admin.ch";
 CONTACT[fr]="Section Démographie et migration, +41 58 463 67 11, e-mail: info.dem@bfs.admin.ch";
 CONTACT[it]="Sezione Demografia e migrazione, +41 58 463 67 11, e-mail: info.dem@bfs.admin.ch";
 CONTACT[en]="Section Demography and migration, +41 58 463 67 11, email: info.dem@bfs.admin.ch";
-REFPERIOD="2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1972,1971,"
-"1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1921,1920,"
-"1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1870,1869,"
-"1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1819,1818,"
-"1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
-REFPERIOD[fr]="2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1972,1"
-"971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1921,1"
-"920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1870,1"
-"869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1819,1"
-"818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
-REFPERIOD[it]="2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1972,1"
-"971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1921,1"
-"920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1870,1"
-"869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1819,1"
-"818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
-REFPERIOD[en]="2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1972,1"
-"971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1921,1"
-"920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1870,1"
-"869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1819,1"
-"818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
+REFPERIOD="2020,2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1972,"
+"1971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1921,"
+"1920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1870,"
+"1869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1819,"
+"1818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
+REFPERIOD[fr]="2020,2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1"
+"972,1971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1"
+"921,1920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1"
+"870,1869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1"
+"819,1818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
+REFPERIOD[it]="2020,2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1"
+"972,1971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1"
+"921,1920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1"
+"870,1869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1"
+"819,1818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
+REFPERIOD[en]="2020,2019,2018,2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995,1994,1993,1992,1991,1990,1989,1988,1987,1986,1985,1984,1983,1982,1981,1980,1979,1978,1977,1976,1975,1974,1973,1"
+"972,1971,1970,1969,1968,1967,1966,1965,1964,1963,1962,1961,1960,1959,1958,1957,1956,1955,1954,1953,1952,1951,1950,1949,1948,1947,1946,1945,1944,1943,1942,1941,1940,1939,1938,1937,1936,1935,1934,1933,1932,1931,1930,1929,1928,1927,1926,1925,1924,1923,1922,1"
+"921,1920,1919,1918,1917,1916,1915,1914,1913,1912,1911,1910,1909,1908,1907,1906,1905,1904,1903,1902,1901,1900,1899,1898,1897,1896,1895,1894,1893,1892,1891,1890,1889,1888,1887,1886,1885,1884,1883,1882,1881,1880,1879,1878,1877,1876,1875,1874,1873,1872,1871,1"
+"870,1869,1868,1867,1866,1865,1864,1863,1862,1861,1860,1859,1858,1857,1856,1855,1854,1853,1852,1851,1850,1849,1848,1847,1846,1845,1844,1843,1842,1841,1840,1839,1838,1837,1836,1835,1834,1833,1832,1831,1830,1829,1828,1827,1826,1825,1824,1823,1822,1821,1820,1"
+"819,1818,1817,1816,1815,1814,1813,1812,1811,1810,1809,1808,1807,1806,1805,1804,1803";
 DATABASE="BFS - STAT-TAB / Bundesamt für Statistik, 2010 Neuchâtel / Schweiz / © Bundesamt für Statistik";
 DATABASE[fr]="OFS - STAT-TAB / Office fédéral de la statistique, 2010 Neuchâtel / Suisse / © Office fédéral de la statistique";
 DATABASE[it]="UST - STAT-TAB / Ufficio federale di statistica, 2010 Neuchâtel / Svizzera / © Ufficio federale di statistica";
@@ -282,29 +283,27 @@ LINK="https://www.bfs.admin.ch/asset/de/px-x-0102020206_111";
 LINK[fr]="https://www.bfs.admin.ch/asset/fr/px-x-0102020206_111";
 LINK[it]="https://www.bfs.admin.ch/asset/it/px-x-0102020206_111";
 LINK[en]="https://www.bfs.admin.ch/asset/en/px-x-0102020206_111";
-NOTE="<B>Metainformation:</B>#Letzte Änderungen: Neuer Datensatz (2019); Korrektur von drei Monatsdaten in den Jahren 1880 bis 1885; Ergänzung von Monatsdaten für die Jahre 1886 bis 1900#Stand der Datenbank: 12.03.2021#Erhebungsperiode: Kalenderjahr#"
-"Raumbezug: Schweiz#Datenquelle: Statistik der natürlichen Bevölkerungsbewegung (BEVNAT), 1981-2010 Statistik des jährlichen Bevölkerungsstandes (ESPOP), ab 2011 Statistik der Bevölkerung und der Haushalte (STATPOP)##<B>Verwendete Zeichen</B>:#'...' : "
-"Zahl unbekannt, weil (noch) nicht erhoben oder (noch) nicht berechnet##Die historischen Daten stammen aus der Publikation «Historische Statistik der Schweiz» (Chronos, 1996) und den jährlichen Publikationen «Bevölkerungsbewegung in der Schweiz».#Die "
-"übrigen Daten stammen aus der Statistik der natürlichen Bevölkerungsbewegung <A HREF=https://www.bfs.admin.ch/bfs/de/home/statistiken/bevoelkerung/erhebungen/bevnat.html TARGET=_blank>BEVNAT</A>##Informationen über die verwendeten Begriffe befinden sich "
-"hier: <A HREF=https://www.bfs.admin.ch/bfs/de/home/grundlagen/definitionen.html?dyn_prodima=900010&dyn_pageIndex=0 TARGET=_blank>Definitionen</A>##Historische Vertiefung:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>Historisches Lexikon der "
-"Schweiz</A>#";
-NOTE[fr]="<B>Métainformation:</B>#Dernière modification: nouveau jeu de données (2019); correction de trois données mensuelles dans les années de 1880 à 1885; complément des données mensuelles pour les années de 1886 à 1900#Etat de la base de données: 12."
-"03.2021#Période de référence: année civile#Référence spatiale: Suisse#Sources de données: Statistique du mouvement naturel de la population (BEVNAT), 1981-2010 Statistique de l'état annuel de la population (ESPOP), depuis 2011 Statistique de la "
-"population et des ménages (STATPOP)##<B>Signes utilisés</B>:#'...' : chiffre inconnu car pas (encore) relevé ou pas (encore) calculé##Les données historiques proviennent de la publication « Statistique historique de la Suisse » (Chronos, 1996) et des "
-"publications annuelles « Mouvement de la Population de la Suisse ».#Les autres données proviennent de la Statistique du mouvement naturel de la population <A HREF=https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/enquetes/bevnat.html TARGET=_"
-"blank>BEVNAT</A>##Des informations sur les termes utilisés peuvent être trouvées ici: <A HREF=https://www.bfs.admin.ch/bfs/fr/home/bases-statistiques/definitions.html?dyn_prodima=900010&dyn_pageIndex=0 TARGET=_blank>Définitions</A>##Approfondissement "
-"historique:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>Dictionnaire historique de la Suisse</A>#";
-NOTE[it]="<B>Metainformazioni:</B>#Ultima modifica: nuovo set di dati (2019); correzione di tre dati mensili negli anni dal 1880 al 1885; aggiunta di dati mensili per gli anni dal 1886 al 1900#Stato della banca dati: 12.03.2021#Periodo di riferimento: "
-"anno civile#Georeferenza: Svizzera# Fonti dei dati: statistica del movimento naturale della popolazione (BEVNAT), 1981-2010: statistica dello stato annuale della popolazione (ESPOP), dal 2011: statistica della popolazione e delle economie domestiche "
-"(STATPOP)##<B>Simboli utilizzati</B>:#'...' : cifra sconosciuta perché non (ancora) rilevata o non (ancora) calcolata##I dati storici provengono dalla pubblicazione « Historische Statistik der Schweiz/Statistique historique de la Suisse » (Chronos, 1996, "
-"in tedesco o francese) e dalle pubblicazioni annuali  « Die Bewegung der Bevölkerung in der Schweiz/Mouvement de la Population de la Suisse » (in tedesco o francese).#Gli altri dati provengono dalla statistica del movimento naturale della popolazione <A "
-"HREF=https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/enquetes/bevnat.html TARGET=_blank>BEVNAT</A> (in francese)##Ulteriori informazioni sulle termini utilizzate possono essere trovate qui: <A HREF=https://www.bfs.admin.ch/bfs/it/home/basi-"
-"statistiche/definizioni.html?dyn_prodima=900010 TARGET=_blank>Definizioni</A>##Approfondimento storico:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>Dizionario storico della Svizzera</A>#";
-NOTE[en]="<B>Metainformation:</B>#Last modified: new data set (2019); correction of three monthly data in the years 1880 to 1885; addition of monthly data for the years 1886 to 1900#State of the database: 12.03.2021#Reference period : Calendar year#"
-"Spatial reference: Switzerland#Data sources: Vital Statistics (BEVNAT), 1981-2010 Annual Population Statistics (ESPOP), from 2011 Population and Households Statistics (STATPOP)##<B>Used signs</B>:#'...' : figure unknown because not (yet) collected or not "
-"(yet) calculated##Historical data taken from the publication « Historical Statistics of Switzerland » (Chronos, 1996) and the annual publications on Vital statistics (in French: « Mouvement de la Population de la Suisse »).#The rest of the data comes "
-"from the Vital statistics <A HREF=https://www.bfs.admin.ch/bfs/de/home/statistiken/bevoelkerung/erhebungen/bevnat.html TARGET=_blank>BEVNAT</A> (in German)##Information about the term used can be found here: <A HREF=https://www.bfs.admin.ch/bfs/en/home/"
-"basics/definitions.html?dyn_prodima=900010 TARGET=_blank>Definitions</A>##Historical background:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>The Historical Dictionary of Switzerland</A>#";
+NOTE="<B>Metainformation:</B>#Letzte Änderungen: Neuer Datensatz (2020)#Stand der Datenbank: September 2021#Erhebungsperiode: Kalenderjahr#Raumbezug: Schweiz#Datenquelle: Statistik der natürlichen Bevölkerungsbewegung (BEVNAT), 1981-2010 Statistik des "
+"jährlichen Bevölkerungsstandes (ESPOP), ab 2011 Statistik der Bevölkerung und der Haushalte (STATPOP)##<B>Verwendete Zeichen</B>:#' ... ' : Zahl unbekannt, weil (noch) nicht erhoben oder (noch) nicht berechnet##Die historischen Daten stammen aus der "
+"Publikation «Historische Statistik der Schweiz» (Chronos, 1996) und den jährlichen Publikationen «Bevölkerungsbewegung in der Schweiz».#Die übrigen Daten stammen aus der Statistik der natürlichen Bevölkerungsbewegung <A HREF=https://www.bfs.admin.ch/bfs/"
+"de/home/statistiken/bevoelkerung/erhebungen/bevnat.html TARGET=_blank>BEVNAT</A>##Informationen über die verwendeten Begriffe befinden sich hier: <A HREF=https://www.bfs.admin.ch/bfs/de/home/grundlagen/definitionen.html?dyn_prodima=900010&dyn_pageIndex=0 "
+"TARGET=_blank>Definitionen</A>##Historische Vertiefung:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>Historisches Lexikon der Schweiz</A>#";
+NOTE[fr]="<B>Métainformation:</B>#Dernière modification: nouveau jeu de données (2020)#Etat de la base de données: septembre 2021#Période de référence: année civile#Référence spatiale: Suisse#Sources de données: Statistique du mouvement naturel de la "
+"population (BEVNAT), 1981-2010 Statistique de l'état annuel de la population (ESPOP), depuis 2011 Statistique de la population et des ménages (STATPOP)##<B>Signes utilisés</B>:#' ... ' : chiffre inconnu car pas (encore) relevé ou pas (encore) calculé##"
+"Les données historiques proviennent de la publication « Statistique historique de la Suisse » (Chronos, 1996) et des publications annuelles « Mouvement de la Population de la Suisse ».#Les autres données proviennent de la Statistique du mouvement naturel "
+"de la population <A HREF=https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/enquetes/bevnat.html TARGET=_blank>BEVNAT</A>##Des informations sur les termes utilisés peuvent être trouvées ici: <A HREF=https://www.bfs.admin.ch/bfs/fr/home/bases-"
+"statistiques/definitions.html?dyn_prodima=900010&dyn_pageIndex=0 TARGET=_blank>Définitions</A>##Approfondissement historique:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>Dictionnaire historique de la Suisse</A>#";
+NOTE[it]="<B>Metainformazioni:</B>#Ultima modifica: nuovo set di dati (2020)#Stato della banca dati: settembre 2021#Periodo di riferimento: anno civile#Georeferenza: Svizzera# Fonti dei dati: statistica del movimento naturale della popolazione (BEVNAT), "
+"1981-2010: statistica dello stato annuale della popolazione (ESPOP), dal 2011: statistica della popolazione e delle economie domestiche (STATPOP)##<B>Simboli utilizzati</B>:#' ... ' : cifra sconosciuta perché non (ancora) rilevata o non (ancora) "
+"calcolata##I dati storici provengono dalla pubblicazione « Historische Statistik der Schweiz/Statistique historique de la Suisse » (Chronos, 1996, in tedesco o francese) e dalle pubblicazioni annuali  « Die Bewegung der Bevölkerung in der Schweiz/"
+"Mouvement de la Population de la Suisse » (in tedesco o francese).#Gli altri dati provengono dalla statistica del movimento naturale della popolazione <A HREF=https://www.bfs.admin.ch/bfs/fr/home/statistiques/population/enquetes/bevnat.html TARGET=_"
+"blank>BEVNAT</A> (in francese)##Ulteriori informazioni sulle termini utilizzate possono essere trovate qui: <A HREF=https://www.bfs.admin.ch/bfs/it/home/basi-statistiche/definizioni.html?dyn_prodima=900010 TARGET=_blank>Definizioni</A>##Approfondimento "
+"storico:#<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>Dizionario storico della Svizzera</A>#";
+NOTE[en]="<B>Metainformation:</B>#Last modified: new data set (2020)#State of the database: September 2021#Reference period : Calendar year#Spatial reference: Switzerland#Data sources: Vital Statistics (BEVNAT), 1981-2010 Annual Population Statistics "
+"(ESPOP), from 2011 Population and Households Statistics (STATPOP)##<B>Used signs</B>:#' ... ' : figure unknown because not (yet) collected or not (yet) calculated##Historical data taken from the publication « Historical Statistics of Switzerland » "
+"(Chronos, 1996) and the annual publications on Vital statistics (in French: « Mouvement de la Population de la Suisse »).#The rest of the data comes from the Vital statistics <A HREF=https://www.bfs.admin.ch/bfs/de/home/statistiken/bevoelkerung/"
+"erhebungen/bevnat.html TARGET=_blank>BEVNAT</A> (in German)##Information about the term used can be found here: <A HREF=https://www.bfs.admin.ch/bfs/en/home/basics/definitions.html?dyn_prodima=900010 TARGET=_blank>Definitions</A>##Historical background:#"
+"<A HREF=http://www.hls-dhs-dss.ch/index.php TARGET=_blank>The Historical Dictionary of Switzerland</A>#";
 DATASYMBOL1="-";
 DATASYMBOL1[fr]="-";
 DATASYMBOL1[it]="-";
@@ -538,4 +537,5 @@ DATA=
 64964 5831 5554 5827 5125 5221 4988 5150 5075 4977 5541 5561 6114 316 7.8 3.6 3.4 3.8 81.5 85.3 19.8 22.6 92.9 
 66971 7545 5882 5692 5172 5312 4871 5021 5165 5147 5486 5493 6185 310 7.9 3.5 4 3.1 81.4 85.4 19.7 22.5 93.8 
 67088 6619 5843 6500 5364 5259 4944 5173 5377 5109 5464 5481 5955 287 7.9 3.3 3.4 3.1 81.7 85.4 19.9 22.7 93.4 
-67780 6118 6066 6147 5523 5559 5208 5426 5210 5287 5631 5684 5921 283 7.9 3.3 3.4 3.2 81.9 85.6 20 22.7 93.5; 
+67780 6118 6066 6147 5523 5559 5208 5426 5210 5287 5631 5684 5921 283 7.9 3.3 3.4 3.2 81.9 85.6 20 22.7 93.5 
+76195 6163 5696 6652 6684 5138 4981 5238 5303 5353 6272 9101 9614 313 8.8 3.6 4 3.3 81 85.1 19.3 22.2 97.5; 
