@@ -49,9 +49,11 @@ mu <- Hmisc::markupSpecs$html
 
 # HMD - yearly data with age & sex structure
 
-[The Human Mortality Database](https://www.mortality.org/) data.  
+[The Human Mortality Database](https://www.mortality.org/) is the source of the data.  
 
 Available on yearly resolution only but for one year age bands & separate by sex.  
+
+In order to download the [chunk option](https://yihui.org/knitr/options/) of the code snippet below has to be changed to `eval=TRUE` and a password to user account on mortality.org website stored in plain text file `HMD.txt` in `secrets` directory of the project.  
 
 ```{r eval=FALSE}
 p_load(HMDHFDplus)
@@ -78,7 +80,7 @@ write_rds(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 
 # ES
 # pop
-# 1975 problem resolved in #45
+# 1975 problem resolved in issue #45
 hmd_es_pop_raw <- readHMDweb(CNTRY = "ESP", item ="Population" , 
                              username = "r.panczak@gmail.com", password = password,
                              fixup = FALSE) %>% 
@@ -142,7 +144,7 @@ hmd_deaths_year <- hmd_deaths_age_sex %>%
   ungroup()
 ```
 
-Note: Sweden has one more year of data than other two countries:   
+Note: Spain has one more year of data than other two countries:   
 
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
