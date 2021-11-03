@@ -144,7 +144,7 @@ hmd_deaths_year <- hmd_deaths_age_sex %>%
   ungroup()
 ```
 
-Note: Spain has one more year of data than other two countries:   
+Note: Spain has *two years less* of data than other two countries:   
 
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
@@ -168,7 +168,7 @@ Example of age & sex breakdown for Switzerland.
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
   filter(Country == "Switzerland") %>% 
-  filter(Year == 1876 | Year == 2018) %>% 
+  filter(Year == 1876 | Year == 2019 | Year == 2020) %>% 
   select(Year, Age, Female, Male) %>% 
   pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
   mutate(Age_cat = cut(Age, seq(0, 110, 10), 
@@ -215,7 +215,7 @@ hmd_pop_year <- hmd_pop_age_sex %>%
   ungroup()
 ```
 
-Again, Sweden has more data - and already includes 2020:  
+Again, *Spain has less data* - and already includes 2020:  
 
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
