@@ -139,21 +139,28 @@ hmd_deaths_age_sex <-
          Total = as.integer(round(Total))) %>% 
   relocate(Country) 
 
+write_rds(hmd_deaths_age_sex, "data/mortality_org/hmd_deaths_age_sex.Rds")
+```
+
+Note: Spain has *two years less* of data than other two countries:  
+
+```{r echo=FALSE}
+hmd_deaths_age_sex %>% 
+  group_by(Country) %>% 
+  summarize(Max = max(Year)) 
+```
+
+Yearly totals per country indicating different time frames of data.  
+
+```{r}
 hmd_deaths_year <- hmd_deaths_age_sex %>% 
   group_by(Country, Year) %>%
   summarise(Deaths = as.integer(round(sum(Total)))) %>% 
   ungroup()
+
+write_rds(hmd_deaths_year, "data/mortality_org/hmd_deaths_year.Rds")
 ```
 
-Note: Spain has *two years less* of data than other two countries:   
-```{r echo=FALSE}
-hmd_deaths_age_sex %>% 
-  group_by(Country) %>% 
-  summarize(Max = max(Year)) %>% 
-  ungroup()
-```
-
-Yearly totals per country indicating different time frames of data.  
 ```{r echo=FALSE}
 hmd_deaths_year %>%
   ggplot(aes(x = Year)) +
@@ -162,7 +169,7 @@ hmd_deaths_year %>%
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-Example of age & sex breakdown for Switzerland, with first indication of the effects of pandemics.  
+Example of age & sex breakdown for Switzerland, showing demographic transition and first indication of the effects of pandemics.  
 
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
@@ -208,10 +215,7 @@ hmd_pop_age_sex <-
          Total = as.integer(round(Total))) %>% 
   relocate(Country) 
 
-hmd_pop_year <- hmd_pop_age_sex %>% 
-  group_by(Country, Year) %>%
-  summarise(Population = as.integer(round(sum(Total)))) %>% 
-  ungroup()
+write_rds(hmd_pop_age_sex, "data/mortality_org/hmd_pop_age_sex.Rds")
 ```
 
 Again, *Spain has less data* - and already includes 2020:  
@@ -219,11 +223,19 @@ Again, *Spain has less data* - and already includes 2020:
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
   group_by(Country) %>% 
-  summarize(Max = max(Year)) %>% 
-  ungroup()
+  summarize(Max = max(Year)) 
 ```
 
 Yearly totals  
+
+```{r}
+hmd_pop_year <- hmd_pop_age_sex %>% 
+  group_by(Country, Year) %>%
+  summarise(Population = as.integer(round(sum(Total)))) %>% 
+  ungroup()
+
+write_rds(hmd_pop_year, "data/mortality_org/hmd_pop_year.Rds")
+```
 
 ```{r echo=FALSE}
 hmd_pop_year  %>% 
@@ -327,8 +339,7 @@ Switzerland & Sweden have slightly more data:
 stmf_week %>% 
   filter(Year == 2021) %>% 
   group_by(Country) %>% 
-  summarize(Max_week = max(Week)) %>% 
-  ungroup()
+  summarize(Max_week = max(Week)) 
 ```
 
 ## Monthly
@@ -377,12 +388,9 @@ stmf_month %>%
 ```
 
 *Note: Only showing data till Aug 2021 for Spain (data is available only till week 38 which ends on `2021-09-26`). Data till Sept for Switzerland and Sweden.*  
-
 ## Yearly totals
 
 Conversions are not perfect!  
-
-Example of 2019+ totals derived from weekly data:
 
 ```{r}
 differences <- left_join(
@@ -401,6 +409,8 @@ differences <- left_join(
   mutate(Difference = Weekly - Monthly,
          Perc_weekly = percent((Weekly - Monthly) / Weekly, accuracy = 0.01))
 ```
+
+Example of 2019+ yearly totals derived from weekly data illustrate this problem:
 
 ```{r echo=FALSE}
 differences %>% 
@@ -426,7 +436,7 @@ Showing small imperfections of the `week -> month` transition! 2020 seems to be 
 
 ## Monthly deaths until 2020
 
-Using data since 1877 only where *monthly reporting starts*.  
+Using data **since 1877 only** when *monthly reporting starts*.  
 
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.18584915.html).  
 
@@ -446,7 +456,7 @@ ch_deaths_month_web <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>%
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
 
-# with(ch_deaths_month_web, table(demografisches_merkmal_und_indikator, Month))
+# write_rds(ch_deaths_month_web, "data/BfS/ch_deaths_month_web.Rds")
 ```
 
 Data delivered earlier by BfS.    
@@ -464,9 +474,12 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
          Month = as.integer(Month),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
+
+# write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 ```
 
-```{r}
+```{r eval=FALSE}
+# with(ch_deaths_month_web, table(demografisches_merkmal_und_indikator, Month))
 # summary(ch_deaths_month_web$Deaths - ch_deaths_month$Deaths)
 
 ch_deaths_month %>% 
@@ -477,9 +490,8 @@ ch_deaths_month %>%
          diff_p = ((Deaths_web - Deaths_custom) / Deaths_custom) *100) %>% 
   select(-Date) %>% 
   filter(diff != 0)
-```
 
-```{r eval=FALSE}
+
 ch_deaths_month %>% 
   rename(Deaths_custom = Deaths) %>% 
   left_join(ch_deaths_month_web %>% 
