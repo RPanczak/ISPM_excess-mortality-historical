@@ -26,6 +26,7 @@ p_load(tidyverse, magrittr, janitor, scales,
        readxl, lubridate, aweek, wktmo,
        kableExtra, lemon)
 
+import::from("pxR", "read.px")
 # import::from("lemon", "scale_x_symmetric")
 # import::from("wktmo", "weekToMonth")
 ```
@@ -145,7 +146,6 @@ hmd_deaths_year <- hmd_deaths_age_sex %>%
 ```
 
 Note: Spain has *two years less* of data than other two countries:   
-
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
   group_by(Country) %>% 
@@ -154,7 +154,6 @@ hmd_deaths_age_sex %>%
 ```
 
 Yearly totals per country indicating different time frames of data.  
-
 ```{r echo=FALSE}
 hmd_deaths_year %>%
   ggplot(aes(x = Year)) +
@@ -163,12 +162,12 @@ hmd_deaths_year %>%
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-Example of age & sex breakdown for Switzerland.
+Example of age & sex breakdown for Switzerland, with first indication of the effects of pandemics.  
 
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
   filter(Country == "Switzerland") %>% 
-  filter(Year == 1876 | Year == 2019 | Year == 2020) %>% 
+  filter(Year %in% c(1876, 1917, 1918, 2019, 2020)) %>% 
   select(Year, Age, Female, Male) %>% 
   pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
   mutate(Age_cat = cut(Age, seq(0, 110, 10), 
@@ -240,7 +239,7 @@ Again, age structure is available on yearly resolution.
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
   filter(Country == "Switzerland") %>% 
-  filter(Year == 1876 | Year == 2019) %>% 
+  filter(Year %in% c(1876, 2019)) %>% 
   select(Year, Age, Female, Male) %>% 
   pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
   mutate(Age_cat = cut(Age, seq(0, 110, 10), 
@@ -427,14 +426,12 @@ Showing small imperfections of the `week -> month` transition! 2020 seems to be 
 
 ## Monthly deaths until 2020
 
-~~Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html).~~  
+Using data since 1877 only where *monthly reporting starts*.  
 
-**Updated** historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.18584915.html).  
+Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.18584915.html).  
 
-Using data since 1877 only where monthly registration starts.  
-
-```{r}
-ch_deaths_month_alt <- pxR::read.px("data-raw/BfS/px-x-0102020206_111.px") %>% 
+```{r message=FALSE, warning=FALSE}
+ch_deaths_month_web <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>% 
   as_tibble() %>% remove_empty() %>% clean_names() %>% 
   rename(Year = jahr,
          Deaths = value) %>% 
@@ -449,10 +446,10 @@ ch_deaths_month_alt <- pxR::read.px("data-raw/BfS/px-x-0102020206_111.px") %>%
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
 
-# with(ch_deaths_month_alt, table(demografisches_merkmal_und_indikator, Month))
+# with(ch_deaths_month_web, table(demografisches_merkmal_und_indikator, Month))
 ```
 
-With important update from @Christof **covering missing months between 1886 and 1900**!  
+Data delivered earlier by BfS.    
 
 ```{r message=FALSE, warning=FALSE}
 ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx") %>% 
@@ -470,11 +467,11 @@ ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx")
 ```
 
 ```{r}
-# summary(ch_deaths_month_alt$Deaths - ch_deaths_month$Deaths)
+# summary(ch_deaths_month_web$Deaths - ch_deaths_month$Deaths)
 
 ch_deaths_month %>% 
   rename(Deaths_custom = Deaths) %>% 
-  left_join(ch_deaths_month_alt %>% 
+  left_join(ch_deaths_month_web %>% 
               rename(Deaths_web = Deaths)) %>% 
   mutate(diff = Deaths_custom - Deaths_web,
          diff_p = ((Deaths_web - Deaths_custom) / Deaths_custom) *100) %>% 
@@ -482,9 +479,23 @@ ch_deaths_month %>%
   filter(diff != 0)
 ```
 
+```{r eval=FALSE}
+ch_deaths_month %>% 
+  rename(Deaths_custom = Deaths) %>% 
+  left_join(ch_deaths_month_web %>% 
+              rename(Deaths_web = Deaths)) %>% 
+  mutate(diff = Deaths_custom - Deaths_web,
+         diff_p = ((Deaths_web - Deaths_custom) / Deaths_custom) *100) %>% 
+  filter(Year == 2020) %>% 
+  ggplot(aes(x = Date, y = diff_p)) +
+  geom_col() +
+  theme_bw() +
+  xlab("") + ylab("Monthly % difference in number of deaths")
+```
+
 ## Monthly 2021 deaths 
 
-BfS delivered data to supplement missing six months of 2021.  
+BfS delivered custom data to supplement first six months of 2021.  
 
 ```{r}
 ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
@@ -502,6 +513,13 @@ ch_deaths_month %<>%
   mutate(Country = "Switzerland") %>% 
   relocate(Country)
 
+ch_deaths_month_web %<>% 
+  bind_rows(ch_deaths_2021) %>% 
+  mutate(Country = "Switzerland") %>% 
+  relocate(Country)
+```
+
+```{r include=FALSE}
 rm(ch_deaths_2021)
 ```
 
@@ -519,11 +537,12 @@ ggplot(data = ch_deaths_month,
 
 BfS delivered data to supplement missing last two years in HMD.  
 
-Note: data now seem to be now publicly available [here](https://www.bfs.admin.ch/bfs/en/home/statistics/population.assetdetail.17664400.html) or in custom tabs [here](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020206_103/px-x-0102020206_103/px-x-0102020206_103.px/).  
-
 ```{r}
 ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv", col_types = cols(KalJahr = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
-  rename(Year = KalJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
+  rename(Year = KalJahr, 
+         Age = Alter, 
+         Sex = Geschlecht, 
+         Deaths = COUNT) %>% 
   pivot_wider(names_from = Sex, values_from = Deaths) %>% 
   rename(Female = F, Male = M) %>% 
   mutate_at(vars(Female:Male), ~replace(., is.na(.), 0)) %>% 
@@ -532,6 +551,94 @@ ch_deaths_age_sex_2019_2020 <- read_csv("data-raw/BfS/Lieferung_Staub_2021.csv",
          Male = as.integer(round(Male)), 
          Total = Female + Male) %>% 
   relocate(Country)
+```
+
+Note: data seem to be now publicly available on BfS website  [here](https://www.bfs.admin.ch/bfs/en/home/statistics/population.assetdetail.17664400.html) or in custom tabs [here](https://www.pxweb.bfs.admin.ch/pxweb/en/px-x-0102020206_103/px-x-0102020206_103/px-x-0102020206_103.px/).  
+
+```{r}
+ch_deaths_age_sex_2019_2020_alt <- read.px("data-raw/BfS/px-x-0102020206_103.px") %>% 
+  as_tibble() %>% remove_empty() %>% clean_names() %>% 
+  filter(zivilstand == "Zivilstand - Total",
+         staatsangehorigkeit == "Staatsangehörigkeit - Total") %>% 
+  select(-zivilstand, -staatsangehorigkeit) %>% 
+  filter(alter != "Alter - Total") %>% 
+  rename(Year = jahr,
+         Total = value) %>% 
+  mutate(Year = as.integer(as.character(Year)),
+         geschlecht = as.character(geschlecht),
+         Age = as.integer(word(alter, 1)),
+         Total = as.integer(round(Total))) %>% 
+  filter(Year >= 2019) %>% 
+  select(-alter) %>% 
+  mutate(geschlecht = if_else(geschlecht == "Geschlecht - Total", "Total", geschlecht)) %>% 
+  mutate(geschlecht = if_else(geschlecht == "Mann", "Male", geschlecht)) %>% 
+  mutate(geschlecht = if_else(geschlecht == "Frau", "Female", geschlecht)) %>% 
+  pivot_wider(names_from = geschlecht, values_from = Total) %>% 
+  mutate(Country = "Switzerland") %>% 
+  relocate(Country, Year, Age, Female, Male, Total)
+```
+
+```{r message=FALSE, include=FALSE}
+gc()
+```
+
+```{r eval=FALSE, include=FALSE}
+ch_deaths_age_sex_2019_2020 %>% 
+  mutate(Age = ifelse(Age > 100, 100, Age)) %>% 
+  select(-Female, -Male) %>% 
+  group_by(across(c(-Total))) %>% 
+  summarise(Total = sum(Total)) %>% 
+  ungroup() %>% 
+  rename(Total_old = Total) %>% 
+  left_join(ch_deaths_age_sex_2019_2020_alt %>% 
+              select(-Female, -Male) %>% 
+              rename(Total_new = Total) 
+  ) %>% 
+  mutate(diff = ((Total_new - Total_old) / Total_old) *100) %>% 
+  ggplot(aes(x = diff)) +
+  geom_histogram()
+```
+
+```{r eval=FALSE, include=FALSE}
+hmd_deaths_age_sex %>% 
+  filter(Country == "Switzerland" & Year >= 2019) %>% 
+  mutate(Age = ifelse(Age > 100, 100, Age)) %>% 
+  select(-Female, -Male) %>% 
+  group_by(across(c(-Total))) %>% 
+  summarise(Total = sum(Total)) %>% 
+  ungroup() %>% 
+  rename(Total_hmd = Total) %>% 
+  left_join(ch_deaths_age_sex_2019_2020 %>% 
+              mutate(Age = ifelse(Age > 100, 100, Age)) %>% 
+              select(-Female, -Male) %>% 
+              group_by(across(c(-Total))) %>% 
+              summarise(Total = sum(Total)) %>% 
+              ungroup() %>% 
+              rename(Total_bfs = Total) 
+  ) %>% 
+  mutate(diff = Total_bfs - Total_hmd,
+         diff_p = ((Total_bfs - Total_hmd) / Total_hmd) *100) %>% 
+  ggplot(aes(x = diff)) +
+  geom_histogram()
+```
+
+```{r eval=FALSE, include=FALSE}
+hmd_deaths_age_sex %>% 
+  filter(Country == "Switzerland" & Year >= 2019) %>% 
+  mutate(Age = ifelse(Age > 100, 100, Age)) %>% 
+  select(-Female, -Male) %>% 
+  group_by(across(c(-Total))) %>% 
+  summarise(Total = sum(Total)) %>% 
+  ungroup() %>% 
+  rename(Total_hmd = Total) %>% 
+  left_join(ch_deaths_age_sex_2019_2020_alt %>% 
+              select(-Female, -Male) %>% 
+              rename(Total_bfs = Total) 
+  ) %>% 
+  mutate(diff = Total_bfs - Total_hmd,
+         diff_p = ((Total_bfs - Total_hmd) / Total_hmd) *100) %>% 
+  ggplot(aes(x = diff)) +
+  geom_histogram()
 ```
 
 ## Yearly 2021 deaths with age & sex structure
