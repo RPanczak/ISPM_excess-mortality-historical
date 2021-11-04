@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html lang="sv" xmlns="http://www.w3.org/1999/xhtml" xml:lang="sv">
+
+<head>
+     
+        <title>Sidan kunde inte hittas</title>
+    <meta charset="UTF-8">
+    <meta name="Language" content="sv" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="EPi.Title" content="Sidan kunde inte hittas" />
+    <meta name="description" content="Vi vill g&#228;rna hj&#228;lpa dig vidare. " />
+    <meta name="priority" content="0.5" />
+    <meta name="EPi.Revised" content="Tue, 04 May 2021 16:06:32 GMT" />
+    <meta name="EPi.Published" content="Mon, 24 Oct 2016 14:29:21 GMT" />
+    <meta name="EPi.Modified" content="2021-05-04" />
+    <meta name="ROBOTS" content="NOINDEX,NOFOLLOW" />
+        <meta property="og:site_name" content="Statistiska Centralbyrån" />
+    <meta property="og:title" content="Sidan kunde inte hittas" />
+    <meta property="og:description" content="Vi vill g&#228;rna hj&#228;lpa dig vidare. " />
+    <meta property="og:url" content="http://www.scb.se/sidan-kunde-inte-hittas/" />
+    <meta name="pageid" content="62617" />
+    <meta property="og:image" content="~/Assets/Styles/Images/scb-pa-platta.png" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/StyleguideAssets/scb/img/Start//android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/StyleguideAssets/scb/img/Start//favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/StyleguideAssets/scb/img/Start/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/StyleguideAssets/scb/img/Start/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <meta name="scb-load-balance-environment" content="DW49">
+        <link rel="canonical" href="http://www.scb.se/sidan-kunde-inte-hittas/" />
+    <link rel="stylesheet" href="/Frontend/dist/styles/fontface.min.css" />
+        <link rel="stylesheet" href="/Frontend/dist/styles/w25.min.css?v=1.0.7956.28563" />
+        <link rel="stylesheet" href="/Frontend/dist/styles/modules/readspeaker.css" />
+
+
+    
+
+</head>
+<body id="body" class='no-js'>
+    <script>var c = document.body.classList; c.remove('no-js'); c.add('js');</script>
+
+
+<!-- Google Tag Manager -->
+<noscript>
+    <iframe src="//www.googletagmanager.com/ns.html?id=GTM-NQKH9M"
+            height="0" width="0" style="display: none; visibility: hidden"></iframe>
+</noscript>
+<script>
+    (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({
+            'gtm.start':
+                new Date().getTime(),
+            event: 'gtm.js'
+        });
+        var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src =
+            '//www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-NQKH9M');
+</script>
+<!-- End Google Tag Manager -->    
+        <!-- Script för Readspeaker - anger om data postas eller ej (default false) -->
+            <script type="text/javascript">
+            <!--
+                window.rsConf = { general: { usePost: true } };
+                                                                                    //-->
+            </script>
+        <script src="//f1-eu.readspeaker.com/script/8809/ReadSpeaker.js?pids=embhl" type="text/javascript"></script>
+    <!-- Länk till sidans huvudinnehåll -->
+    <a href="#mainContentArea" id="mainContentAreaLink" tabindex="0">Till inneh&#229;ll p&#229; sidan</a>
+    
+    
+    
+    
+
+<header id="header">
+
+    <div class="centered-container">
+        <a id="scb-logotype" href="/" title="Statistikmyndigheten SCB, till startsidan">
+            <img src="/StyleguideAssets/scb/img/SCB-logo.svg" alt="" />
+        </a>
+
+        <div id="menu-buttons-mobile" class="is-displayed-tablet">
+            <a id="button-mobile-toggle-search" class="button-mobile search" href="javascript:void(0)">S&#246;k</a>
+            <a id="button-mobile-toggle-menu" class="button-mobile menu" href="javascript:void(0)">Meny</a>
+        </div>
+
+            <nav id="primary-navigation" class="is-not-displayed-tablet" aria-label="Huvudmeny">
+                                        <ul class="menu-level menu-level-1">
+                                <li class='menu-item' >
+                                    <a href="/">Hem</a>
+                                </li>
+                                <li class='menu-item is-parent' >
+                                    <a href="/hitta-statistik/">Hitta statistik</a>
+                                </li>
+                                <li class='menu-item is-parent' >
+                                    <a href="/vara-tjanster/">V&#229;ra tj&#228;nster</a>
+                                </li>
+                                <li class='menu-item is-parent' >
+                                    <a href="/dokumentation/">Dokumentation</a>
+                                </li>
+                                <li class='menu-item is-parent' >
+                                    <a href="/lamna-uppgifter/">L&#228;mna uppgifter</a>
+                                </li>
+                                <li class='menu-item is-parent' >
+                                    <a href="/om-scb/">Om SCB</a>
+                                </li>
+                        </ul>
+
+            </nav>
+                    <nav id="secondary-navigation" class="is-not-displayed-tablet" aria-label="Snabbl&#228;nkar">
+                <ul role="menubar">
+                            <li role="presentation" class='menu-item is-inactive'>
+                                    <span>In English</span>
+                            </li>
+                            <li role="presentation" class='menu-item'>
+                                    <a role="menuitem" href="/hitta-statistik/a-o/">A–&#214;</a>
+                            </li>
+                            <li role="presentation" class='menu-item'>
+                                    <a role="menuitem" href="/om-scb/lattlast/">L&#228;ttl&#228;st</a>
+                            </li>
+                            <li role="presentation" class='menu-item'>
+                                    <a role="menuitem" href="/om-scb/nyheter-och-press/">Press</a>
+                            </li>
+                            <li role="presentation" class='menu-item'>
+                                    <a role="menuitem" href="/om-scb/kontakta-oss/">Kontakt</a>
+                            </li>
+
+                </ul>
+            </nav>
+
+
+<form action="/finding-statistics/search/?lang=sv" class="search-box is-not-displayed-tablet row" method="get" role="search">                <div class="search-box-field">
+                    <input class="search-field" name="query" type="search" placeholder="Vad s&#246;ker du?" aria-label="Vad s&#246;ker du?" />
+                    <input id="searchLanguage" name="lang" type="hidden" value="sv" />
+                </div>
+                <button class="button search-box-button" onclick="" type="submit" value="S&#246;k" aria-label="S&#246;k">S&#246;k</button>
+</form>
+    </div>
+</header>    
+    
+    <main id="mainContent" aria-labelledby="h1">
+
+
+
+        <div class="centered-container">
+
+    <ul id="breadcrumb">
+
+        <li class="breadcrumb-item">
+            <a href="/">Hem</a>
+        </li>
+
+    </ul>
+            <div class="row">
+                <div class='' id="pageContent">
+
+
+<div id="readspeaker_button1" class="rs_skip rsbtn_colorskin rs_preserve">
+    <a rel="nofollow" class="rsbtn_play" accesskey="L" title="L&#228;s upp denna sida med hj&#228;lp av ReadSpeaker" href="//app-eu.readspeaker.com/cgi-bin/rsent?customerid=8809&lang=sv_se&readid=pageContent&url=http://www.scb.se/sidan-kunde-inte-hittas/">
+        <span class="rsbtn_left rspart"><span class="rsbtn_text"><span>Lyssna</span></span></span>
+        <span class="rsbtn_right rsimg rsplay rspart"></span>
+    </a>
+</div>                    <a id="mainContentArea" tabindex="-1"></a>
+                    
+
+
+    <div class="row">
+        <div class="columns nine">
+            <h1>
+                Sidan kunde inte hittas
+            </h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="columns seven">
+            <div class="ingress">
+Vi vill g&#228;rna hj&#228;lpa dig vidare.             </div>
+<h2>Ta dig vidare till</h2>
+<h3><a href="/link/a4ddbdaa4185436987d9ab82463dddf9.aspx" target="_top">Snabba fakta om Sverige</a></h3>
+<p>Om du vill ha det kort och enkelt.</p>
+<h3><a href="/link/ddbd4001c30f4b2eac9b4937f1d6c96f.aspx">Hitta statistik</a></h3>
+<p>För samlad statistik inom olika ämnesområden och undersökningar.</p>
+<h3><a title="Gå till statistikdatabasen där du kan göra egna uttag av statistik" href="http://www.statistikdatabasen.scb.se/">Statistikdatabasen</a></h3>
+<p>För att göra egna uttag av statistik.</p>
+<h3><a href="/link/35258ae180dc4d93874addbbc2b3daf0.aspx" target="_top">Öppna data</a></h3>
+<p>Data vi erbjuder via API&nbsp;</p>
+<h3><a href="/link/240031ab00fa44d4908289941212248a.aspx" target="_top">Beställa data och statistik</a></h3>
+<p><span>Tjänster vi erbjuder mot avgift, till exempel&nbsp;<span>anpassad statistik eller tillgång till mikrodata.</span></span></p>        </div>
+    </div>
+
+                </div>
+            </div>
+        </div>
+
+    <div class="share centered-container">
+        <div class="share-wrapper clearfix">
+            <span class="text-dark-gray share-label h5">Dela sidan:</span>
+            <div class="share-icons"></div>
+        </div>
+    </div>
+    </main>
+    
+    <footer id="footer">
+        <div class="footer-top">
+            <ul class="centered-container">
+                    <li class="footer-top-item">
+                        <a href="https://www.statistikdatabasen.scb.se/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">equalizer</i></span>
+                            <p><span class="underline-link">Statistikdatabasen</span></p>
+                        </a>
+                    </li>
+                    <li class="footer-top-item">
+                        <a href="/hitta-statistik/regional-statistik-och-kartor/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">location_on</i></span>
+                            <p><span class="underline-link">Regional statistik</span></p>
+                        </a>
+                    </li>
+                    <li class="footer-top-item">
+                        <a href="/hitta-statistik/internationell-statistik/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">public</i></span>
+                            <p><span class="underline-link">Internationell statistik</span></p>
+                        </a>
+                    </li>
+                    <li class="footer-top-item">
+                        <a href="/hitta-statistik/temaomraden/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">style</i></span>
+                            <p><span class="underline-link">Temaomr&#229;den</span></p>
+                        </a>
+                    </li>
+                    <li class="footer-top-item">
+                        <a href="/hitta-statistik/aldre-statistik/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">history</i></span>
+                            <p><span class="underline-link">&#196;ldre statistik</span></p>
+                        </a>
+                    </li>
+                    <li class="footer-top-item">
+                        <a href="/hitta-statistik/aktuellt/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">description</i></span>
+                            <p><span class="underline-link">Aktuellt</span></p>
+                        </a>
+                    </li>
+                    <li class="footer-top-item">
+                        <a href="/hitta-statistik/rapporter/" class="reversed-decoration ball-icon-link">
+                            <span class="icon_background"><i class="material-icons">book</i></span>
+                            <p><span class="underline-link">Rapporter</span></p>
+                        </a>
+                    </li>
+            </ul>
+        </div> 
+
+<div id="sitemap" class="row inverted footer-bottom centered-container" role="contentinfo">
+        <div class="three columns">
+            <h2>Aktuell statistik</h2>
+            <ul>
+                    <li><a href='/hitta-statistik/statistiknyheter/'>Statistiknyheter</a></li>
+                    <li><a href='/om-scb/nyheter-och-press/'>Nyheter och press</a></li>
+                    <li><a href='/hitta-statistik/publiceringskalendern/'>Publiceringskalendern</a></li>
+            </ul>
+        </div>
+
+        <div class="three columns">
+            <h2>Hitta snabbt</h2>
+            <ul>
+                    <li><a href='/om-scb/kontakta-oss/'>Kontakta oss</a></li>
+                    <li><a href='/om-scb/nyheter-och-press/'>Presskontakt</a></li>
+                    <li><a href='https://www.statistikdatabasen.scb.se/' title='Gör egna uttag av statistik'>Statistikdatabasen</a></li>
+                    <li><a href='/hitta-statistik/sverige-i-siffror/lonesok/'>Lönesök</a></li>
+                    <li><a href='/hitta-statistik/sverige-i-siffror/namnsok/'>Namnsök</a></li>
+                    <li><a href='/hitta-statistik/sverige-i-siffror/prisomraknaren/'>Prisomräknaren</a></li>
+                    <li><a href='https://kommunsiffror.scb.se/'>Kommuner i siffror</a></li>
+            </ul>
+        </div>
+
+        <div class="three columns">
+            <h2>Om inneh&#229;llet</h2>
+            <ul>
+                    <li><a href='/om-scb/om-scb.se-och-anvandningsvillkor/'>Om webbplatsen</a></li>
+                    <li><a href='/om-scb/om-scb.se-och-anvandningsvillkor/tillganglighetsredogorelse/'>Tillgänglighetsredogörelse</a></li>
+                    <li><a href='/dokumentation/ordlista/'>Ordlista</a></li>
+                    <li><a href='/om-scb/om-scb.se-och-anvandningsvillkor/kakor-cookies/'>Om kakor (cookies)</a></li>
+                    <li><a href='/om-scb/personuppgifter/'>Personuppgifter</a></li>
+            </ul>
+        </div>
+
+        <div class="three columns">
+            <h2>F&#246;lj SCB</h2>
+            <ul>
+                    <li><a href='/om-scb/nyheter-och-press/bevaka-nyheter/'>Bevaka nyheter från SCB</a></li>
+                    <li><a href='/om-scb/nyheter-och-press/bevaka-nyheter/sociala-medier/'>SCB i sociala medier</a></li>
+            </ul>
+        </div>
+</div>
+<div class="copyright inverted">
+    <img class="footer_logo" src="/StyleguideAssets/assets/images/SCB_logotyp_vit.png" alt="SCB Logotyp" />
+    <div class="footer-vision">Statistikmyndigheten SCB f&#246;rser samh&#228;llet med statistik f&#246;r beslutsfattande, debatt och forskning.</div>
+</div>    </footer>
+
+
+    <script src="/StyleguideAssets/scb/js/external.min.js?1.0.7956.28563"></script>
+    <script src="/Assets/Scripts/compiled/scb.min.js?1.0.7956.28563"></script>
+    <script src="/Assets/Scripts/jquery.autocomplete.min.js"></script>
+    <script src="/Assets/Scripts/jquery.lazyload-any.min.js"></script>
+
+
+
+    
+    
+</body>
+
+</html>
