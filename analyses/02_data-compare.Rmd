@@ -218,7 +218,7 @@ hmd_pop_age_sex <-
 write_rds(hmd_pop_age_sex, "data/mortality_org/hmd_pop_age_sex.Rds")
 ```
 
-Again, *Spain has less data* - and already includes 2020:  
+Again, *Spain has less data*:  
 
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
@@ -410,7 +410,7 @@ differences <- left_join(
          Perc_weekly = percent((Weekly - Monthly) / Weekly, accuracy = 0.01))
 ```
 
-Example of 2019+ yearly totals derived from weekly data illustrate this problem:
+Example of 2019-21 yearly totals derived from both original weekly & transformed monthly data illustrate this problem:
 
 ```{r echo=FALSE}
 differences %>% 
@@ -461,7 +461,8 @@ write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 
 ## Monthly 2021 deaths 
 
-BfS delivered custom data to supplement first six months of 2021.  
+BfS delivered custom data to supplement first six months of 2021. Merged to dataset covering pperiod untill 2020.  
+
 ```{r}
 ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
   rename(Year = TodJahr, Month = TodMonat, Deaths = COUNT) %>% 
@@ -480,6 +481,11 @@ ch_deaths_month %<>%
 ```
 
 ```{r include=FALSE}
+ch_deaths_month %<>% 
+  left_join(hmd_pop_year)
+```
+
+```{r include=FALSE}
 rm(ch_deaths_2021)
 ```
 
@@ -488,9 +494,18 @@ rm(ch_deaths_2021)
 ```{r echo=FALSE}
 ggplot(data = ch_deaths_month, 
        aes(x = Date)) +
-  geom_line(aes(y = Deaths)) +
+  geom_line(aes(y = Deaths / 1000)) +
   theme_bw() +
-  xlab("") + ylab("Monthly number of deaths")
+  xlab("") + ylab("Monthly number of deaths [thousand]")
+```
+
+```{r echo=FALSE}
+ch_deaths_month %>% 
+  ggplot(aes(x = Year)) +
+  geom_line(aes(y = Population / 1000000)) +
+  theme_bw() +
+  xlab("") + ylab("Yearly population [million]") +
+  scale_y_continuous()
 ```
 
 ## Yearly 2021 deaths with age & sex structure
@@ -1005,6 +1020,37 @@ compare %>%
   xlab("") + ylab("% yearly difference in population estimates")
 ```
 
+<!-- ----------------------------------------------------- -->
+
+## Yearly pops - 2021 age groups issue
+
+@Julien tracked down some weird patterns in population estimates for 2020 in Switzerland.  
+
+Particularly in older age groups we have some serious +++jumps in N!?  
+
+```{r}
+hmd_pop_age_sex %>% 
+  # filter(Country == "Switzerland") %>% 
+  filter(Year >= 2010) %>% 
+  mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                       include.lowest = TRUE,
+                       right = FALSE,
+                       labels=c("0-9","10-19","20-29","30-39","40-49",
+                                "50-59","60-69","70-79","80-89","90+"))) %>% 
+  # group_by(Year, Age_cat) %>% 
+  group_by(Country, Year, Age_cat) %>% 
+  summarise(Population = sum(Total)) %>% 
+  ungroup() %>% 
+  ggplot(
+    aes(x = Age_cat, y = Population / 1000000, 
+        fill = factor(Year))) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  scale_fill_viridis_d(option = "E", direction = -1) +
+  xlab("") + ylab("Yearly population by age group") + 
+  facet_grid(vars(Country), scales = "free_y")
+```
 
 <!-- ----------------------------------------------------- -->
 
