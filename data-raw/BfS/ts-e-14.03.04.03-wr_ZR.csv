@@ -1048,7 +1048,7 @@ CY;Week;Ending;Age;NumberOfDeaths;Expected;lowerB;upperB;Excess
 # Age: Age in completed years;;;;;;;;
 # NumberOfDeaths: Number of deaths in Switzerland of persons resident in Switzerland;;;;;;;;
 # Expected: Number of deaths normally expected in this calendar week on the basis of previous years. Note: At each turn of the year there is a methodological break in the time series of expected values;;;;;;;;
-# lowerB: lower limit of the 95% confidence interval of the expected value;;;;;;;;
-# upperB: upper limit of the 95% confidence interval of the expected value;;;;;;;;
+# lowerB: lower limit of the 99% confidence interval of the expected value;;;;;;;;
+# upperB: upper limit of the 99% confidence interval of the expected value;;;;;;;;
 # Excess: In weeks where the number of deaths exceeds the upper limit of the expected value, the number of deaths is repeated.;;;;;;;;
 #;;;;;;;;

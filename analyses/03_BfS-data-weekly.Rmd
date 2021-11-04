@@ -1,6 +1,6 @@
 ---
 title: "Excess mortality"
-subtitle: "Weekly BfS data"
+subtitle: "Weekly data"
 author: "Radek Panczak"
 date: "`r Sys.Date()`"
 output:
@@ -22,7 +22,8 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, readxl, scales, janitor, kableExtra)
+p_load(tidyverse, readxl, scales, janitor, kableExtra,
+       lubridate, aweek, wktmo)
 ```
 
 ```{r knit-setup, include = FALSE}
@@ -42,7 +43,167 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
-# BfS 
+# STMF weekly data series
+
+Short-term Mortality Fluctuations weekly dataset covering 2000-2020 period.  
+
+```{r eval=FALSE}
+download.file(url = "https://www.mortality.org/Public/STMF/Outputs/stmf.csv",
+              destfile = "data-raw/mortality_org/stmf_week.csv",
+              method = "curl")
+
+zip(zipfile = "data-raw/mortality_org/stmf_week", 
+    files = "data-raw/mortality_org/stmf_week.csv")
+
+file.remove("data-raw/mortality_org/stmf_week.csv")
+
+download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFmetadata.pdf",
+              destfile = "data-raw/mortality_org/STMFmetadata.pdf",
+              method = "curl")
+
+download.file(url = "https://www.mortality.org/Public/STMF_DOC/STMFNote.pdf",
+              destfile = "data-raw/mortality_org/STMFNote.pdf",
+              method = "curl")
+```
+
+## Weekly
+
+```{r}
+stmf_week <- read_csv("data-raw/mortality_org/stmf_week.zip", 
+                      col_types = cols(Year = col_integer(), 
+                                       Week = col_integer(), 
+                                       Split = col_integer(), 
+                                       SplitSex = col_integer(), 
+                                       Forecast = col_integer()), 
+                      skip = 1) %>% 
+  filter(CountryCode %in% c("CHE", "ESP", "SWE")) %>% 
+  filter(Sex == "b") %>% 
+  select(CountryCode, Year, Week, DTotal) %>% 
+  rename(Deaths = DTotal) %>%  
+  mutate(Week2 = get_aweek(week = Week, year = Year, 
+                           start = "Monday", week_start = "Monday"),
+         Week_start = get_date(week = Week, year = Year, 
+                               start = "Monday"),
+         Deaths = as.integer(Deaths)) %>% 
+  relocate(Week2, Week_start, .after = Week) %>% 
+  mutate(Country = case_when(
+    CountryCode == "CHE" ~ "Switzerland",
+    CountryCode == "ESP" ~ "Spain",
+    CountryCode == "SWE" ~ "Sweden"
+  )) %>% select(-CountryCode) %>% relocate(Country)
+
+write_rds(stmf_week, "data/mortality_org/stmf_week.Rds")
+```
+
+```{r echo=FALSE}
+stmf_week %>% 
+  filter(Year >= 2019) %>% 
+  ggplot(aes(x = Week_start)) +
+  geom_line(aes(y = Deaths, group = Country, color = Country)) +
+  theme_bw() +
+  xlab("") + ylab("Weekly number of deaths")
+```
+
+Switzerland & Sweden have slightly more data:  
+
+```{r}
+stmf_week %>% 
+  filter(Year == 2021) %>% 
+  group_by(Country) %>% 
+  summarize(Max_week = max(Week)) 
+```
+
+## Monthly
+
+Weekly data converted to monthly using [weekToMonth](https://rdrr.io/cran/wktmo/man/weekToMonth.html) function from `wktmo` package.  
+
+```{r}
+stmf_month <- bind_rows(
+  
+  weekToMonth(stmf_week[stmf_week$Country == "Switzerland", ]$Deaths, 
+              datStart = "03-01-2000", wkMethod = "ISO") %>% 
+    as_tibble() %>% 
+    mutate(Country = "Switzerland"),
+  
+  weekToMonth(stmf_week[stmf_week$Country == "Spain", ]$Deaths, 
+              datStart = "03-01-2000", wkMethod = "ISO") %>% 
+    as_tibble() %>% 
+    mutate(Country = "Spain"),
+  
+  weekToMonth(stmf_week[stmf_week$Country == "Sweden", ]$Deaths, 
+              datStart = "03-01-2000", wkMethod = "ISO") %>% 
+    as_tibble() %>% 
+    mutate(Country = "Sweden") 
+  
+) %>% 
+  separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
+  rename(Deaths = value) %>% 
+  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
+         Deaths = as.integer(Deaths)) %>% 
+  relocate(Country, Year, Month, Date)
+
+write_rds(stmf_month, "data/mortality_org/stmf_month.Rds")
+```
+
+```{r echo=FALSE}
+stmf_month %>% 
+  filter(
+    (Date <= as.Date("2021-08-01") & Country == "Spain") |
+      (Date <= as.Date("2021-09-01") & Country != "Spain") 
+  ) %>%
+  filter(Year >= 2019) %>% 
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = Deaths, group = Country, color = Country)) +
+  theme_bw() +
+  xlab("") + ylab("Monthly number of deaths")
+```
+
+*Note: Only showing data till Aug 2021 for Spain (data is available only till week 38 which ends on `2021-09-26`). Data till Sept for Switzerland and Sweden.*  
+## Yearly totals
+
+Conversions are not perfect!  
+
+```{r}
+differences <- left_join(
+  stmf_week %>% 
+    filter(Year >= 2019) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Weekly = round(sum(Deaths))) %>% 
+    ungroup(),
+  
+  stmf_month %>% 
+    filter(Year >= 2019) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Monthly = round(sum(Deaths))) %>% 
+    ungroup()
+) %>% 
+  mutate(Difference = Weekly - Monthly,
+         Perc_weekly = percent((Weekly - Monthly) / Weekly, accuracy = 0.01))
+```
+
+Example of 2019-21 yearly totals derived from both original weekly & transformed monthly data illustrate this problem:
+
+```{r echo=FALSE}
+differences %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)  %>% 
+  column_spec(c(5,6), 
+              color = ifelse(differences$Difference > 0, 
+                             "#EF8A62", "#67A9CF"))
+```
+
+```{r include=FALSE}
+rm(differences)
+```
+
+Showing small imperfections of the `week -> month` transition! 2020 seems to be always a bit in `+` and 2021 in `-`.  
+
+<!-- ----------------------------------------------------- -->
+
+# BfS weekly data series for CHE
 
 *Mortality, causes of death* chapter. [Overview of data](https://www.bfs.admin.ch/bfs/en/home/statistics/health/state-health/mortality-causes-death.html).  
 
@@ -85,10 +246,10 @@ week_2010_2019 %>%
 
 ## Weekly number of deaths, 2020-2021
 
-[Source](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.18584585.html).  
+[Source](https://www.bfs.admin.ch/bfs/en/home/statistics/catalogues-databases/tables.assetdetail.19564278.html).  
 
 ```{r eval=FALSE}
-download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/18584585/master",
+download.file(url = "https://www.bfs.admin.ch/bfsstatic/dam/assets/19564278/master",
               destfile = "data-raw/BfS/ts-e-14.03.04.03-wr.csv",
               method = "curl")
 
@@ -96,8 +257,6 @@ zip(zipfile = "data-raw/BfS/ts-e-14.03.04.03-wr.zip",
     files = "data-raw/BfS/ts-e-14.03.04.03-wr.csv")
 
 file.remove("data-raw/BfS/ts-e-14.03.04.03-wr.csv")
-
-
 ```
 
 ```{r include=FALSE}
@@ -131,7 +290,7 @@ week_2020_2021 %>%
 
 ```{r echo=FALSE,eval=FALSE}
 # projected goes on; with a funny dip at the end?
-week_2010_2021 %>% 
+week_2020_2021 %>% 
   filter(Ending >= as.Date("2020-11-01")) %>% 
   ggplot(aes(x = Ending)) +
   # geom_vline(aes(xintercept = as.Date("2020-02-24"))) +
@@ -188,7 +347,7 @@ bfs_stmf <- left_join(
     summarise(NumberOfDeaths = sum(NumberOfDeaths)) %>% 
     ungroup(),
   
-  read_rds("data/mortality_org/stmf_week.Rds") %>% 
+  stmf_week %>% 
     filter(Country == "Switzerland")
   
 ) %>% 
