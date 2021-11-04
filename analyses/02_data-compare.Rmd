@@ -388,6 +388,7 @@ stmf_month %>%
 ```
 
 *Note: Only showing data till Aug 2021 for Spain (data is available only till week 38 which ends on `2021-09-26`). Data till Sept for Switzerland and Sweden.*  
+
 ## Yearly totals
 
 Conversions are not perfect!  
@@ -528,7 +529,9 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
 
 # Spain
 
-## Monthly deaths till 2019
+## Monthly deaths 
+
+### Deaths till 2019
 
 Data from INE [since 1975 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1) and [1941-1974 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1); data prior to 1940 was transcribed from PDFs available from INE.  
 
@@ -546,7 +549,7 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
   filter(Year != 2020)
 ```
 
-## Monthly 2020 deaths 
+### 2020 deaths 
 
 2020 update (*still labelled as provisional!*) is from  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
 
@@ -565,7 +568,7 @@ es_2020 <- fn_get_death_data_spain("data-raw/INE/Spain_2020.xlsx") %>%
   relocate(Year, Month, Date, Deaths)
 ```
 
-## Monthly 2021 deaths 
+### 2021 deaths 
 
 2021 data available from [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
@@ -592,6 +595,8 @@ es_2021 <- weekToMonth(rev(temp$Deaths), datStart = "31-12-2018") %>%
   filter(Month <= 6)
 ```
 
+### Combined 
+
 ```{r include=FALSE}
 es_deaths_month %<>% 
   bind_rows(es_2020) %>% 
@@ -602,9 +607,17 @@ es_deaths_month %<>%
 rm(es_2020, es_2021, temp); gc()
 ```
 
+```{r echo=FALSE}
+es_deaths_month %>% 
+  ggplot(aes(x = Date, y = Deaths)) +
+  geom_line() +
+  theme_bw() +
+  xlab("") + ylab("Monthly deaths")
+```
+
 ## Yearly 2019-2020 deaths with age structure
 
-INE data to supplement missing last two years in HMD.  
+INE data to supplement missing 2091-20 years in HMD.  
 
 2019 data available [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available from [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
 
@@ -637,7 +650,7 @@ es_deaths_age_2019_2020 <- bind_rows(
 
 ## Yearly 2021 deaths with age structure
 
-INE data to supplement missing last two years in HMD.  
+INE data to supplement missing 6 months of 2021 in HMD.  
 
 2021 data available from [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
@@ -726,30 +739,13 @@ es_deaths_age_2021 <- bind_rows(
 rm(temp)
 ```
 
-## Monthly datasets combined 
-
-```{r echo=FALSE}
-es_deaths_month %>% 
-  ggplot(aes(x = Date, y = Deaths)) +
-  geom_line() +
-  theme_bw() +
-  xlab("") + ylab("Monthly deaths")
-```
-
 ## Yearly pops 
 
 With update for 2020 from provisional data (see below for source).  
 
 ```{r}
-es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
-  remove_empty(which = c("rows", "cols")) %>% 
-  clean_names() %>% 
-  rename(Year = year) %>% 
-  rename(Population = prados_de_la_escosura2020_july) %>% 
-  select(Year, Population) %>% 
-  mutate(Year = as.integer(Year),
-         Population = as.integer(round(Population))) %>% 
-  filter(Year != 2020)
+es_pop_year <- hmd_pop_year %>% 
+  filter(Country == "Spain")
 
 source("R/fn_get_spain_population.R")
 
@@ -764,11 +760,14 @@ es_pop_2021 <- es_pop_2020 %>%
 
 es_pop_year %<>% 
   bind_rows(es_pop_2020) %>% 
-  bind_rows(es_pop_2021)
+  bind_rows(es_pop_2021) %>% 
+  fill(Country, .direction = "down")
 
 es_deaths_month %<>% 
   left_join(es_pop_year)
+```
 
+```{r include=FALSE}
 rm(es_pop_2020, es_pop_2021)
 ```
 
@@ -780,58 +779,11 @@ es_pop_year %>%
   xlab("") + ylab("Yearly population")
 ```
 
-### Comparison with HMD {.tabset}
-
-INE vs HMD  
-
-```{r}
-compare <- left_join(
-  es_pop_year %>% rename(INE_pop = Population), 
-  hmd_pop_year %>% filter(Country == "Spain") %>% rename(HMD_pop = Population)) %>% 
-  select(-Country) %>% 
-  mutate(diff = INE_pop - HMD_pop,
-         diff_perc = (INE_pop - HMD_pop) / INE_pop)
-```
-
-Difference between yearly INE and HMD pops.  
-
-#### Absolute
-
-```{r}
-summary(compare$diff)
-```
-
-```{r echo=FALSE}
-compare %>% 
-  ggplot(aes(x = Year, y = diff)) +
-  geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_col() +
-  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
-  theme_bw() +
-  xlab("") + ylab("Yearly difference in population estimates")
-```
-
-#### Realtive 
-
-```{r}
-summary(compare$diff_perc)
-```
-
-```{r echo=FALSE}
-compare %>% 
-  ggplot(aes(x = Year, y = diff_perc)) +
-  geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_col() +
-  scale_y_continuous(labels = percent) +
-  theme_bw() +
-  xlab("") + ylab("% yearly difference in population estimates")
-```
-
 ## 2020 pops with age structure
 
 2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
 
-```{r echo=FALSE}
+```{r}
 es_pop_age_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
   mutate(Year = as.integer(2020),
          Age = as.integer(Age),
