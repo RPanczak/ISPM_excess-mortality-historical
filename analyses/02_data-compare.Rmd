@@ -436,12 +436,12 @@ Showing small imperfections of the `week -> month` transition! 2020 seems to be 
 
 ## Monthly deaths until 2020
 
-Using data **since 1877 only** when *monthly reporting starts*.  
-
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.18584915.html).  
 
+Using data **since 1877 only** when *monthly reporting starts*.  
+
 ```{r message=FALSE, warning=FALSE}
-ch_deaths_month_web <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>% 
+ch_deaths_month <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>% 
   as_tibble() %>% remove_empty() %>% clean_names() %>% 
   rename(Year = jahr,
          Deaths = value) %>% 
@@ -456,53 +456,7 @@ ch_deaths_month_web <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>%
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
 
-# write_rds(ch_deaths_month_web, "data/BfS/ch_deaths_month_web.Rds")
-```
-
-Data delivered earlier by BfS.    
-
-```{r message=FALSE, warning=FALSE}
-ch_deaths_month <- read_xlsx("data-raw/BfS/Todesf_n_Monat_seit_1877_DEM_2.xlsx") %>% 
-  remove_empty(which = c("rows", "cols")) %>% 
-  clean_names() %>% 
-  rename(Year = jahr) %>% 
-  mutate(Year = as.integer(Year)) %>% 
-  pivot_longer(!Year, names_to = "Month", values_to = "Deaths") %>% 
-  mutate(Month = as.numeric(str_replace(Month, fixed("m"), "")))  %>% 
-  mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
-         Year = as.integer(Year),
-         Month = as.integer(Month),
-         Deaths = as.integer(Deaths)) %>% 
-  relocate(Year, Month, Date)
-
-# write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
-```
-
-```{r eval=FALSE}
-# with(ch_deaths_month_web, table(demografisches_merkmal_und_indikator, Month))
-# summary(ch_deaths_month_web$Deaths - ch_deaths_month$Deaths)
-
-ch_deaths_month %>% 
-  rename(Deaths_custom = Deaths) %>% 
-  left_join(ch_deaths_month_web %>% 
-              rename(Deaths_web = Deaths)) %>% 
-  mutate(diff = Deaths_custom - Deaths_web,
-         diff_p = ((Deaths_web - Deaths_custom) / Deaths_custom) *100) %>% 
-  select(-Date) %>% 
-  filter(diff != 0)
-
-
-ch_deaths_month %>% 
-  rename(Deaths_custom = Deaths) %>% 
-  left_join(ch_deaths_month_web %>% 
-              rename(Deaths_web = Deaths)) %>% 
-  mutate(diff = Deaths_custom - Deaths_web,
-         diff_p = ((Deaths_web - Deaths_custom) / Deaths_custom) *100) %>% 
-  filter(Year == 2020) %>% 
-  ggplot(aes(x = Date, y = diff_p)) +
-  geom_col() +
-  theme_bw() +
-  xlab("") + ylab("Monthly % difference in number of deaths")
+write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 ```
 
 ## Monthly 2021 deaths 
@@ -521,11 +475,6 @@ ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJ
   select(Year, Month, Date, Deaths)
 
 ch_deaths_month %<>% 
-  bind_rows(ch_deaths_2021) %>% 
-  mutate(Country = "Switzerland") %>% 
-  relocate(Country)
-
-ch_deaths_month_web %<>% 
   bind_rows(ch_deaths_2021) %>% 
   mutate(Country = "Switzerland") %>% 
   relocate(Country)
@@ -903,7 +852,7 @@ hmd_pop_age_sex %>%
 
 ```{r}
 compare <- left_join(
-  # ch_deaths_month_web %>% 
+  # ch_deaths_month %>% 
   ch_deaths_month %>%
     group_by(Year) %>% 
     summarise(deaths_year_bfs = sum(Deaths)), 
