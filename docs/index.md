@@ -5,3 +5,4 @@
  - [Comparison of weekly & monthly deaths for CHE](10_CH-weekly-monthly-regs.html)
  - [Comparison of weekly & monthly deaths for three countries](19_Comparison_week_month.html)
  - [Combining all outputs for the paper](22_joint-combined-means.html)
+  - [Comparison of alternative data sources](99_data-alternatives.html)
