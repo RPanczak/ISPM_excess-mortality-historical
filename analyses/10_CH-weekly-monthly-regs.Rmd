@@ -43,7 +43,26 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
-# Years
+# Goal
+
+Comparison of differences in excess deaths during one year depending on use of weekly vs. monthly data.
+
+Implemented with simple frequentest model.
+
+# Gold(ish) standard
+
+```{r echo=FALSE,eval=FALSE, out.width='100%'}
+path <- paste0("./data/BfS/orig_plots/", as.character(year), ".png")
+knitr::include_graphics(path)
+```
+
+![](../data/BfS/orig_plots/2020.png)
+
+<!-- ----------------------------------------------------- -->
+
+# Data 
+
+## Years
 
 ```{r}
 year <- 2020
@@ -66,21 +85,6 @@ flu_years_hc_affected <- c(seq(1890 + 1, 1890 + 5),
                            seq(1918 + 1, 1918 + 5))
 
 ```
-
-<!-- ----------------------------------------------------- -->
-
-# Gold(ish) standard
-
-```{r echo=FALSE,eval=FALSE, out.width='100%'}
-path <- paste0("./data/BfS/orig_plots/", as.character(year), ".png")
-knitr::include_graphics(path)
-```
-
-![](../data/BfS/orig_plots/2020.png)
-
-<!-- ----------------------------------------------------- -->
-
-# Data 
 
 ## Weekly number of deaths
 
