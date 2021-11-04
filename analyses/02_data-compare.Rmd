@@ -462,10 +462,10 @@ write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 
 ## Monthly 2021 deaths 
 
-BfS delivered custom data to supplement first six months of 2021. Merged to dataset covering pperiod untill 2020.  
+BfS delivered custom data to supplement first six months of 2021. Merged to dataset covering period until 2020.  
 
 ```{r}
-ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
+ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
   rename(Year = TodJahr, Month = TodMonat, Deaths = COUNT) %>% 
   filter(Year == 2021) %>% 
   group_by(Year, Month) %>% 
@@ -518,7 +518,7 @@ ch_deaths_month %>%
 BfS delivered data to supplement missing six months of 2021.  
 
 ```{r}
-ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
+ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
   rename(Year = TodJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
   select(-TodMonat) %>% 
   group_by(Year, Age) %>% 
