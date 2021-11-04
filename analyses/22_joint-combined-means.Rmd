@@ -22,7 +22,8 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, magrittr, scales, patchwork, kableExtra)
+p_load(tidyverse, magrittr, scales, patchwork, kableExtra, 
+       COVID19)
 ```
 
 ```{r knit-setup, include = FALSE}
@@ -117,6 +118,47 @@ pops <- read_rds("data/deaths_monthly.Rds") %>%
 <!-- ----------------------------------------------------- -->
 
 # Paper outputs
+
+## COVID-19 data
+
+Using `COVID19` [package](https://cran.r-project.org/web/packages/COVID19/index.html) ([citation](https://doi.org/10.21105/joss.02376)).  
+
+Data retrieved for `2021-07-01`.  
+
+```{r}
+covid_cases_deaths_20 <- covid19(c("Switzerland", "Sweden", "Spain"), 
+                                 level = 1, 
+                                 start = "2020-12-31", 
+                                 end = "2020-12-31", 
+                                 vintage = FALSE)
+
+covid_cases_deaths_21 <- covid19(c("Switzerland", "Sweden", "Spain"), 
+                                 level = 1, 
+                                 start = "2021-06-30", 
+                                 end = "2021-06-30", 
+                                 vintage = FALSE)
+
+covid_cases_deaths <- bind_rows(
+  
+  covid_cases_deaths_20 %<>% 
+    select(id, administrative_area_level_1,
+           confirmed, deaths) %>% 
+    mutate(Year = 2020),
+  
+  covid_cases_deaths_21 %<>% 
+    select(id, administrative_area_level_1,
+           confirmed, deaths) %>% 
+    left_join(covid_cases_deaths_20 %>% 
+                rename(substract_confirmed = confirmed,
+                       substract_deaths = deaths)) %>% 
+    mutate(confirmed = confirmed - substract_confirmed,
+           deaths = deaths - substract_deaths) %>% 
+    select(-substract_deaths, -substract_confirmed) %>% 
+    mutate(Year = 2021)
+  
+) %>% 
+  relocate(Year)
+```
 
 ## Table 1
 
