@@ -482,11 +482,6 @@ ch_deaths_month %<>%
 ```
 
 ```{r include=FALSE}
-ch_deaths_month %<>% 
-  left_join(hmd_pop_year)
-```
-
-```{r include=FALSE}
 rm(ch_deaths_2021)
 ```
 
@@ -498,6 +493,15 @@ ggplot(data = ch_deaths_month,
   geom_line(aes(y = Deaths / 1000)) +
   theme_bw() +
   xlab("") + ylab("Monthly number of deaths [thousand]")
+```
+
+## Yearly pops
+
+Population until 2021 available in HMD.  
+
+```{r include=FALSE}
+ch_deaths_month %<>% 
+  left_join(hmd_pop_year)
 ```
 
 ```{r echo=FALSE}
@@ -743,6 +747,8 @@ rm(temp)
 
 With update for 2020 from provisional data (see below for source).  
 
+**Population 2021 assumed to be the same** since no better data are available atm.  
+
 ```{r}
 es_pop_year <- hmd_pop_year %>% 
   filter(Country == "Spain")
@@ -825,7 +831,8 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
 [Preliminär statistik över döda (Excel)](https://www.scb.se/hitta-statistik/sverige-i-siffror/manniskorna-i-sverige/doda-i-sverige/) file is available from SCB.  Data are available till October.   
 
 ```{r eval=FALSE}
-# doesn't work with this url
+# curl command doesn't work with this URL
+# please download manually!
 download.file(url = "https://www.scb.se/hitta-statistik/statistik-efter-amne/befolkning/befolkningens-sammansattning/befolkningsstatistik/pong/tabell-och-diagram/preliminar-statistik-over-doda/",
               destfile = "data-raw/SCB/2021-08-23-preliminar_statistik_over_doda_inkl_eng.xlsx",
               method = "curl")
@@ -851,7 +858,7 @@ se_deaths_month %<>%
 rm(se_deaths_month_2021)
 ```
 
-## Monthly datasets combined 
+## Monthly deaths combined 
 
 ```{r echo=FALSE}
 se_deaths_month %>% 
@@ -861,120 +868,19 @@ se_deaths_month %>%
   xlab("") + ylab("Monthly deaths")
 ```
 
-## 2020 deaths with age & sex structure
+## Yearly pops
 
-2019 is already in HMD for Sweden so getting only 2020.  
-
-```{r}
-se_deaths_age_sex_2020 <- read_xlsx("data-raw/SCB/BE0101D9_20210429-200440.xlsx", 
-                                    col_types = c("text", "text", "text", "numeric", "numeric"), 
-                                    skip = 2) %>% 
-  remove_empty(which = c("rows", "cols")) %>% 
-  clean_names() %>% 
-  filter(!is.na(x2020)) %>% 
-  select(-x1, -x2019) %>% 
-  mutate(x3 = if_else(x3 == "men", "Male", "Female")) %>% 
-  fill(x2) %>% 
-  pivot_longer(cols = x2020, names_to = "Year") %>% 
-  rename(Age = x2, Sex = x3) %>% 
-  mutate(Year = as.integer(str_replace(Year, fixed("x"), "")),
-         Age = word(Age, 1),
-         Age = str_replace(Age, fixed("100+"), "100"),
-         Age = as.integer(Age)) %>% 
-  pivot_wider(names_from = Sex, values_from = value) %>% 
-  mutate(Male = as.integer(round(Male)),
-         Female = as.integer(round(Female))) %>% 
-  mutate(Total = Male + Female) %>% 
-  arrange(Year, Age) %>% 
-  mutate(Country = "Sweden") %>% relocate(Country)
-```
-
-## Yearly pops 
+Population until 2021 available in HMD.  
 
 ```{r}
-se_pop_year <- read_xlsx("data-raw/SCB/be0101_tab9utveng1749-2020.xlsx",
-                         skip = 4) %>% 
-  remove_empty(which = c("rows", "cols")) %>% 
-  clean_names() %>% 
-  rename(Population = population) %>% 
-  select(year, Population) %>% 
-  filter(!is.na(Population)) %>% 
-  mutate(year = ifelse(year == "20001)", 2000, year),
-         year = as.integer(year),
-         Population = as.integer(round(Population))) %>% 
-  rename(Year = year) 
-
-se_pop_2021 <- se_pop_year %>% 
-  filter(Year == 2020) %>% 
-  mutate(Year = as.integer(2021))
-
-se_pop_year %<>% 
-  bind_rows(se_pop_2021)
-
-rm(se_pop_2021)
-
 se_deaths_month %<>% 
-  left_join(se_pop_year)
-```
-
-```{r echo=FALSE}
-se_pop_year %>% 
-  ggplot(aes(x = Year, y = Population)) +
-  geom_line() +
-  theme_bw() +
-  xlab("") + ylab("Yearly population")
-```
-
-### Comparison with HMD {.tabset}
-
-SCB vs HMD  
-
-```{r}
-compare <- left_join(
-  se_pop_year %>% rename(SCB_pop = Population), 
-  hmd_pop_year %>% filter(Country == "Sweden") %>% rename(HMD_pop = Population)) %>% 
-  select(-Country) %>% 
-  mutate(diff = SCB_pop - HMD_pop,
-         diff_perc = (SCB_pop - HMD_pop) / SCB_pop)
-```
-
-Difference between yearly SCB and HMD pops.  
-
-#### Absolute
-
-```{r}
-summary(compare$diff)
-```
-
-```{r echo=FALSE}
-compare %>% 
-  ggplot(aes(x = Year, y = diff)) +
-  geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_col() +
-  scale_y_continuous(labels = comma, limits = c(-50000, 150000)) +
-  theme_bw() +
-  xlab("") + ylab("Yearly difference in population estimates")
-```
-
-#### Realtive 
-
-```{r}
-summary(compare$diff_perc)
-```
-
-```{r echo=FALSE}
-compare %>% 
-  ggplot(aes(x = Year, y = diff_perc)) +
-  geom_hline(aes(yintercept = 0), color = "lightblue") +
-  geom_col() +
-  scale_y_continuous(labels = percent) +
-  theme_bw() +
-  xlab("") + ylab("% yearly difference in population estimates")
+  left_join(hmd_pop_year %>% 
+              filter(Country == "Sweden"))
 ```
 
 <!-- ----------------------------------------------------- -->
 
-## Yearly pops - 2021 age groups issue
+# Yearly pops - 2021 age groups issue
 
 @Julien tracked down some weird patterns in population estimates for 2020 in Switzerland.  
 
@@ -1060,32 +966,26 @@ pop_yearly_age_sex <- bind_rows(
   hmd_pop_age_sex %>% 
     select(-Female, -Male),
   
-  # 2020 is already in HMD for Sweden so only using HMD
+  # 2020 & 21 are already in HMD for SWE so only using HMD
   
-  # 2021 is derived from 2020 HMD for SWE
-  hmd_pop_age_sex %>% 
-    select(-Female, -Male) %>% 
-    filter(Country == "Sweden") %>% 
-    filter(Year == 2020) %>% 
-    mutate(Year = as.integer(2021)), 
+  # 2020 & 21 are already in HMD for CHE so only using HMD
+  # # !!! temp solution for CH for 2020 !!!
+  # hmd_pop_age_sex %>% 
+  #   select(-Female, -Male) %>% 
+  #   filter(Country == "Switzerland" & Year == 2019) %>% 
+  #   mutate(Year = as.integer(2020)),
+  # 
+  # # and once again for 2021
+  # hmd_pop_age_sex %>% 
+  #   select(-Female, -Male) %>% 
+  #   filter(Country == "Switzerland" & Year == 2019) %>% 
+  #   mutate(Year = as.integer(2021)),
   
   # 2020 for ESP
   es_pop_age_2020,
   
-  # 2021 for ESP
+  # 2021 for ESP >> derived from 2020
   es_pop_age_2020 %>% 
-    mutate(Year = as.integer(2021)),
-  
-  # !!! temp solution for CH for 2020 !!!
-  hmd_pop_age_sex %>% 
-    select(-Female, -Male) %>% 
-    filter(Country == "Switzerland" & Year == 2019) %>% 
-    mutate(Year = as.integer(2020)),
-  
-  # and once again for 2021
-  hmd_pop_age_sex %>% 
-    select(-Female, -Male) %>% 
-    filter(Country == "Switzerland" & Year == 2019) %>% 
     mutate(Year = as.integer(2021))
   
 ) %>% 
@@ -1106,15 +1006,16 @@ deaths_yearly_age_sex <- bind_rows(
   
   hmd_deaths_age_sex,
   
-  # 2019 is already in HMD for Sweden so only using SCD for 2020
-  se_deaths_age_sex_2020,
+  # SWE
+  # 2020 is already in HMD for SWE 
+  # 2021 is sadly missing for SWE 
   
+  #ESP
   es_deaths_age_2019_2020,
-  
   es_deaths_age_2021,
   
-  ch_deaths_age_sex_2019_2020,
-  
+  # CHE
+  # 2020 is already in HMD for CHE 
   ch_deaths_age_sex_2021
   
 ) %>% 
