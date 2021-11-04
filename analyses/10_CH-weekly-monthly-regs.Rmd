@@ -87,12 +87,9 @@ knitr::include_graphics(path)
 Prepared in `03.Rmd`.  Collapsing age groups. 
 
 ```{r}
-deaths_week <- read_rds("data/BfS/deaths_week_2010-2019.Rds")  %>% 
+deaths_week <- read_rds("data/BfS/deaths_week_2010-2021.Rds")  %>% 
   filter(Year >= year_from) %>% 
   filter(Year <= year) %>% 
-  bind_rows(read_rds("data/BfS/deaths_week_2020-2021.Rds") %>%
-              filter(Year >= year_from) %>% 
-              filter(Year <= year)) %>% 
   group_by(Year, Week, Ending) %>% 
   summarise(NumberOfDeaths = sum(NumberOfDeaths),
             Expected = sum(Expected)) %>% 
@@ -171,8 +168,6 @@ ggplot(excess_deaths) +
 Prepared in `02.Rmd`.  
 
 ```{r}
-# pop_year <- read_rds("data/BfS/pop_year.Rds")
-
 deaths_month <- read_rds("data/BfS/ch_deaths_month.Rds") %>% 
   filter(Year >= year_from) %>% 
   filter(Year <= year) %>% 
