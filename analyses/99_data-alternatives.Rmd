@@ -549,32 +549,14 @@ compare %>%
   xlab("") + ylab("% yearly difference in population estimates")
 ```
 
+## Yearly pops 2020 & 2021
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Yearly pops 2020
-
-2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
+2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).^[Needs an update with 2021 if needed for any comparisons!]   
 
 ```{r}
+es_pop_year <- hmd_pop_year %>% 
+  filter(Country == "Spain")
+
 source("R/fn_get_spain_population.R")
 
 es_pop_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
@@ -583,12 +565,11 @@ es_pop_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.x
          Population = as.integer(Population)) %>% 
   relocate(Year)
 
-es_pop_2021 <- es_pop_2020 %>% 
-  mutate(Year = as.integer(2021))
+# es_pop_2021 <- ...
 
 es_pop_year %<>% 
   bind_rows(es_pop_2020) %>% 
-  bind_rows(es_pop_2021) %>% 
+  # bind_rows(es_pop_2021) %>% 
   fill(Country, .direction = "down")
 
 es_deaths_month %<>% 
@@ -607,7 +588,7 @@ es_pop_year %>%
   xlab("") + ylab("Yearly population")
 ```
 
-## Pops with age structure 2020
+## Pops with age structure 2020 & 2021
 
 ```{r}
 es_pop_age_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
@@ -617,8 +598,9 @@ es_pop_age_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-20
          Country = "Spain") %>% 
   rename(Total = Population) %>% 
   relocate(Country, Year)
-```
 
+# es_pop_age_2021 <- ...
+```
 
 <!-- ----------------------------------------------------- -->
 
