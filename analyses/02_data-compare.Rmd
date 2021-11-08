@@ -753,7 +753,7 @@ bind_rows(
 
 Example of fit & prediction:
 
-```{r echo=FALSE, warning=FALSE}
+```{r include=FALSE}
 data <- bind_rows(
   
   hmd_pop_age_sex %>% 
@@ -780,8 +780,10 @@ data <- bind_rows(
 ) %>% 
   mutate(Source = "HMD") %>% 
   bind_rows(pop_age_2020 %>% 
-              mutate(Source = "Est lm")) 
+              mutate(Source = "Est lm"))
+```
 
+```{r echo=FALSE, warning=FALSE}
 data %>% 
   filter(Country == "Spain",
          Age_cat %in% c("70-79", "80-89")) %>% 
