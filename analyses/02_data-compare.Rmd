@@ -349,24 +349,6 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
   relocate(Country)
 ```
 
-## Yearly pops
-
-Population until 2021 available in HMD.  
-
-```{r include=FALSE}
-ch_deaths_month %<>% 
-  left_join(hmd_pop_year)
-```
-
-```{r echo=FALSE}
-ch_deaths_month %>% 
-  ggplot(aes(x = Year)) +
-  geom_line(aes(y = Population / 1000000)) +
-  theme_bw() +
-  xlab("") + ylab("Yearly population [million]") +
-  scale_y_continuous()
-```
-
 <!-- ----------------------------------------------------- -->
 
 # Spain
@@ -581,62 +563,6 @@ es_deaths_age_2021 <- bind_rows(
 rm(temp)
 ```
 
-## Yearly pops 
-
-With update for 2020 from provisional data (see below for source).  
-
-**Population 2021 assumed to be the same** since no better data are available atm.  
-
-```{r}
-es_pop_year <- hmd_pop_year %>% 
-  filter(Country == "Spain")
-
-source("R/fn_get_spain_population.R")
-
-es_pop_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
-  summarize(Population = sum(Population, na.rm = TRUE))%>%
-  mutate(Year = as.integer(2020),
-         Population = as.integer(Population)) %>% 
-  relocate(Year)
-
-es_pop_2021 <- es_pop_2020 %>% 
-  mutate(Year = as.integer(2021))
-
-es_pop_year %<>% 
-  bind_rows(es_pop_2020) %>% 
-  bind_rows(es_pop_2021) %>% 
-  fill(Country, .direction = "down")
-
-es_deaths_month %<>% 
-  left_join(es_pop_year)
-```
-
-```{r include=FALSE}
-rm(es_pop_2020, es_pop_2021)
-```
-
-```{r echo=FALSE}
-es_pop_year %>% 
-  ggplot(aes(x = Year, y = Population)) +
-  geom_line() +
-  theme_bw() +
-  xlab("") + ylab("Yearly population")
-```
-
-## 2020 pops with age structure
-
-2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
-
-```{r}
-es_pop_age_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
-  mutate(Year = as.integer(2020),
-         Age = as.integer(Age),
-         Population = as.integer(Population),
-         Country = "Spain") %>% 
-  rename(Total = Population) %>% 
-  relocate(Country, Year)
-```
-
 <!-- ----------------------------------------------------- -->
 
 # Sweden
@@ -706,55 +632,13 @@ se_deaths_month %>%
   xlab("") + ylab("Monthly deaths")
 ```
 
-## Yearly pops
-
-Population until 2021 available in HMD.  
-
-```{r}
-se_deaths_month %<>% 
-  left_join(hmd_pop_year %>% 
-              filter(Country == "Sweden"))
-```
-
 <!-- ----------------------------------------------------- -->
 
-# Yearly pops
-
-## 2021 age groups issue
-
-@Julien tracked down some weird patterns in population estimates, particularly for 2020 in Switzerland.  
-
-Particularly in older age groups we have some serious +++jumps in N!?  
+# Projected 2020-21 population numbers
 
 ```{r}
-hmd_pop_age_sex %>% 
-  # filter(Country == "Switzerland") %>% 
-  filter(Year >= 2010) %>% 
-  mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                       include.lowest = TRUE,
-                       right = FALSE,
-                       labels=c("0-9","10-19","20-29","30-39","40-49",
-                                "50-59","60-69","70-79","80-89","90+"))) %>% 
-  # group_by(Year, Age_cat) %>% 
-  group_by(Country, Year, Age_cat) %>% 
-  summarise(Population = sum(Total)) %>% 
-  ungroup() %>% 
-  ggplot(
-    aes(x = Age_cat, y = Population / 1000000, 
-        fill = factor(Year))) +
-  geom_col(position = "dodge") +
-  scale_y_continuous(labels = comma) +
-  theme_bw() +
-  scale_fill_viridis_d(option = "E", direction = -1) +
-  xlab("") + ylab("Yearly population by age group") + 
-  facet_grid(vars(Country), scales = "free_y")
-```
-
-## Projected 2020-21 population numbers
-
-```{r}
-hmd_pop_age_sex_agg <- hmd_pop_age_sex %>% 
-  filter(Year >= 2015 & Year <= 2019) %>% 
+hmd_pop_age_agg <- hmd_pop_age_sex %>% 
+  filter(Year >= 2010 & Year <= 2019) %>% 
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                        include.lowest = TRUE,
                        right = FALSE,
@@ -765,10 +649,10 @@ hmd_pop_age_sex_agg <- hmd_pop_age_sex %>%
   ungroup()
 ```
 
-For each year, age, country stratum, ~~poisson~~ linear model is fit using the 2015-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
+For each year, age, country stratum, linear model is fit using the 2015-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
 
 ```{r}
-pop_age_2020_lm <- hmd_pop_age_sex_agg %>% 
+pop_age_2020 <- hmd_pop_age_agg %>% 
   group_by(Country, Age_cat) %>% 
   # do(broom::tidy(lm(population ~ year, data = .))) %>% 
   # do(broom::augment(lm(population ~ year, data = .))) %>% 
@@ -783,23 +667,11 @@ pop_age_2020_lm <- hmd_pop_age_sex_agg %>%
   relocate(Country, Year, Age_cat, Population)
 ```
 
-```{r eval=FALSE, include=FALSE}
-pop_age_2020_poi <- hmd_pop_age_sex_agg %>% 
-  group_by(Country, Age_cat) %>% 
-  do(glm(Population ~ Year, data = ., family = "poisson") %>%
-       predict(., newdata = tibble(Year = c(2020, 2021)), type = "response") %>%
-       tibble(Year = c(2020, 2021), 
-              Population = .)
-  ) %>% 
-  ungroup() %>% 
-  mutate(Population = round(Population)) %>% 
-  arrange(Country, Year, Age_cat) %>% 
-  relocate(Country, Year, Age_cat, Population)
-```
+Absolute difference across countries and age groups:  
 
 ```{r echo=FALSE, warning=FALSE}
-
-data <- bind_rows(
+bind_rows(
+  
   hmd_pop_age_sex %>% 
     filter(Year >= 2020) %>% 
     mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
@@ -820,29 +692,161 @@ data <- bind_rows(
     group_by(Country, Year, Age_cat) %>% 
     summarise(Population = sum(Total)) %>% 
     ungroup()
+  
 ) %>% 
   mutate(Source = "HMD") %>% 
-  bind_rows(pop_age_2020_lm %>% 
-             mutate(Source = "Est lm")) %>% 
-  bind_rows(pop_age_2020_poi %>% 
-             mutate(Source = "Est poi"))
-
-hmd_pop_age_sex_agg %>% 
+  bind_rows(pop_age_2020 %>% 
+              mutate(Source = "Est lm")) %>% 
+  filter(Year == 2020) %>% 
   ggplot(
     aes(x = Age_cat, y = Population / 1000000, 
-        fill = factor(Year))) +
+        fill = factor(Source))) +
   geom_col(position = "dodge") +
   scale_y_continuous(labels = comma) +
   theme_bw() +
-  scale_fill_viridis_d(option = "E", direction = -1) +
-  xlab("") + ylab("Yearly population by age group") + 
-  facet_grid(vars(Country), scales = "free_y")
+  scale_fill_viridis_d(option = "E", direction = 1) +
+  xlab("Age group") + ylab("Yearly population [millions]") + 
+  facet_wrap(vars(Country), scales = "free_y")
 ```
 
+Relative differences:  
+
+```{r echo=FALSE, warning=FALSE}
+bind_rows(
+  
+  hmd_pop_age_sex %>% 
+    filter(Year >= 2020) %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup(), 
+  
+  es_pop_age_2020 %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup()
+  
+) %>% 
+  rename(Population_hmd = Population) %>% 
+  full_join(pop_age_2020 %>% 
+              rename(Population_lm = Population)) %>% 
+  filter(Year == 2020) %>% 
+  mutate(Difference = (Population_lm - Population_hmd) / Population_lm) %>% 
+  ggplot(
+    aes(x = Age_cat, y = Difference)) +
+  geom_col() +
+  scale_y_continuous(labels = percent) +
+  theme_bw() +
+  scale_fill_viridis_d(option = "E", direction = 1) +
+  xlab("Age group") + ylab("Population difference between sources") + 
+  facet_wrap(vars(Country))
+```
+
+Example of fit & prediction:
+
+```{r echo=FALSE, warning=FALSE}
+data <- bind_rows(
+  
+  hmd_pop_age_sex %>% 
+    filter(Year >= 2010) %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup(), 
+  
+  es_pop_age_2020 %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup()
+  
+) %>% 
+  mutate(Source = "HMD") %>% 
+  bind_rows(pop_age_2020 %>% 
+              mutate(Source = "Est lm")) 
+
+data %>% 
+  filter(Country == "Spain",
+         Age_cat %in% c("70-79", "80-89")) %>% 
+  ggplot(data = .,
+         aes(x = Year, y = Population / 1000000, 
+             color = factor(Source))) +
+  geom_point() +
+  geom_smooth(data = . %>% 
+                filter(Source == "HMD" & Year < 2020),
+              method = "lm", se = FALSE) +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  scale_fill_viridis_d(option = "E", direction = 1) +
+  xlab("Age group") + ylab("Yearly population [millions]") + 
+  facet_wrap(vars(Age_cat), scales = "free_y")
+```
+
+```{r echo=FALSE, warning=FALSE}
+data %>% 
+  filter(Country == "Sweden",
+         Age_cat %in% c("10-19", "20-29")) %>% 
+  ggplot(data = .,
+         aes(x = Year, y = Population / 1000000, 
+             color = factor(Source))) +
+  geom_point() +
+  geom_smooth(data = . %>% 
+                filter(Source == "HMD" & Year < 2020),
+              method = "lm", se = FALSE) +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  scale_fill_viridis_d(option = "E", direction = 1) +
+  xlab("Age group") + ylab("Yearly population [millions]") + 
+  facet_wrap(vars(Age_cat), scales = "free_y")
+```
 
 <!-- ----------------------------------------------------- -->
 
 # Combined analysis datasets
+
+## Yearly pops
+
+```{r}
+pop_age_sex <- bind_rows(
+  
+  hmd_pop_age_sex %>% 
+    filter(Year < 2020) %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
+    ungroup(), 
+  
+  pop_age_2020 
+) %>% 
+  arrange(Country, Year, Age_cat)
+
+pop_age_yearly <- pop_age_sex %>% 
+  group_by(Country, Year) %>% 
+  summarise(Population = sum(Population)) %>% 
+  ungroup()
+```
+
 
 ## Monthly deaths with yearly pops
 
