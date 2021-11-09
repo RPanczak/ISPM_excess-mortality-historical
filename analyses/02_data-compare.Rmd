@@ -650,13 +650,19 @@ For each year, age, country stratum, linear model is fit using the 2015-2019 dat
 
 ```{r}
 # p_load(mgcv)
+p_load(splines)
+knots <- quantile(seq.int(2010, 2019), p = c(0.25, 0.5, 0.75))
 
 pop_age_2020 <- hmd_pop_age_agg %>% 
   filter(Year >= 2010 & Year <= 2019) %>% 
   group_by(Country, Age_cat) %>% 
   # do(broom::tidy(lm(population ~ year, data = .))) %>% 
   # do(broom::augment(lm(population ~ year, data = .))) %>% 
-  do(lm(Population ~ poly(Year, 2, raw = TRUE), data = .) %>%
+  # polynomial
+  # do(lm(Population ~ poly(Year, 2, raw = TRUE), data = .) %>%
+  # spline
+  do(lm(Population ~ bs(Year, knots = knots), data = .) %>%
+       # GAM     
        # do(gam(Population ~ s(Year), data = .) %>%
        predict(., newdata = tibble(Year = c(2020, 2021))) %>%
        tibble(Year = c(2020, 2021), 
@@ -671,10 +677,33 @@ pop_age_2020 <- hmd_pop_age_agg %>%
 Absolute difference across countries and age groups in 2020:  
 
 ```{r echo=FALSE, warning=FALSE}
-source("R/fn_get_spain_population.R")
-
-es_pop_age_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
+# Pop Spain 2020 is: "1 July 2020"
+es_pop_age_2020 <- 
+  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
+             sheet=1,range="A8:H212") %>%
+  slice(., -(1:2)) %>%
+  select(1,8) %>%
+  rename(Population=`Both sexes...8`) %>%
+  filter(!is.na(Population)) %>%
+  mutate(Age=0:(nrow(.)-1)) %>%
+  select(Age, Population) %>% 
   mutate(Year = as.integer(2020),
+         Age = as.integer(Age),
+         Population = as.integer(Population),
+         Country = "Spain") %>% 
+  rename(Total = Population) %>% 
+  relocate(Country, Year)
+
+es_pop_age_2021 <- 
+  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
+             sheet=1,range="A8:B212") %>%
+  slice(., -(1:2)) %>%
+  select(1,2) %>%
+  rename(Population=`Both sexes`) %>%
+  filter(!is.na(Population)) %>%
+  mutate(Age=0:(nrow(.)-1)) %>%
+  select(Age, Population) %>% 
+  mutate(Year = as.integer(2021),
          Age = as.integer(Age),
          Population = as.integer(Population),
          Country = "Spain") %>% 
@@ -702,13 +731,22 @@ bind_rows(
                                   "50-59","60-69","70-79","80-89","90+"))) %>% 
     group_by(Country, Year, Age_cat) %>% 
     summarise(Population = sum(Total)) %>% 
+    ungroup(),
+  
+  es_pop_age_2021 %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
     ungroup()
   
 ) %>% 
   mutate(Source = "HMD") %>% 
   bind_rows(pop_age_2020 %>% 
               mutate(Source = "Estimate")) %>% 
-  filter(Year == 2020) %>% 
   ggplot(
     aes(x = Age_cat, y = Population / 1000000, 
         fill = factor(Source))) +
@@ -717,7 +755,7 @@ bind_rows(
   theme_bw() +
   scale_fill_viridis_d(option = "E", direction = 1) +
   xlab("Age group") + ylab("Yearly population [millions]") + 
-  facet_wrap(vars(Country), scales = "free_y")
+  facet_grid(vars(Country), vars(Year), scales = "free_y")
 ```
 
 Relative differences in 2020:  
@@ -744,13 +782,22 @@ bind_rows(
                                   "50-59","60-69","70-79","80-89","90+"))) %>% 
     group_by(Country, Year, Age_cat) %>% 
     summarise(Population = sum(Total)) %>% 
+    ungroup(),
+  
+    es_pop_age_2021 %>% 
+    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                         include.lowest = TRUE,
+                         right = FALSE,
+                         labels=c("0-9","10-19","20-29","30-39","40-49",
+                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
+    group_by(Country, Year, Age_cat) %>% 
+    summarise(Population = sum(Total)) %>% 
     ungroup()
   
 ) %>% 
   rename(Population_hmd = Population) %>% 
   full_join(pop_age_2020 %>% 
               rename(Population_lm = Population)) %>% 
-  filter(Year == 2020) %>% 
   mutate(Difference = (Population_lm - Population_hmd) / Population_lm) %>% 
   ggplot(
     aes(x = Age_cat, y = Difference)) +
@@ -759,7 +806,7 @@ bind_rows(
   theme_bw() +
   scale_fill_viridis_d(option = "E", direction = 1) +
   xlab("Age group") + ylab("Population difference between sources") + 
-  facet_wrap(vars(Country))
+  facet_grid(vars(Country), vars(Year))
 ```
 
 Example of fit & prediction:
@@ -794,7 +841,7 @@ data <- bind_rows(
               mutate(Source = "Estimate"))
 ```
 
-```{r echo=FALSE, warning=FALSE}
+```{r}
 fn_age_plot <- function(country) {
   data %>% 
     filter(Country == country) %>% 
@@ -810,7 +857,8 @@ fn_age_plot <- function(country) {
     geom_smooth(data = . %>% 
                   filter(Source == "HMD" & Year < 2020),
                 method = "lm", 
-                formula = y ~ poly(x, 2, raw = TRUE), 
+                # formula = y ~ poly(x, 2, raw = TRUE), 
+                formula = y ~ splines::bs(x, df = 3),
                 # method = "gam", 
                 #   formula = y ~ s(x), 
                 se = FALSE) + 
