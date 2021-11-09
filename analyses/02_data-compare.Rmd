@@ -874,8 +874,8 @@ fn_age_plot <- function(country) {
                 se = FALSE) + 
     scale_y_continuous(labels = comma) +
     theme_bw() +
-    scale_fill_viridis_d(option = "E", direction = 1) +
-    xlab("Age group") + ylab("Yearly population [millions]") + 
+    scale_color_discrete(hue_pal()(2), name = "Source") +
+    xlab("Year") + ylab("Population [millions]") + 
     facet_wrap(vars(Age_cat), scales = "free_y")
 }
 ```
