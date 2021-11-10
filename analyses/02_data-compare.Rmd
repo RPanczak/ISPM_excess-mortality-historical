@@ -356,7 +356,6 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
 ## Monthly deaths untill 2019
 
 Data from INE [since 1975 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1) and [1941-1974 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1); data prior to 1940 was transcribed from PDFs available from INE.  
-
 ```{r}
 es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>% 
   remove_empty(which = c("rows", "cols")) %>% 
@@ -373,7 +372,7 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
 
 ## Monthly 2020 deaths 
 
-2020 update (*still labelled as provisional!*) is from  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
+2020 update is from `Vital Statistics. **Provisional** data: Year 2020` [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
 
 ```{r}
 source("R/fn_get_death_data_spain.R")
@@ -392,21 +391,20 @@ es_2020 <- fn_get_death_data_spain("data-raw/INE/Spain_2020.xlsx") %>%
 
 ## Monthly 2021 deaths 
 
-2021 data available from [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+2021 data available from `Estimate of number of weekly deaths during the Covid-19 outbreak` [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
 Note: data are in weekly format and converted with methods (and caveats!) described above in STMF chapter.  
 
 ```{r}
-temp <- read_xlsx("data-raw/INE/Spain_2021_death.xlsx", skip = 9) %>%   
+temp <- read_xlsx("data-raw/INE/Spain_2021_death_up.xlsx", skip = 9) %>%   
   remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
   rename(Week = x1) %>% 
-  filter(!is.na(de_0_a_4_anos)) %>% 
+  filter(!is.na(from_0_to_4_years_old)) %>% 
   mutate(Deaths = rowSums(.[-1])) %>% 
   select(Week, Deaths)
 
 es_2021 <- weekToMonth(rev(temp$Deaths), datStart = "31-12-2018") %>% 
-  as_tibble() %>% 
   as_tibble() %>% 
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
   rename(Deaths = value) %>% 
@@ -439,9 +437,9 @@ es_deaths_month %>%
 
 ## Yearly 2019-2020 deaths with age structure
 
-INE data to supplement missing 2091-20 years in HMD.  
+INE data to supplement missing 2019-20 years in HMD.  
 
-2019 data available [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available from [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
+2019 data available in `Vital Statistics: Deaths` [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available in`Vital Statistics. Provisional data: Year 2020`  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
 
 ```{r}
 es_deaths_age_2019_2020 <- bind_rows(
@@ -474,77 +472,74 @@ es_deaths_age_2019_2020 <- bind_rows(
 
 INE data to supplement missing 6 months of 2021 in HMD.  
 
-2021 data available from [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+2021 data available from `Weekly death estimates (EDeS) during the covid-19 outbreak` [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
 Note: data are in weekly format and converted with methods (and caveats!) described above in STMF chapter.  
 
 ```{r}
-temp <- read_xlsx("data-raw/INE/Spain_2021_death.xlsx", skip = 9) %>%   
+temp <- read_xlsx("data-raw/INE/Spain_2021_death_up.xlsx", skip = 9) %>%   
   remove_empty(which = c("rows", "cols")) %>% 
   clean_names() %>% 
   rename(Week = x1) %>% 
-  filter(!is.na(de_0_a_4_anos))
+  filter(!is.na(from_0_to_4_years_old))
 
 es_deaths_age_2021 <- bind_rows(
   
-  weekToMonth(rev(temp$de_0_a_4_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_0_to_4_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 0) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_5_a_9_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_5_to_9_years), datStart = "31-12-2018") %>% 
     mutate(Age = 5) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_10_a_14_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_10_to_14_years), datStart = "31-12-2018") %>% 
     mutate(Age = 10) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_15_a_19_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_15_to_19_years), datStart = "31-12-2018") %>% 
     mutate(Age = 15) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_20_a_24_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_20_to_24_years), datStart = "31-12-2018") %>% 
     mutate(Age = 20) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_25_a_29_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_25_to_29_years), datStart = "31-12-2018") %>% 
     mutate(Age = 25) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_30_a_34_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_30_to_34_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 30) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_35_a_39_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_35_to_39_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 35) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_40_a_44_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_40_to_44_years), datStart = "31-12-2018") %>% 
     mutate(Age = 40) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_45_a_49_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_45_to_49_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 45) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_50_a_54_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_50_to_54_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 50) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_0_a_4_anos), datStart = "31-12-2018") %>% 
-    mutate(Age = 0) %>% as_tibble(),
-  
-  weekToMonth(rev(temp$de_55_a_59_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_55_to_59_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 55) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_60_a_64_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_60_to_64_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 60) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_65_a_69_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_65_to_69_years_old), datStart = "31-12-2018") %>% 
     mutate(Age = 65) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_70_a_74_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_70_to_74_years), datStart = "31-12-2018") %>% 
     mutate(Age = 70) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_75_a_79_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_75_to_79_years), datStart = "31-12-2018") %>% 
     mutate(Age = 75) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_80_a_84_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_80_to_84_years), datStart = "31-12-2018") %>% 
     mutate(Age = 80) %>% as_tibble(),
   
-  weekToMonth(rev(temp$de_85_a_89_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$from_85_to_89_years), datStart = "31-12-2018") %>% 
     mutate(Age = 85) %>% as_tibble(),
   
-  weekToMonth(rev(temp$x90_y_mas_anos), datStart = "31-12-2018") %>% 
+  weekToMonth(rev(temp$x90_years_old_and_over), datStart = "31-12-2018") %>% 
     mutate(Age = 90) %>% as_tibble()
   
 ) %>% 
@@ -594,7 +589,7 @@ se_deaths_month <- read_csv("data-raw/SCB/000000NF_20210315-164930.csv",
 
 ```{r eval=FALSE}
 # curl command doesn't work with this URL
-# please download manually!
+# please download manually using link above!
 download.file(url = "https://www.scb.se/hitta-statistik/statistik-efter-amne/befolkning/befolkningens-sammansattning/befolkningsstatistik/pong/tabell-och-diagram/preliminar-statistik-over-doda/",
               destfile = "data-raw/SCB/2021-08-23-preliminar_statistik_over_doda_inkl_eng.xlsx",
               method = "curl")
