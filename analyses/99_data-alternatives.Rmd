@@ -565,32 +565,49 @@ es_pop_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.x
          Population = as.integer(Population)) %>% 
   relocate(Year)
 
-# es_pop_2021 <- ...
+es_pop_2020 <- 
+  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
+             sheet=1,range="A8:H212") %>%
+  slice(., -(1:2)) %>%
+  select(1,8) %>%
+  rename(Population=`Both sexes...8`) %>%
+  filter(!is.na(Population)) %>%
+  summarize(Population = sum(Population, na.rm = TRUE)) %>% 
+  mutate(Year = as.integer(2020),
+         Population = as.integer(Population),
+         Country = "Spain")
+
+es_pop_2021 <- 
+  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
+             sheet=1,range="A8:B212") %>%
+  slice(., -(1:2)) %>%
+  rename(Population=`Both sexes`) %>%
+  filter(!is.na(Population)) %>%
+  summarize(Population = sum(Population, na.rm = TRUE)) %>% 
+  mutate(Year = as.integer(2021),
+         Population = as.integer(Population),
+         Country = "Spain")
 
 es_pop_year %<>% 
   bind_rows(es_pop_2020) %>% 
-  # bind_rows(es_pop_2021) %>% 
+  bind_rows(es_pop_2021) %>%
   fill(Country, .direction = "down")
-
-es_deaths_month %<>% 
-  left_join(es_pop_year)
 ```
 
 ```{r include=FALSE}
 rm(es_pop_2020, es_pop_2021)
 ```
 
-```{r echo=FALSE}
-es_pop_year %>% 
-  ggplot(aes(x = Year, y = Population)) +
-  geom_line() +
-  theme_bw() +
-  xlab("") + ylab("Yearly population")
-```
+
+
+
+
 
 ## Pops with age structure 2020 & 2021
 
-```{r}
+Nothing to compare against since HMD stops in 2019 for ESP :/  
+
+```{r eval=FALSE, include=FALSE}
 es_pop_age_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
   mutate(Year = as.integer(2020),
          Age = as.integer(Age),
