@@ -52,8 +52,11 @@ mu <- Hmisc::markupSpecs$html
 
 [The Human Mortality Database](https://www.mortality.org/) is the source of the data.  
 
-Available on yearly resolution only but for one year age bands & separate by sex.  
-In order to download the [chunk option](https://yihui.org/knitr/options/) of the code snippet below has to be changed to `eval=TRUE` and a password to user account on mortality.org website stored in plain text file `HMD.txt` in `secrets` directory of the project.  
+Available on yearly resolution only but for one year age bands & separate by sex. 
+
+The dataset has been last updated on 2021-11-10`.  
+
+In order to update newer data the [chunk option](https://yihui.org/knitr/options/) of the code snippet below has to be changed to `eval=TRUE` and a password to user account on mortality.org website provided (stored in plain text file `HMD.txt` in `secrets` directory of the project).  
 
 ```{r eval=FALSE}
 p_load(HMDHFDplus)
@@ -355,7 +358,11 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
 
 ## Monthly deaths untill 2019
 
-Data from INE [since 1975 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1) and [1941-1974 here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1); data prior to 1940 was transcribed from PDFs available from INE.  
+Data from INE:
+- data prior to 1940 was transcribed from PDFs available from INE  
+- `Vital Statistics: Deaths (Historical series 1941-1974)` *1941-1974* [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1)  
+- `Vital Statistics: Deaths (Series since 1975)` *since 1975* [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1)  
+
 ```{r}
 es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>% 
   remove_empty(which = c("rows", "cols")) %>% 
@@ -391,9 +398,9 @@ es_2020 <- fn_get_death_data_spain("data-raw/INE/Spain_2020.xlsx") %>%
 
 ## Monthly 2021 deaths 
 
-2021 data available from `Estimate of number of weekly deaths during the Covid-19 outbreak` [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+2021 data is from `Estimate of number of weekly deaths during the Covid-19 outbreak` [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
-Note: data are in weekly format and converted with methods (and caveats!) described above in STMF chapter.  
+Note: data are in *weekly format* and **converted** with methods (and caveats!) described STMF chapter of weekly data doc.  
 
 ```{r}
 temp <- read_xlsx("data-raw/INE/Spain_2021_death_up.xlsx", skip = 9) %>%   
@@ -646,7 +653,7 @@ hmd_pop_age_agg <- hmd_pop_age_sex %>%
 ```{r}
 hmd_pop_age_agg %>% 
   # filter(Year >= 2010 & Year <= 2019) %>%
-  filter(Year >= 2010) %>%
+  filter(Year >= 2015) %>%
   ggplot(
     aes(x = Year, y = Population, fill = Year)) +
   geom_col() +
@@ -658,22 +665,24 @@ hmd_pop_age_agg %>%
   geom_vline(xintercept = 2019.5, color = "red")
 ```
 
-For each year, age, country stratum, linear model is fit using the 2010-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
+For each year, age, country stratum, linear model is fit using the 2015-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
 
 ```{r}
 # p_load(mgcv)
-p_load(splines)
-knots <- quantile(seq.int(2010, 2019), p = c(0.25, 0.5, 0.75))
+# p_load(splines)
+# knots <- quantile(seq.int(2010, 2019), p = c(0.25, 0.5, 0.75))
 
 pop_age_2020 <- hmd_pop_age_agg %>% 
-  filter(Year >= 2010 & Year <= 2019) %>% 
+  filter(Year >= 2015 & Year <= 2019) %>% 
   group_by(Country, Age_cat) %>% 
   # do(broom::tidy(lm(population ~ year, data = .))) %>% 
   # do(broom::augment(lm(population ~ year, data = .))) %>% 
-  # polynomial
-  # do(lm(Population ~ poly(Year, 2, raw = TRUE), data = .) %>%
-  # spline
-  do(lm(Population ~ bs(Year, knots = knots), data = .) %>%
+  # lm
+  do(lm(Population ~ Year, data = .) %>%
+       # polynomial
+       # do(lm(Population ~ poly(Year, 2, raw = TRUE), data = .) %>%
+       # spline
+       # do(lm(Population ~ bs(Year, knots = knots), data = .) %>%
        # GAM     
        # do(gam(Population ~ s(Year), data = .) %>%
        predict(., newdata = tibble(Year = c(2020, 2021))) %>%
@@ -686,40 +695,40 @@ pop_age_2020 <- hmd_pop_age_agg %>%
   relocate(Country, Year, Age_cat, Population)
 ```
 
-For comparison against 2020 & 21 we use data from HMD (for SWE & CHE) and INE (for ESP).  
+For comparison against 2020 & 21 we use data from HMD (for SWE & CHE) and INE (for ESP). For the latter we use `Main series since 1971` from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304). # HMD docs say that pop Spain 2013-2019 are from: *"1 Jan"* so using data from this time point for consistency.  
 
 ```{r}
-# Pop Spain 2020 & 2021 are from: "1 Jan 2020"
-es_pop_age_2020 <- 
-  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
-             sheet=1,range="A8:H212") %>%
-  slice(., -(1:2)) %>%
-  select(1,8) %>%
-  rename(Population=`Both sexes...8`) %>%
-  filter(!is.na(Population)) %>%
-  mutate(Age=0:(nrow(.)-1)) %>%
-  select(Age, Population) %>% 
-  mutate(Year = as.integer(2020),
-         Age = as.integer(Age),
-         Population = as.integer(Population),
+es_pop_age_new <- 
+  bind_rows(
+    read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
+               sheet=1,range="A8:H212") %>%
+      slice(., -(1:2)) %>%
+      select(1,8) %>%
+      rename(Population=`Both sexes...8`) %>%
+      filter(!is.na(Population)) %>%
+      mutate(Age=0:(nrow(.)-1)) %>%
+      select(Age, Population) %>% 
+      mutate(Year = as.integer(2020)), 
+    
+    read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
+               sheet=1,range="A8:B212") %>%
+      slice(., -(1:2)) %>%
+      rename(Population=`Both sexes`) %>%
+      filter(!is.na(Population)) %>%
+      mutate(Age=0:(nrow(.)-1)) %>%
+      select(Age, Population) %>% 
+      mutate(Year = as.integer(2021))
+  ) %>% 
+  mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
+                       include.lowest = TRUE,
+                       right = FALSE,
+                       labels=c("0-9","10-19","20-29","30-39","40-49",
+                                "50-59","60-69","70-79","80-89","90+"))) %>% 
+  group_by(Year, Age_cat) %>% 
+  summarise(Population = sum(Population)) %>% 
+  ungroup() %>% 
+  mutate(Population = as.integer(Population),
          Country = "Spain") %>% 
-  rename(Total = Population) %>% 
-  relocate(Country, Year)
-
-es_pop_age_2021 <- 
-  read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
-             sheet=1,range="A8:B212") %>%
-  slice(., -(1:2)) %>%
-  select(1,2) %>%
-  rename(Population=`Both sexes`) %>%
-  filter(!is.na(Population)) %>%
-  mutate(Age=0:(nrow(.)-1)) %>%
-  select(Age, Population) %>% 
-  mutate(Year = as.integer(2021),
-         Age = as.integer(Age),
-         Population = as.integer(Population),
-         Country = "Spain") %>% 
-  rename(Total = Population) %>% 
   relocate(Country, Year)
 ```
 
@@ -728,36 +737,10 @@ Absolute difference across countries and age groups in 2020/21:
 ```{r echo=FALSE, warning=FALSE}
 bind_rows(
   
-  hmd_pop_age_sex %>% 
-    filter(Year >= 2020) %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup(), 
+  hmd_pop_age_agg %>% 
+    filter(Year >= 2020), 
   
-  es_pop_age_2020 %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup(),
-  
-  es_pop_age_2021 %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup()
+  es_pop_age_new
   
 ) %>% 
   mutate(Source = "HMD") %>% 
@@ -779,36 +762,10 @@ Relative differences in 2020:
 ```{r echo=FALSE, warning=FALSE}
 bind_rows(
   
-  hmd_pop_age_sex %>% 
-    filter(Year >= 2020) %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup(), 
+  hmd_pop_age_agg %>% 
+    filter(Year >= 2020), 
   
-  es_pop_age_2020 %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup(),
-  
-  es_pop_age_2021 %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup()
+  es_pop_age_new
   
 ) %>% 
   rename(Population_hmd = Population) %>% 
@@ -830,36 +787,10 @@ Fit & prediction:
 ```{r include=FALSE}
 data <- bind_rows(
   
-  hmd_pop_age_sex %>% 
-    filter(Year >= 2010) %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup(), 
+  hmd_pop_age_agg %>% 
+    filter(Year >= 2010), 
   
-  es_pop_age_2020 %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup(),
-  
-  es_pop_age_2021 %>% 
-    mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
-                         include.lowest = TRUE,
-                         right = FALSE,
-                         labels=c("0-9","10-19","20-29","30-39","40-49",
-                                  "50-59","60-69","70-79","80-89","90+"))) %>% 
-    group_by(Country, Year, Age_cat) %>% 
-    summarise(Population = sum(Total)) %>% 
-    ungroup()
+  es_pop_age_new
   
 ) %>% 
   mutate(Source = "HMD") %>% 
@@ -880,14 +811,14 @@ fn_age_plot <- function(country) {
                 colour = "grey40", size = 0.5,
                 method = "lm", 
                 se = FALSE) +
-    geom_smooth(data = . %>% 
-                  filter(Source == "HMD" & Year < 2020),
-                method = "lm", 
-                # formula = y ~ poly(x, 2, raw = TRUE), 
-                formula = y ~ splines::bs(x, df = 3),
-                # method = "gam", 
-                #   formula = y ~ s(x), 
-                se = FALSE) + 
+    # geom_smooth(data = . %>% 
+    #               filter(Source == "HMD" & Year < 2020),
+    #             method = "lm", 
+    #             # formula = y ~ poly(x, 2, raw = TRUE), 
+    #             formula = y ~ splines::bs(x, df = 3),
+    #             # method = "gam", 
+    #             #   formula = y ~ s(x), 
+    #             se = FALSE) + 
     scale_y_continuous(labels = comma) +
     theme_bw() +
     scale_colour_discrete(hue_pal()(2), name = "Source") +
@@ -923,18 +854,39 @@ fn_age_plot("Switzerland")
 Merging HMD until 2019 and predictions for 2020 & 2021.  
 
 ```{r}
-pop_age_sex <- bind_rows(
+pop_age_sex_exp <- bind_rows(
   
   hmd_pop_age_agg %>% 
     filter(Year < 2020), 
   
   pop_age_2020 
 ) %>% 
-  arrange(Country, Year, Age_cat)
+  arrange(Country, Year, Age_cat) %>% 
+  rename(Population_exp = Population)
 
 pop_age_yearly <- pop_age_sex %>% 
   group_by(Country, Year) %>% 
-  summarise(Population = sum(Population)) %>% 
+  summarise(Population_exp = sum(Population_exp)) %>% 
+  ungroup()
+```
+
+## Population - observed figures
+
+Merging HMD until 2021 for CHE & SWE with INE data for ESP for 2020 & 2021.  
+
+```{r}
+pop_age_sex_obs <- bind_rows(
+  
+  hmd_pop_age_agg, 
+  
+  es_pop_age_new 
+) %>% 
+  arrange(Country, Year, Age_cat) %>% 
+  rename(Population_obs = Population)
+
+pop_age_yearly <- pop_age_sex_obs %>% 
+  group_by(Country, Year) %>% 
+  summarise(Population_obs = sum(Population_obs)) %>% 
   ungroup()
 ```
 
