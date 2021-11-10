@@ -236,13 +236,15 @@ summary(compare$diff)
 ```{r echo=FALSE}
 ggplot(compare, aes(x = diff)) +
   geom_histogram() + 
-  facet_grid(~Year)
+  facet_grid(~Year) +
+  theme_bw()
 ```
 
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Age, y = diff)) +
   geom_col() + 
-  facet_grid(~Year)
+  facet_grid(~Year) +
+  theme_bw()
 ```
 
 #### Percentage difference
@@ -254,19 +256,20 @@ summary(compare$diff_p)
 ```{r echo=FALSE}
 ggplot(compare, aes(x = diff_p)) +
   geom_histogram() + 
-  facet_grid(~Year)
+  facet_grid(~Year) +
+  theme_bw()
 ```
 
 ```{r echo=FALSE}
 ggplot(compare, aes(x = Age, y = diff_p)) +
   geom_col() + 
-  facet_grid(~Year)
+  facet_grid(~Year) +
+  theme_bw()
 ```
 
 ```{r include=FALSE}
 rm(compare)
 ```
-
 
 ## Yearly pops untill 2020
 
@@ -341,7 +344,6 @@ compare %>%
 ```{r include=FALSE}
 rm(compare)
 ```
-
 
 ## Yearly pops with age structure
 
@@ -551,19 +553,14 @@ compare %>%
 
 ## Yearly pops 2020 & 2021
 
-2020 data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).^[Needs an update with 2021 if needed for any comparisons!]   
+Data available from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304).  
+
+Nothing to compare against since HMD stops in 2019 for ESP :/  
+
 
 ```{r}
 es_pop_year <- hmd_pop_year %>% 
   filter(Country == "Spain")
-
-source("R/fn_get_spain_population.R")
-
-es_pop_2020 <- fn_get_spain_population("data-raw/INE/Spain_Population_age-2019.xlsx") %>%
-  summarize(Population = sum(Population, na.rm = TRUE))%>%
-  mutate(Year = as.integer(2020),
-         Population = as.integer(Population)) %>% 
-  relocate(Year)
 
 es_pop_2020 <- 
   read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
@@ -597,11 +594,6 @@ es_pop_year %<>%
 ```{r include=FALSE}
 rm(es_pop_2020, es_pop_2021)
 ```
-
-
-
-
-
 
 ## Pops with age structure 2020 & 2021
 
