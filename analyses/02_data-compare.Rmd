@@ -629,6 +629,8 @@ se_deaths_month %>%
 
 # Projected 2020-21 population numbers {.tabset}
 
+Data used for projection come from HMD.  
+
 ```{r}
 hmd_pop_age_agg <- hmd_pop_age_sex %>% 
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
@@ -641,7 +643,22 @@ hmd_pop_age_agg <- hmd_pop_age_sex %>%
   ungroup()
 ```
 
-For each year, age, country stratum, linear model is fit using the 2015-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
+```{r}
+hmd_pop_age_agg %>% 
+  # filter(Year >= 2010 & Year <= 2019) %>%
+  filter(Year >= 2010) %>%
+  ggplot(
+    aes(x = Year, y = Population, fill = Year)) +
+  geom_col() +
+  scale_y_continuous() +
+  theme_bw() +
+  scale_fill_viridis_c(option = "E", direction = -1) +
+  xlab("Age group") + ylab("Population difference between sources") + 
+  facet_grid(vars(Country), vars(Age_cat), scales = "free_y") +
+  geom_vline(xintercept = 2019.5, color = "red")
+```
+
+For each year, age, country stratum, linear model is fit using the 2010-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
 
 ```{r}
 # p_load(mgcv)
@@ -669,10 +686,10 @@ pop_age_2020 <- hmd_pop_age_agg %>%
   relocate(Country, Year, Age_cat, Population)
 ```
 
-Absolute difference across countries and age groups in 2020:  
+For comparison against 2020 & 21 we use data from HMD (for SWE & CHE) and INE (for ESP).  
 
-```{r echo=FALSE, warning=FALSE}
-# Pop Spain 2020 is: "1 July 2020"
+```{r}
+# Pop Spain 2020 & 2021 are from: "1 Jan 2020"
 es_pop_age_2020 <- 
   read_excel("data-raw/INE/Spain_Population_age-2019.xlsx",
              sheet=1,range="A8:H212") %>%
@@ -704,7 +721,11 @@ es_pop_age_2021 <-
          Country = "Spain") %>% 
   rename(Total = Population) %>% 
   relocate(Country, Year)
+```
 
+Absolute difference across countries and age groups in 2020:  
+
+```{r echo=FALSE, warning=FALSE}
 bind_rows(
   
   hmd_pop_age_sex %>% 
@@ -779,7 +800,7 @@ bind_rows(
     summarise(Population = sum(Total)) %>% 
     ungroup(),
   
-    es_pop_age_2021 %>% 
+  es_pop_age_2021 %>% 
     mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                          include.lowest = TRUE,
                          right = FALSE,
@@ -804,7 +825,7 @@ bind_rows(
   facet_grid(vars(Country), vars(Year))
 ```
 
-Example of fit & prediction:
+Fit & prediction:
 
 ```{r include=FALSE}
 data <- bind_rows(
@@ -830,7 +851,7 @@ data <- bind_rows(
     summarise(Population = sum(Total)) %>% 
     ungroup(),
   
-    es_pop_age_2021 %>% 
+  es_pop_age_2021 %>% 
     mutate(Age_cat = cut(Age, c(seq(0, 90, 10),120),
                          include.lowest = TRUE,
                          right = FALSE,
@@ -869,7 +890,7 @@ fn_age_plot <- function(country) {
                 se = FALSE) + 
     scale_y_continuous(labels = comma) +
     theme_bw() +
-    scale_color_discrete(hue_pal()(2), name = "Source") +
+    scale_colour_discrete(hue_pal()(2), name = "Source") +
     xlab("Year") + ylab("Population [millions]") + 
     facet_wrap(vars(Age_cat), scales = "free_y")
 }
