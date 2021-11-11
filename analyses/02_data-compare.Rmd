@@ -24,7 +24,7 @@ options(max.print = "75")
 library(pacman)
 p_load(tidyverse, magrittr, janitor, scales,
        readxl, lubridate, aweek, wktmo,
-       kableExtra, lemon)
+       kableExtra, lemon, skimr)
 
 import::from("pxR", "read.px")
 # import::from("lemon", "scale_x_symmetric")
@@ -935,6 +935,10 @@ deaths_monthly <- bind_rows(
 write_rds(deaths_monthly, "data/deaths_monthly.Rds")
 ```
 
+```{r echo=FALSE}
+skim(deaths_monthly)
+```
+
 ## Yearly deaths by sex and age group with pops
 
 Spain age&sex distribution in HMD is [available from later](https://github.com/RPanczak/ISPM_excess-mortality/issues/81)!
@@ -976,6 +980,10 @@ deaths_yearly_age_sex <- bind_rows(
 # labels=c("0-9","10-19","20-29","30-39","40-49", "50-59","60-69","70-79","80-89","90+")
 
 write_rds(deaths_yearly_age_sex, "data/deaths_yearly_age_sex.Rds")
+```
+
+```{r echo=FALSE}
+skim(deaths_yearly_age_sex)
 ```
 
 <!-- ----------------------------------------------------- -->
