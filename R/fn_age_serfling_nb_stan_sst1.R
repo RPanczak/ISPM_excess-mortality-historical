@@ -7,7 +7,7 @@
 # prior_intercept=10
 # p=0.95
 
-fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
+fn_age_serfling_nb_stan_sst1 = function(pred_year, monthly_data, yearly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   require(rstan)
   options(mc.cores = parallel::detectCores())
   
@@ -21,11 +21,25 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemi
     yearly_data$Population = yearly_data$Population_exp
   }
   
-  # select last 5 years
-  dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
-  dd %<>% arrange(Month,Year)
-  ee = dplyr::filter(yearly_data, Year >= pred_year - 5, Year < pred_year) 
-  ee %<>% arrange(Age_cat,Year)
+  # select last 7 years
+  dd = dplyr::filter(monthly_data, Year >= pred_year - 7, Year < pred_year)
+  ee = dplyr::filter(yearly_data, Year >= pred_year - 7, Year < pred_year) 
+  
+  # remove highest and lowest
+  dd %<>% 
+    dplyr::group_by(Year) %>% 
+    dplyr::mutate(TotDeaths=sum(Deaths)) %>% 
+    dplyr::group_by(Month) %>% 
+    dplyr::mutate(Rank=dense_rank(TotDeaths)) %>% 
+    dplyr::filter(Rank %in% 2:6) %>% 
+    dplyr::arrange(Month,Year)
+  ee %<>% 
+    dplyr::group_by(Year) %>% 
+    dplyr::mutate(TotDeaths=sum(Deaths)) %>% 
+    dplyr::group_by(Age_cat) %>% 
+    dplyr::mutate(Rank=dense_rank(TotDeaths)) %>% 
+    dplyr::filter(Rank %in% 2:6) %>% 
+    dplyr::arrange(Age_cat,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))

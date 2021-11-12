@@ -7,7 +7,7 @@
 # prior_intercept=10
 # p=0.95
 
-fn_global_serfling_nb_stan_21 = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
+fn_global_serfling_nb_stan_21_sst1 = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
@@ -16,9 +16,17 @@ fn_global_serfling_nb_stan_21 = function(pred_year, monthly_data, pandemic_years
   if(pop=="obs") monthly_data$Population = monthly_data$Population_obs
   if(pop=="exp") monthly_data$Population = monthly_data$Population_exp
   
-  # select last 5 years
-  dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
-  dd %<>% arrange(Month,Year)
+  # select last 7 years
+  dd = dplyr::filter(monthly_data, Year >= pred_year - 7, Year < pred_year)
+  
+  # remove highest and lowest
+  dd %<>% 
+    dplyr::group_by(Year) %>% 
+    dplyr::mutate(TotDeaths=sum(Deaths)) %>% 
+    dplyr::group_by(Month) %>% 
+    dplyr::mutate(Rank=dense_rank(TotDeaths)) %>% 
+    dplyr::filter(Rank %in% 2:6) %>% 
+    dplyr::arrange(Month,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))

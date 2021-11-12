@@ -8,11 +8,20 @@
 # prior_intercept=10
 # p=0.95
 
-fn_age_serfling_nb_stan_21 = function(pred_year, monthly_data, yearly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
+fn_age_serfling_nb_stan_21 = function(pred_year, monthly_data, yearly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
-  # formatting
+  
+  # select population
+  if(pop=="obs") { 
+    monthly_data$Population = monthly_data$Population_obs
+    yearly_data$Population = yearly_data$Population_obs
+  }
+  if(pop=="exp") {
+    monthly_data$Population = monthly_data$Population_exp
+    yearly_data$Population = yearly_data$Population_exp
+  }
   
   # select last 5 years
   dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)

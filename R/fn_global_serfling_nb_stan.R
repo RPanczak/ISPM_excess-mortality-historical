@@ -1,15 +1,19 @@
 # function for the global Serfling model, negative binomial version
 
-# pred_year = 2021
-# monthly_data = filter(deaths_monthly, Country=="Sweden")
+# pred_year = 2018
+# monthly_data = filter(deaths_monthly, Country=="Switzerland")
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
 # prior=10
 # prior_intercept=10
 
-fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, prior=10, prior_intercept=10, p=0.95) {
+fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
   options(mc.cores = parallel::detectCores())
+  
+  # select population
+  if(pop=="obs") monthly_data$Population = monthly_data$Population_obs
+  if(pop=="exp") monthly_data$Population = monthly_data$Population_exp
   
   # select last 5 years
   dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
