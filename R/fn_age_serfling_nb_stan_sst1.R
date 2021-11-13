@@ -61,14 +61,9 @@ fn_age_serfling_nb_stan_sst1 = function(pred_year, monthly_data, yearly_data, pa
   predyear_total_population = array(pp$Population, dim=J)
   predyear_grouped_deaths = round(array(qq$Deaths, dim=K))
   predyear_grouped_population = qq$Population
-  if(pop=="obs") {
-    total_population = array(dd$Population, dim=c(I,J))
-    grouped_population = array(ee$Population, dim=c(I,K))
-    predyear_total_population = array(pp$Population_obs, dim=J)
-  } else if(pop=="exp") {
-    total_population = array(dd$Population_exp, dim=c(I,J))
-    predyear_total_population = array(pp$Population_exp, dim=J)
-  }
+  total_population = array(dd$Population, dim=c(I,J))
+  grouped_population = array(ee$Population, dim=c(I,K))
+  predyear_total_population = array(pp$Population, dim=J)
   # transform data into list
   dd_list = list(I=I,J=J,K=K,
                  years=years,

@@ -1,8 +1,10 @@
 # function for the joint Serfling model, negative binomial version
 
-# pred_year = 2021
-# monthly_data = filter(deaths_monthly, Country=="Sweden")
+# pred_year = YEAR
+# monthly_data = deaths_monthly
+# yearly_data = deaths_yearly_age_sex
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
+# pop = "exp"
 # prior=10
 # prior_intercept=10
 # p=0.95
@@ -47,14 +49,9 @@ fn_age_serfling_nb_stan = function(pred_year, monthly_data, yearly_data, pandemi
   predyear_total_population = array(pp$Population, dim=J)
   predyear_grouped_deaths = round(array(qq$Deaths, dim=K))
   predyear_grouped_population = qq$Population
-  if(pop=="obs") {
-    total_population = array(dd$Population, dim=c(I,J))
-    grouped_population = array(ee$Population, dim=c(I,K))
-    predyear_total_population = array(pp$Population_obs, dim=J)
-  } else if(pop=="exp") {
-    total_population = array(dd$Population_exp, dim=c(I,J))
-    predyear_total_population = array(pp$Population_exp, dim=J)
-  }
+  total_population = array(dd$Population, dim=c(I,J))
+  grouped_population = array(ee$Population, dim=c(I,K))
+  predyear_total_population = array(pp$Population, dim=J)
   # transform data into list
   dd_list = list(I=I,J=J,K=K,
                  years=years,

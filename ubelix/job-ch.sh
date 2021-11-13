@@ -4,9 +4,8 @@
 #SBATCH --qos=job_epyc2
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem-per-cpu=8G
+#SBATCH --mem-per-cpu=32G
 #SBATCH --time=36:00:00
-#SBATCH --mail-user=radoslaw.panczak@ispm.unibe.ch
 #SBATCH --mail-type=all  
 
 # win eol fix

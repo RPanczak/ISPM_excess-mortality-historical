@@ -524,7 +524,7 @@ YEARS <- deaths_monthly %>%
   summarize(MIN = min(Year))
 
 ## Loop
-for (YEAR in (YEARS$MIN+5):2020) {
+for (YEAR in (YEARS$MIN+7):2020) {
   print(paste("     Analysing year", YEAR))
   
   ### Global model

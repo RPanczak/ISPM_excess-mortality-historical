@@ -1,8 +1,9 @@
 # function for the global Serfling model, negative binomial version
 
-# pred_year = 2018
-# monthly_data = filter(deaths_monthly, Country=="Switzerland")
-# pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
+# pred_year = YEAR
+# monthly_data = deaths_monthly
+# pandemic_years =  pandemic
+# pop = "exp"
 # prior=10
 # prior_intercept=10
 
