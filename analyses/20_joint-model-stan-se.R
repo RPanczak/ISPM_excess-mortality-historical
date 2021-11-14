@@ -23,7 +23,7 @@ dir.create(path0,showWarnings = FALSE)
 # Options
 set.seed(12345)
 options(scipen = 999)
-options(mc.cores = parallel::detectCores())
+# options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = FALSE)
 
 ## Data 

@@ -10,8 +10,6 @@
 fn_global_serfling_nb_stan_21_sst1 = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   
   require(rstan)
-  options(mc.cores = parallel::detectCores())
-  
   # select population
   if(pop=="obs") monthly_data$Population = monthly_data$Population_obs
   if(pop=="exp") monthly_data$Population = monthly_data$Population_exp
