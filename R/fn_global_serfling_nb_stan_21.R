@@ -51,7 +51,7 @@ fn_global_serfling_nb_stan_21 = function(pred_year, monthly_data, pandemic_years
   dd_list$p_beta = prior
   dd_list$p_alpha = prior_intercept
   # compiling and save compiled model (need to recompile on a new machine)
-  mm = stan_model(file="stan/global_serfling_nb_21.stan", save_dso = TRUE)
+  mm = stan_model(file="stan/global_serfling_nb_21.stan", save_dso = FALSE)
   # sampling
   ss = sampling(mm,
             data=dd_list,
