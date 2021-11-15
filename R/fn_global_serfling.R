@@ -2,7 +2,7 @@
 
 source("R/fn_boot_pi.R")
 
-fn_global_serfling = function(pred_year, monthly_data, pandemic_years, p = 0.95) {
+fn_global_serfling = function(pred_year, monthly_data, population, pandemic_years, p = 0.95) {
   
   # select last 5 years
   dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
@@ -12,9 +12,9 @@ fn_global_serfling = function(pred_year, monthly_data, pandemic_years, p = 0.95)
   
   # model
   mm = glm(Deaths ~ Year + si_one + si_two + co_one + co_two, 
-           offset = log(Population),
+           offset = log(substitute(Population_obs)),
            data = dd, 
-           family = poisson(link="log"))
+           family = poisson(link = "log"))
   
   # get prediction
   pp = dplyr::filter(monthly_data, Year == pred_year)
