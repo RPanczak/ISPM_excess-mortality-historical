@@ -125,9 +125,12 @@ for (YEAR in (START$MIN+5):2020) {
   }
   
   # Save
-  write_rds(results_month, paste0(path0,"Switzerland_results_month.Rds"))
-  write_rds(results_year, paste0(path0,"Switzerland_results_year.Rds"))
-  write_rds(results_age, paste0(path0,"Switzerland_results_age.Rds"))
+  write_rds(results_month, 
+            paste0(path0, COUNTRY, "_results_month.Rds"))
+  write_rds(results_year, 
+            paste0(path0, COUNTRY, "_results_year.Rds"))
+  write_rds(results_age, 
+            paste0(path0, COUNTRY, "_results_age.Rds"))
   
   rm(m_glo, m_age)
   gc()
