@@ -35,6 +35,7 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
   total_population = array(dd$Population, dim=c(I,J))
   predyear_total_deaths = array(pp$Deaths, dim=J)
   predyear_total_population = array(pp$Population, dim=J)
+  
   # transform data into list
   dd_list = list(I=I,J=J,
                  years=years,
@@ -43,6 +44,7 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
                  total_population = total_population,
                  predyear_total_deaths = predyear_total_deaths,
                  predyear_total_population = predyear_total_population)
+  
   # set priors (default is normal(0,10))
   dd_list$p_beta = prior
   dd_list$p_alpha = prior_intercept
@@ -64,44 +66,48 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
   
   # median too?
   ss = ss$summary()  %>% 
-    select(variable, mean, q5, q95)
+    dplyr::select(variable, mean, q5, q95)
   
   # base = pp %>% 
   #   select(-si_one, -si_two, -co_one, -co_two)
   
   excess_month = 
-    bind_cols(
+    dplyr::bind_cols(
       
       # predicted
       ss %>%
-        filter(str_detect(variable, fixed("pred_total_deaths["))) %>%
-        rename(pred_month = mean,
-               pred_month_lower = q5,
-               pred_month_upper  = q95) %>% 
-        select(-variable), 
+        dplyr::filter(stringr::str_detect(variable, 
+                                          stringr::fixed("pred_total_deaths["))) %>%
+        dplyr::rename(pred_month = mean,
+                      pred_month_lower = q5,
+                      pred_month_upper  = q95) %>% 
+        dplyr::select(-variable), 
       
       # excess 
       ss %>% 
-        filter(str_detect(variable, fixed("excess_total_deaths["))) %>% 
-        rename(excess_month = mean,
-               excess_month_lower = q5,
-               excess_month_upper  = q95) %>% 
-        select(-variable) ) %>% 
-    mutate(Year = as.integer(pred_year),
-           Month = as.integer(1:12),
-           Model = "Global Serfling (Stan, NB)")
+        dplyr::filter(stringr::str_detect(variable, 
+                                          stringr::fixed("excess_total_deaths["))) %>% 
+        dplyr::rename(excess_month = mean,
+                      excess_month_lower = q5,
+                      excess_month_upper  = q95) %>% 
+        dplyr::select(-variable) ) %>% 
+    dplyr::mutate(Year = as.integer(pred_year),
+                  Month = as.integer(1:12),
+                  Model = "Global Serfling (Stan, NB)")
   
   excess_year = ss %>% 
-    filter(str_detect(variable, "yearly_excess_total_deaths")) %>% 
-    mutate(Year = as.integer(pred_year),
-           Model = "Global Serfling (Stan, NB)") %>% 
-    rename(excess_year = mean,
-           excess_year_lower = q5,
-           excess_year_upper  = q95)  %>% 
-    select(-variable)
+    dplyr::filter(stringr::str_detect(variable, 
+                                      "yearly_excess_total_deaths")) %>% 
+    dplyr::mutate(Year = as.integer(pred_year),
+                  Model = "Global Serfling (Stan, NB)") %>% 
+    dplyr::rename(excess_year = mean,
+                  excess_year_lower = q5,
+                  excess_year_upper  = q95)  %>% 
+    dplyr::select(-variable)
   
   return(list(
     # base = base,
     excess_month = excess_month, 
     excess_year = excess_year)) 
+  
 }
