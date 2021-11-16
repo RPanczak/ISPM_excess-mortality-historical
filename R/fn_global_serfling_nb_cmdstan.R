@@ -51,7 +51,7 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
     data = dd_list, 
     seed = 12345, 
     chains = 4, 
-    iter_sampling=2000,
+    iter_sampling = 2000,
     parallel_chains = 4,
     refresh = 0,
     save_warmup = FALSE
@@ -60,18 +60,36 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
   # get prediction
   lp = (1 - p) / 2
   up = 1 - lp
-  pp = summary(ss, pars="pred_total_deaths",probs=c(lp,.5,up))[[1]] %>%
-    as_tibble() %>%
-    bind_cols(pp) %>%
-    dplyr::rename(pred=1,lower=4,upper=6) %>%
-    dplyr::select(Country,Year,Month,Date,Deaths,Population,pred,lower,upper,n_eff,Rhat)
-  pp = summary(ss, pars="excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
-    as_tibble() %>%
-    dplyr::select(excess_month=1,excess_month_lower=4,excess_month_upper=6) %>%
-    bind_cols(pp,.)
-  pp = summary(ss, pars="yearly_excess_total_deaths",probs=c(lp,.5,up))[[1]] %>%
-    as_tibble() %>%
-    dplyr::select(excess_year=1,excess_year_lower=4,excess_year_upper=6) %>%
-    bind_cols(pp,.)
-  return(list(samples=ss,pred_total_deaths=pp))
+  
+  # median too?
+  pp = ss$summary()  %>% 
+    select(variable, mean, q5, q95)
+  
+  # pp %>% 
+  #   filter(str_detect(variable, fixed("pred_total_deaths["))) %>% 
+  #   mutate(Year = as.integer(pred_year),
+  #          Month = as.integer(1:12)) %>% 
+  #   rename(pred_month = mean,
+  #          pred_month_lower = q5,
+  #          pred_month_upper  = q95)
+  
+  extract_month = pp %>% 
+    filter(str_detect(variable, fixed("excess_total_deaths["))) %>% 
+    mutate(Year = as.integer(pred_year),
+           Month = as.integer(1:12)) %>% 
+    rename(excess_month = mean,
+           excess_month_lower = q5,
+           excess_month_upper  = q95) %>% 
+    select(-variable)
+  
+  extract_year = pp %>% 
+    filter(str_detect(variable, "yearly_excess_total_deaths")) %>% 
+    mutate(Year = as.integer(pred_year)) %>% 
+    rename(excess_year = mean,
+           excess_year_lower = q5,
+           excess_year_upper  = q95)  %>% 
+    select(-variable)
+  
+  return(list(extract_month = extract_month, 
+              extract_year = extract_year)) 
 }
