@@ -43,6 +43,10 @@ fn_age_serfling_nb_cmdstan = function(pred_year, monthly_data, yearly_data, pand
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))
   ee %<>% dplyr::filter(!(Year %in% pandemic_years))
   
+  # extract prediction data
+  pp = dplyr::filter(monthly_data, Year == pred_year)
+  qq = dplyr::filter(yearly_data, Year == pred_year)
+  
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
   years = years - min(years) + 1

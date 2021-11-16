@@ -32,6 +32,9 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
   # remove special year (e.g. 1918 because of the flu pandemic)
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))
   
+  # extract prediction data
+  pp = dplyr::filter(monthly_data, Year == pred_year)
+  
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
   years = years - min(years) + 1
