@@ -27,12 +27,6 @@ dir.create(path0, showWarnings = FALSE)
 ## Funcs
 source("R/fn_global_serfling_nb_cmdstan.R")
 source("R/fn_age_serfling_nb_cmdstan.R")
-# source("R/fn_m_glo_21.R")
-# source("R/fn_m_age_21.R")
-# source("R/fn_m_glo_sst1.R")
-# source("R/fn_m_age_sst1.R")
-# source("R/fn_m_glo_21_sst1.R")
-# source("R/fn_m_age_21_sst1.R")
 
 ## Options
 set.seed(12345)
