@@ -133,12 +133,12 @@ hmd_deaths_age_sex <-
     read_rds("data-raw/mortality_org/hmd_se_deaths_raw.Rds") %>% mutate(Country = "Sweden"), 
     read_rds("data-raw/mortality_org/hmd_ch_deaths_raw.Rds") %>% mutate(Country = "Switzerland")
   ) %>% 
+  select(-Male, -Female) %>% 
   mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
   mutate(Year = as.integer(Year),
          Age = as.integer(Age),
-         Female = as.integer(round(Female)),
-         Male = as.integer(round(Male)), 
-         Total = as.integer(round(Total))) %>% 
+         Deaths = as.integer(round(Total))) %>% 
+  select(-Total) %>% 
   relocate(Country) 
 
 write_rds(hmd_deaths_age_sex, "data/mortality_org/hmd_deaths_age_sex.Rds")
@@ -148,7 +148,8 @@ Note: Spain has *two years less* of data than other two countries:
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
   group_by(Country) %>% 
-  summarize(Max = max(Year)) 
+  summarize(Min = min(Year),
+            Max = max(Year)) 
 ```
 
 Yearly totals per country indicating different time frames of data.  
@@ -156,7 +157,7 @@ Yearly totals per country indicating different time frames of data.
 ```{r}
 hmd_deaths_year <- hmd_deaths_age_sex %>% 
   group_by(Country, Year) %>%
-  summarise(Deaths = as.integer(round(sum(Total)))) %>% 
+  summarise(Deaths = as.integer(round(sum(Deaths)))) %>% 
   ungroup()
 
 write_rds(hmd_deaths_year, "data/mortality_org/hmd_deaths_year.Rds")
@@ -170,28 +171,22 @@ hmd_deaths_year %>%
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-Example of age & sex breakdown for Switzerland, showing demographic transition and first indication of the effects of pandemics.  
+Example of age breakdown, showing demographic transition and first, crude indication of the effects of pandemics.  
 
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
-  filter(Country == "Switzerland") %>% 
   filter(Year %in% c(1876, 1917, 1918, 2019, 2020)) %>% 
-  select(Year, Age, Female, Male) %>% 
-  pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10), 120), 
                        include.lowest = TRUE, right = FALSE)) %>% 
-  group_by(Year, Sex, Age_cat) %>% 
-  summarise(pop = sum(value)) %>% 
+  group_by(Country, Year, Age_cat) %>% 
+  summarise(Deaths = sum(Deaths)) %>% 
   ungroup() %>% 
-  ggplot(mapping = aes(x = ifelse(test = Sex == "Male", 
-                                  yes = -pop, no = pop), 
-                       y = Age_cat, fill = Sex)) +
+  ggplot(mapping = aes(x = Deaths, 
+                       y = Age_cat)) +
   geom_col() +
-  scale_x_symmetric(labels = abs) +
   labs(x = "Deaths", y = "Age at death") +
-  facet_grid(vars(Year)) +
-  theme_bw() +
-  scale_fill_brewer(palette = "Set1")
+  facet_grid(vars(Year), vars(Country), scales = "free_x") +
+  theme_bw() 
 ```
 
 ## Yearly population
@@ -207,12 +202,12 @@ hmd_pop_age_sex <-
     read_rds("data-raw/mortality_org/hmd_ch_pop_raw.Rds") %>%
       mutate(Country = "Switzerland")
   ) %>% 
+  select(-Male, -Female) %>% 
   mutate(Age = if_else(Age == "110+", "110", Age)) %>% 
   mutate(Age = as.integer(Age),
          Year = as.integer(Year),
-         Female = as.integer(round(Female)),
-         Male = as.integer(round(Male)), 
-         Total = as.integer(round(Total))) %>% 
+         Population = as.integer(round(Total))) %>% 
+  select(-Total) %>% 
   relocate(Country) 
 
 write_rds(hmd_pop_age_sex, "data/mortality_org/hmd_pop_age_sex.Rds")
@@ -223,7 +218,8 @@ Again, *Spain has less data*:
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
   group_by(Country) %>% 
-  summarize(Max = max(Year)) 
+  summarize(Min = min(Year),
+            Max = max(Year)) 
 ```
 
 Yearly totals  
@@ -231,7 +227,7 @@ Yearly totals
 ```{r}
 hmd_pop_year <- hmd_pop_age_sex %>% 
   group_by(Country, Year) %>%
-  summarise(Population = as.integer(round(sum(Total)))) %>% 
+  summarise(Population = as.integer(round(sum(Population)))) %>% 
   ungroup()
 
 write_rds(hmd_pop_year, "data/mortality_org/hmd_pop_year.Rds")
@@ -246,28 +242,22 @@ hmd_pop_year  %>%
   scale_y_continuous(labels = comma)
 ```
 
-Again, age structure is available on yearly resolution.  
+Again, age structure is available on yearly resolution. Example of three countries, starting at minimum year of coverage for all of them.    
 
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
-  filter(Country == "Switzerland") %>% 
-  filter(Year %in% c(1876, 2019)) %>% 
-  select(Year, Age, Female, Male) %>% 
-  pivot_longer(c("Female", "Male"), names_to = "Sex") %>% 
+  filter(Year %in% c(1908, 2019)) %>% 
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10), 120), 
                        include.lowest = TRUE, right = FALSE)) %>% 
-  group_by(Year, Sex, Age_cat) %>% 
-  summarise(pop = sum(value)) %>% 
+  group_by(Country, Year, Age_cat) %>% 
+  summarise(Population = sum(Population)) %>% 
   ungroup() %>% 
-  ggplot(mapping = aes(x = ifelse(test = Sex == "Male", 
-                                  yes = -pop, no = pop), 
-                       y = Age_cat, fill = Sex)) +
+  ggplot(mapping = aes(x = Population/1000000, 
+                       y = Age_cat)) +
   geom_col() +
-  scale_x_symmetric(labels = abs) +
-  labs(x = "Population", y = "Age") +
-  facet_grid(vars(Year)) +
-  theme_bw() +
-  scale_fill_brewer(palette = "Set1")
+  labs(x = "Population [million]", y = "Age") +
+  facet_grid(vars(Year), vars(Country), scales = "free_x") +
+  theme_bw()
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -295,8 +285,6 @@ ch_deaths_month <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>%
          Year = as.integer(Year),
          Deaths = as.integer(Deaths)) %>% 
   relocate(Year, Month, Date)
-
-write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
 ```
 
 ## Monthly 2021 deaths 
@@ -306,21 +294,23 @@ BfS delivered custom data to supplement first six months of 2021. Merged to data
 ```{r}
 ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
   rename(Year = TodJahr, Month = TodMonat, Deaths = COUNT) %>% 
-  filter(Year == 2021) %>% 
+  filter(Year == as.integer(2021)) %>% 
   group_by(Year, Month) %>% 
   summarise(Deaths = sum(Deaths)) %>% 
   ungroup() %>% 
   mutate(Date = ymd(paste0(Year, "-", Month, "-01")),
          Deaths = as.integer(round(Deaths))) %>% 
   select(Year, Month, Date, Deaths)
+```
 
+```{r include=FALSE}
 ch_deaths_month %<>% 
   bind_rows(ch_deaths_2021) %>% 
   mutate(Country = "Switzerland") %>% 
   relocate(Country)
-```
 
-```{r include=FALSE}
+write_rds(ch_deaths_month, "data/BfS/ch_deaths_month.Rds")
+
 rm(ch_deaths_2021)
 ```
 
@@ -343,10 +333,10 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
   rename(Year = TodJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
   select(-TodMonat) %>% 
   group_by(Year, Age) %>% 
-  summarise(Total = sum(Deaths)) %>% 
+  summarise(Deaths = sum(Deaths)) %>% 
   ungroup() %>% 
   mutate(Country = "Switzerland",
-         Total = as.integer(round(Total))) %>% 
+         Deaths = as.integer(round(Deaths))) %>% 
   relocate(Country)
 ```
 
@@ -459,15 +449,16 @@ es_deaths_age_2019_2020 <- bind_rows(
            Age = as.integer(Age)
     ) %>% 
     select(Year, Age, Total) %>% 
-    mutate(Total = as.integer(round(Total))), 
+    mutate(Deaths = as.integer(round(Total))) %>% 
+    select(-Total), 
   
   fn_get_death_data_spain("data-raw/INE/Spain_2020.xlsx") %>%
     gather(., Month, Deaths, January:December, factor_key = TRUE) %>%
     group_by(Age) %>%
-    dplyr::summarize(Deaths = sum(Deaths, na.rm = TRUE))%>%
+    dplyr::summarize(Deaths = sum(Deaths, na.rm = TRUE)) %>%
     mutate(Year = as.integer(2020),
-           Total = as.integer(Deaths)) %>%
-    select(Year, Age, Total)
+           Deaths = as.integer(Deaths)) %>%
+    select(Year, Age, Deaths)
   
 ) %>% 
   mutate(Country = "Spain") %>% relocate(Country)
@@ -552,7 +543,8 @@ es_deaths_age_2021 <- bind_rows(
   mutate(Country = "Spain") %>%
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
   rename(Total = value) %>% 
-  mutate(Total = as.integer(Total)) %>% 
+  mutate(Total = as.integer(Total),  
+         Age = as.integer(Age)) %>% 
   relocate(Country, Year, Month) %>% 
   filter(Year == 2021) %>% 
   filter(! (Month == 8)) %>% 
@@ -605,7 +597,7 @@ se_deaths_month_2021 <- read_excel("data-raw/SCB/2021-11-01-preliminar_statistik
   filter(Region == "Hela riket" & Period == "2021 antal") %>% 
   select(Januari:Oktober) %>% 
   pivot_longer(Januari:Oktober) %>% 
-  mutate(Year = 2021,
+  mutate(Year = as.integer(2021),
          Month = 1:10,
          Date = ymd(paste0(Year, "-", Month, "-01")),
          Deaths = as.integer(value)
@@ -643,7 +635,7 @@ hmd_pop_age_agg <- hmd_pop_age_sex %>%
   mutate(Age_cat = cut(Age, c(seq(0, 90, 10), 120),
                        include.lowest = TRUE, right = FALSE)) %>% 
   group_by(Country, Year, Age_cat) %>% 
-  summarise(Population = sum(Total)) %>% 
+  summarise(Population = sum(Population)) %>% 
   ungroup()
 ```
 
@@ -693,7 +685,8 @@ pop_age_2020 <- hmd_pop_age_agg %>%
               Population = .)
   ) %>% 
   ungroup() %>% 
-  mutate(Population = round(Population)) %>% 
+  mutate(Population = as.integer(round(Population)),
+         Year = as.integer(round(Year))) %>% 
   arrange(Country, Year, Age_cat) %>% 
   relocate(Country, Year, Age_cat, Population)
 ```
@@ -961,7 +954,6 @@ deaths_yearly_age_sex <- bind_rows(
   ch_deaths_age_sex_2021
   
 ) %>% 
-  select(-Female, -Male) %>% 
   mutate(
     # Age_cat = cut(Age, 
     # breaks = c(0, 1, 5, 20, 40, 60, 80, 112),
@@ -972,7 +964,7 @@ deaths_yearly_age_sex <- bind_rows(
                   include.lowest = TRUE, right = FALSE)
   ) %>%
   group_by(Country, Year, Age_cat) %>% 
-  summarise(Deaths = sum(Total)) %>% 
+  summarise(Deaths = sum(Deaths)) %>% 
   ungroup() %>% 
   left_join(pop_age_sex_obs) %>% 
   left_join(pop_age_sex_exp) 
