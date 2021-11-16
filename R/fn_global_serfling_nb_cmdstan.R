@@ -11,19 +11,26 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
   
   require(cmdstanr)
   
+  # compile model
+  global_serfling_nb <- cmdstan_model("stan/global_serfling_nb.stan",
+                                      quiet = FALSE,
+                                      force_recompile = FALSE)
+  
+  # global_serfling_nb$print()
+  # global_serfling_nb$exe_file()
+  # global_serfling_nb$check_syntax()
+  # global_serfling_nb$check_syntax(pedantic = TRUE)
+  
   # select population
   if(pop=="obs") monthly_data$Population = monthly_data$Population_obs
   if(pop=="exp") monthly_data$Population = monthly_data$Population_exp
   
   # select last 5 years
   dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
-  dd %<>% arrange(Month,Year)
+  dd %<>% dplyr::arrange(Month,Year)
   
   # remove special year (e.g. 1918 because of the flu pandemic)
   dd %<>% dplyr::filter(!(Year %in% pandemic_years))
-  
-  # extract prediction data
-  pp = dplyr::filter(monthly_data, Year == pred_year)
   
   # format data into multi-dimensional arrays
   years = unique(dd$Year)
@@ -59,14 +66,12 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
     refresh = 0,
     save_warmup = FALSE
   )
-  
-  # get prediction
-  lp = (1 - p) / 2
-  up = 1 - lp
-  
+
   # median too?
-  ss = ss$summary()  %>% 
-    dplyr::select(variable, mean, q5, q95)
+  ss = ss$summary() %>% 
+    dplyr::select(variable, mean, 
+                  # median,
+                  q5, q95)
   
   # base = pp %>% 
   #   select(-si_one, -si_two, -co_one, -co_two)
@@ -109,5 +114,16 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
     # base = base,
     excess_month = excess_month, 
     excess_year = excess_year)) 
+  
+}
+
+if(FALSE) {
+  
+  # ss$cmdstan_diagnose()
+  # ss$cmdstan_summary()
+  # fit_mle <- global_serfling_nb$optimize(data = dd_list, seed = 12345) 
+  # fit_mle$summary()
+  # fit_vb <- global_serfling_nb$variational(data = dd_list, seed = 12345, output_samples = 4000) 
+  # fit_vb$summary()
   
 }
