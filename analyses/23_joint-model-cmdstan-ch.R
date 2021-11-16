@@ -12,14 +12,15 @@ cmdstan_version()
 ## Paths
 # setwd("~/projects/ISPM_excess-mortality/")
 # setwd("C:/projects/ISPM_excess-mortality/")
-path0 = paste0("data/outputs_",Sys.Date(),"/")
-dir.create(path0,showWarnings = FALSE)
+path0 = paste0("data/outputs_", Sys.Date(), "/")
+dir.create(path0, showWarnings = FALSE)
 
 ## Funcs
 source("R/fn_global_serfling_nb_cmdstan.R")
 
 global_serfling_nb <- cmdstan_model("stan/global_serfling_nb.stan",
-                                    quiet = FALSE)
+                                    quiet = FALSE,
+                                    force_recompile = FALSE)
 
 global_serfling_nb$print()
 global_serfling_nb$exe_file()
@@ -67,73 +68,68 @@ results_month <- tibble()
 results_year <- tibble()
 results_age <- tibble()
 
-
 ## Loop
 for (YEAR in (YEARS$MIN+5):2020) {
-  print(paste("     Analysing year", YEAR))
+  print(paste("Analysing year:", YEAR))
   
   ### Global model
   
-  print("          Global Serfling (Stan, NB)")
+  print("          Model: Global Serfling (Stan, NB)")
   
-  global_serfling_stan <- fn_global_serfling_nb_cmdstan(YEAR, deaths_monthly, pandemic_years = pandemic, pop="obs")
+  global_serfling_stan <- fn_global_serfling_nb_cmdstan(YEAR, deaths_monthly, pandemic_years = pandemic, pop = "obs")
   
-  extract_month <- global_serfling_stan$pred_total_deaths %>% 
-    select(Country, Year, Month, Deaths,
-           pred, lower, upper, n_eff, Rhat,
-           excess_month, excess_month_lower, excess_month_upper) %>% 
-    mutate(Model = "Global Serfling (Stan, NB)",
-           mutate(across(pred:excess_month_upper, round)))
+  if (YEAR == (YEARS$MIN+5)) {
+    results_month <- global_serfling_stan$excess_month
+  } else {
+    results_month <- bind_rows(results_month, 
+                               global_serfling_stan$excess_month)
+  }
   
-  results_month <- bind_rows(results_month, extract_month)
+  if (YEAR == (YEARS$MIN+5)) {
+    results_year <- global_serfling_stan$excess_year
+  } else {
+    results_year <- bind_rows(results_year, 
+                              global_serfling_stan$excess_year)
+  }
   
-  extract_year <- global_serfling_stan$pred_total_deaths %>% 
-    filter(row_number() == 1) %>% 
-    select(Country, Year, 
-           excess_year, excess_year_lower, excess_year_upper) %>% 
-    mutate(Model = "Global Serfling (Stan, NB)",
-           mutate(across(excess_year:excess_year_upper, round)))
-  
-  results_year <- bind_rows(results_year, extract_year)
-  
-  ### Age model
-  
-  print("          Age Serfling (Stan, NB)")
-  
-  age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="obs")
-  
-  extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
-    select(Country, Year, Month, Deaths,
-           pred, lower, upper, n_eff, Rhat,
-           excess_month, excess_month_lower, excess_month_upper) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)",
-           mutate(across(pred:excess_month_upper, round)))
-  
-  results_month <- bind_rows(results_month, extract_month)
-  
-  extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
-    filter(row_number() == 1) %>% 
-    select(Country, Year, 
-           excess_year, excess_year_lower, excess_year_upper) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)",
-           mutate(across(excess_year:excess_year_upper, round)))
-  
-  results_year <- bind_rows(results_year, extract_year)
-  
-  extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
-    select(Country, Year, Age_cat, Deaths,
-           pred, lower, upper,
-           excess_year, excess_year_lower, excess_year_upper) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)",
-           mutate(across(pred:excess_year_upper, round)))
-  
-  results_age <- bind_rows(results_age, extract_age)
+  # ### Age model
+  # 
+  # print("          Model: Age Serfling (Stan, NB)")
+  # 
+  # age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="obs")
+  # 
+  # extract_month <- age_serfling_nb_stan$pred_total_deaths %>%
+  #   select(Country, Year, Month, Deaths,
+  #          pred, lower, upper, n_eff, Rhat,
+  #          excess_month, excess_month_lower, excess_month_upper) %>%
+  #   mutate(Model = "Age Serfling (Stan, NB)",
+  #          mutate(across(pred:excess_month_upper, round)))
+  # 
+  # results_month <- bind_rows(results_month, extract_month)
+  # 
+  # extract_year <- age_serfling_nb_stan$pred_total_deaths %>%
+  #   filter(row_number() == 1) %>%
+  #   select(Country, Year,
+  #          excess_year, excess_year_lower, excess_year_upper) %>%
+  #   mutate(Model = "Age Serfling (Stan, NB)",
+  #          mutate(across(excess_year:excess_year_upper, round)))
+  # 
+  # results_year <- bind_rows(results_year, extract_year)
+  # 
+  # extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>%
+  #   select(Country, Year, Age_cat, Deaths,
+  #          pred, lower, upper,
+  #          excess_year, excess_year_lower, excess_year_upper) %>%
+  #   mutate(Model = "Age Serfling (Stan, NB)",
+  #          mutate(across(pred:excess_year_upper, round)))
+  # 
+  # results_age <- bind_rows(results_age, extract_age)
   
   ### Save
-  rm(extract_month, extract_year, extract_age)
+  rm(global_serfling_stan)
   write_rds(results_month, paste0(path0,"Switzerland_results_month.Rds"))
   write_rds(results_year, paste0(path0,"Switzerland_results_year.Rds"))
-  write_rds(results_age, paste0(path0,"Switzerland_results_age.Rds"))
+  # write_rds(results_age, paste0(path0,"Switzerland_results_age.Rds"))
 }
 
 
