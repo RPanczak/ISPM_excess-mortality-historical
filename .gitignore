@@ -43,3 +43,6 @@ Stata-rp
 
 /data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv
 /data/BfS/ch_deaths_age_sex_2021.Rds
+
+# compiled models are machine specific (i think)
+*.exe
