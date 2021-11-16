@@ -1,13 +1,13 @@
 # function for the joint Serfling model, negative binomial version
 
-pred_year = 2020
-monthly_data = deaths_monthly
-yearly_data = deaths_yearly_age_sex
-pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
-pop = "obs"
-prior = 10
-prior_intercept = 10
-p = 0.95
+# pred_year = 2020
+# monthly_data = deaths_monthly
+# yearly_data = deaths_yearly_age_sex
+# pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
+# pop = "obs"
+# prior = 10
+# prior_intercept = 10
+# p = 0.95
 
 fn_age_serfling_nb_cmdstan = function(pred_year, monthly_data, yearly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   
