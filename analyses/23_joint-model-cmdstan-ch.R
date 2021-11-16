@@ -1,11 +1,32 @@
-
-
 # 0 - Set up ----
 
-# Libs
+## Libs
+# install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+
 library(pacman)
-p_load(tidyverse, magrittr, rstan)
-source("R/fn_global_serfling_nb_stan.R")
+p_load(tidyverse, magrittr,
+       cmdstanr, posterior, bayesplot)
+
+cmdstan_version()
+
+## Paths
+# setwd("~/projects/ISPM_excess-mortality/")
+# setwd("C:/projects/ISPM_excess-mortality/")
+path0 = paste0("data/outputs_",Sys.Date(),"/")
+dir.create(path0,showWarnings = FALSE)
+
+## Funcs
+source("R/fn_global_serfling_nb_cmdstan.R")
+
+global_serfling_nb <- cmdstan_model("stan/global_serfling_nb.stan",
+                                    quiet = FALSE)
+
+global_serfling_nb$print()
+global_serfling_nb$exe_file()
+global_serfling_nb$check_syntax()
+global_serfling_nb$check_syntax(pedantic = TRUE)
+
+
 source("R/fn_age_serfling_nb_stan.R")
 source("R/fn_global_serfling_nb_stan_21.R")
 source("R/fn_age_serfling_nb_stan_21.R")
@@ -14,17 +35,12 @@ source("R/fn_age_serfling_nb_stan_sst1.R")
 source("R/fn_global_serfling_nb_stan_21_sst1.R")
 source("R/fn_age_serfling_nb_stan_21_sst1.R")
 
-## Paths
-# setwd("~/projects/ISPM_excess-mortality/")
-# setwd("C:/projects/ISPM_excess-mortality/")
-path0 = paste0("data/outputs_",Sys.Date(),"/")
-dir.create(path0,showWarnings = FALSE)
 
-# Options
+
+## Options
 set.seed(12345)
 options(scipen = 999)
-# options(mc.cores = parallel::detectCores())
-rstan_options(auto_write = FALSE)
+options(mc.cores = parallel::detectCores())
 
 ## Data 
 deaths_monthly <- read_rds("data/deaths_monthly.Rds") %>% 
@@ -42,14 +58,15 @@ pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
 
 # 1 - Excluding pandemic years, observed population data, until 2020 ----
 
+## Select years
+YEARS <- deaths_monthly %>% 
+  summarize(MIN = min(Year))
+
 ## Empty outputs
 results_month <- tibble()
 results_year <- tibble()
 results_age <- tibble()
 
-## Select years
-YEARS <- deaths_monthly %>% 
-  summarize(MIN = min(Year))
 
 ## Loop
 for (YEAR in (YEARS$MIN+5):2020) {
@@ -59,7 +76,7 @@ for (YEAR in (YEARS$MIN+5):2020) {
   
   print("          Global Serfling (Stan, NB)")
   
-  global_serfling_stan <- fn_global_serfling_nb_stan(YEAR, deaths_monthly, pandemic_years = pandemic, pop="obs")
+  global_serfling_stan <- fn_global_serfling_nb_cmdstan(YEAR, deaths_monthly, pandemic_years = pandemic, pop="obs")
   
   extract_month <- global_serfling_stan$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
