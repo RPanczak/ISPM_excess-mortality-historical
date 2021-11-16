@@ -72,10 +72,8 @@ START <- deaths_monthly %>%
 ## Loop
 for (YEAR in (START$MIN+5):2020) {
   
-  print(paste("Analysing year:", YEAR))
-  
   # Global model
-  print("Model: Global Serfling (Stan, NB)")
+  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -97,7 +95,7 @@ for (YEAR in (START$MIN+5):2020) {
   }
   
   # Age model
-  print("Model: Age Serfling (Stan, NB)")
+  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
                                       deaths_monthly, 
