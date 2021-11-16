@@ -1,8 +1,12 @@
 # 0 - Set up ----
 
-## Libs
+## Libs - stan et al.
 # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 
+# check_cmdstan_toolchain()
+# install_cmdstan(cores = 4)
+
+## Libs - other
 library(pacman)
 p_load(tidyverse, magrittr,
        cmdstanr, posterior, bayesplot)
@@ -23,12 +27,12 @@ dir.create(path0, showWarnings = FALSE)
 ## Funcs
 source("R/fn_global_serfling_nb_cmdstan.R")
 source("R/fn_age_serfling_nb_cmdstan.R")
-# source("R/fn_global_serfling_nb_stan_21.R")
-# source("R/fn_age_serfling_nb_stan_21.R")
-# source("R/fn_global_serfling_nb_stan_sst1.R")
-# source("R/fn_age_serfling_nb_stan_sst1.R")
-# source("R/fn_global_serfling_nb_stan_21_sst1.R")
-# source("R/fn_age_serfling_nb_stan_21_sst1.R")
+# source("R/fn_m_glo_21.R")
+# source("R/fn_m_age_21.R")
+# source("R/fn_m_glo_sst1.R")
+# source("R/fn_m_age_sst1.R")
+# source("R/fn_m_glo_21_sst1.R")
+# source("R/fn_m_age_21_sst1.R")
 
 ## Options
 set.seed(12345)
@@ -41,9 +45,10 @@ deaths_monthly <- read_rds("data/deaths_monthly.Rds") %>%
 deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds") %>% 
   filter(Country == COUNTRY) 
 
-## Years
+## Smoothing window
 year_smooth <- 5
 
+## Pandemics & subsequent post-pandemic years to exclude
 if (COUNTRY == "Spain") {
   
   pandemic <- c(1918, 1957, 2020)
@@ -68,70 +73,71 @@ START <- deaths_monthly %>%
 
 
 
-# 1 - Excluding pandemic years, observed population data, until 2020 ----
-
-## Empty outputs
-results_month <- tibble()
-results_year <- tibble()
-results_age <- tibble()
+# 1 - Excluding post-pandemic years, observed population data, until 2020 ----
 
 ## Loop
 for (YEAR in (START$MIN+5):2020) {
+  
   print(paste("Analysing year:", YEAR))
   
-  ### Global model
+  # Global model
+  print("Model: Global Serfling (Stan, NB)")
   
-  print("          Model: Global Serfling (Stan, NB)")
-  
-  global_serfling_nb_stan <- fn_global_serfling_nb_cmdstan(YEAR, deaths_monthly, pandemic_years = pandemic, pop = "obs")
+  m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
+                                         deaths_monthly, 
+                                         pandemic_years = pandemic, 
+                                         pop = "obs")
   
   if (YEAR == (START$MIN+5)) {
-    results_month <- global_serfling_nb_stan$excess_month
+    results_month <- m_glo$excess_month
   } else {
     results_month <- bind_rows(results_month, 
-                               global_serfling_nb_stan$excess_month)
+                               m_glo$excess_month)
   }
   
   if (YEAR == (START$MIN+5)) {
-    results_year <- global_serfling_nb_stan$excess_year
+    results_year <- m_glo$excess_year
   } else {
     results_year <- bind_rows(results_year, 
-                              global_serfling_nb_stan$excess_year)
+                              m_glo$excess_year)
   }
   
-  ### Age model
+  # Age model
+  print("Model: Age Serfling (Stan, NB)")
   
-  print("          Model: Age Serfling (Stan, NB)")
-  
-  age_serfling_nb_stan <- fn_age_serfling_nb_cmdstan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop = "obs")
+  m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
+                                      deaths_monthly, 
+                                      deaths_yearly_age_sex, 
+                                      pandemic_years = pandemic, 
+                                      pop = "obs")
   
   if (YEAR == (START$MIN+5)) {
-    results_month <- age_serfling_nb_stan$excess_month
+    results_month <- m_age$excess_month
   } else {
     results_month <- bind_rows(results_month, 
-                               age_serfling_nb_stan$excess_month)
+                               m_age$excess_month)
   }
   
   if (YEAR == (START$MIN+5)) {
-    results_year <- age_serfling_nb_stan$excess_year
+    results_year <- m_age$excess_year
   } else {
     results_year <- bind_rows(results_year, 
-                              age_serfling_nb_stan$excess_year)
+                              m_age$excess_year)
   }
-
+  
   if (YEAR == (START$MIN+5)) {
-    results_age <- age_serfling_nb_stan$excess_age
+    results_age <- m_age$excess_age
   } else {
     results_age <- bind_rows(results_age, 
-                              age_serfling_nb_stan$excess_age)
+                             m_age$excess_age)
   }
   
-  ### Save
+  # Save
   write_rds(results_month, paste0(path0,"Switzerland_results_month.Rds"))
   write_rds(results_year, paste0(path0,"Switzerland_results_year.Rds"))
   write_rds(results_age, paste0(path0,"Switzerland_results_age.Rds"))
   
-  rm(global_serfling_nb_stan, age_serfling_nb_stan)
+  rm(m_glo, m_age)
   gc()
 }
 
@@ -140,16 +146,16 @@ for (YEAR in (START$MIN+5):2020) {
 
 
 
-# 2 - Excluding pandemic years, observed population data, 2021 ----
+# 2 - Excluding post-pandemic years, observed population data, 2021 ----
 
 
 ## Global model
 
 print("Global Serfling (Stan, NB)")
 
-global_serfling_nb_stan <- fn_global_serfling_nb_stan_21(2021, deaths_monthly, pandemic_years = pandemic)
+m_glo <- fn_m_glo_21(2021, deaths_monthly, pandemic_years = pandemic)
 
-extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_glo$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -158,7 +164,7 @@ extract_month <- global_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_glo$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -171,9 +177,9 @@ results_year <- bind_rows(results_year, extract_year)
 
 print("Age Serfling (Stan, NB)")
 
-age_serfling_nb_stan <- fn_age_serfling_nb_stan_21(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic)
+m_age <- fn_m_age_21(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic)
 
-extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_age$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -182,7 +188,7 @@ extract_month <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_age$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -191,7 +197,7 @@ extract_year <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_year <- bind_rows(results_year, extract_year)
 
-extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+extract_age <- m_age$pred_grouped_deaths %>% 
   select(Country, Year, Age_cat, Deaths,
          pred, lower, upper,
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -208,7 +214,7 @@ write_rds(results_age, paste0(path0,"Switzerland_results_age.Rds"))
 
 
 
-# 3 - Excluding pandemic years, expected population data, until 2020 ----
+# 3 - Excluding post-pandemic years, expected population data, until 2020 ----
 
 ## Empty outputs
 results_month <- tibble()
@@ -227,9 +233,9 @@ for (YEAR in (START$MIN+5):2020) {
   
   print("          Global Serfling (Stan, NB)")
   
-  global_serfling_nb_stan <- fn_global_serfling_nb_stan(YEAR, deaths_monthly, pandemic_years = pandemic, pop="exp")
+  m_glo <- fn_m_glo(YEAR, deaths_monthly, pandemic_years = pandemic, pop="exp")
   
-  extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+  extract_month <- m_glo$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
            pred, lower, upper, n_eff, Rhat,
            excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -238,7 +244,7 @@ for (YEAR in (START$MIN+5):2020) {
   
   results_month <- bind_rows(results_month, extract_month)
   
-  extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+  extract_year <- m_glo$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, 
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -251,9 +257,9 @@ for (YEAR in (START$MIN+5):2020) {
   
   print("          Age Serfling (Stan, NB)")
   
-  age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="exp")
+  m_age <- fn_m_age(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="exp")
   
-  extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+  extract_month <- m_age$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
            pred, lower, upper, n_eff, Rhat,
            excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -262,7 +268,7 @@ for (YEAR in (START$MIN+5):2020) {
   
   results_month <- bind_rows(results_month, extract_month)
   
-  extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+  extract_year <- m_age$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, 
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -271,7 +277,7 @@ for (YEAR in (START$MIN+5):2020) {
   
   results_year <- bind_rows(results_year, extract_year)
   
-  extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+  extract_age <- m_age$pred_grouped_deaths %>% 
     select(Country, Year, Age_cat, Deaths,
            pred, lower, upper,
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -292,16 +298,16 @@ for (YEAR in (START$MIN+5):2020) {
 
 
 
-# 4 - Excluding pandemic years, observed population data, 2021 ----
+# 4 - Excluding post-pandemic years, observed population data, 2021 ----
 
 
 ## Global model
 
 print("Global Serfling (Stan, NB)")
 
-global_serfling_nb_stan <- fn_global_serfling_nb_stan_21(2021, deaths_monthly, pandemic_years = pandemic, pop="exp")
+m_glo <- fn_m_glo_21(2021, deaths_monthly, pandemic_years = pandemic, pop="exp")
 
-extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_glo$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -310,7 +316,7 @@ extract_month <- global_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_glo$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -324,9 +330,9 @@ results_year <- bind_rows(results_year, extract_year)
 
 print("Age Serfling (Stan, NB)")
 
-age_serfling_nb_stan <- fn_age_serfling_nb_stan_21(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="exp")
+m_age <- fn_m_age_21(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="exp")
 
-extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_age$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -335,7 +341,7 @@ extract_month <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_age$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -344,7 +350,7 @@ extract_year <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_year <- bind_rows(results_year, extract_year)
 
-extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+extract_age <- m_age$pred_grouped_deaths %>% 
   select(Country, Year, Age_cat, Deaths,
          pred, lower, upper,
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -362,7 +368,7 @@ write_rds(results_age, paste0(path0,"Switzerland_results_age_exp.Rds"))
 
 
 
-# 5 - Including pandemic years, observed population data, until 2020 ----
+# 5 - Including post-pandemic years, observed population data, until 2020 ----
 
 ## Empty outputs
 results_month <- tibble()
@@ -381,9 +387,9 @@ for (YEAR in (START$MIN+5):2020) {
   
   print("          Global Serfling (Stan, NB)")
   
-  global_serfling_nb_stan <- fn_global_serfling_nb_stan(YEAR, deaths_monthly, pandemic_years = NULL, pop="obs")
+  m_glo <- fn_m_glo(YEAR, deaths_monthly, pandemic_years = NULL, pop="obs")
   
-  extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+  extract_month <- m_glo$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
            pred, lower, upper, n_eff, Rhat,
            excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -392,7 +398,7 @@ for (YEAR in (START$MIN+5):2020) {
   
   results_month <- bind_rows(results_month, extract_month)
   
-  extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+  extract_year <- m_glo$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, 
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -405,9 +411,9 @@ for (YEAR in (START$MIN+5):2020) {
   
   print("          Age Serfling (Stan, NB)")
   
-  age_serfling_nb_stan <- fn_age_serfling_nb_stan(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = NULL, pop="obs")
+  m_age <- fn_m_age(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = NULL, pop="obs")
   
-  extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+  extract_month <- m_age$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
            pred, lower, upper, n_eff, Rhat,
            excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -416,7 +422,7 @@ for (YEAR in (START$MIN+5):2020) {
   
   results_month <- bind_rows(results_month, extract_month)
   
-  extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+  extract_year <- m_age$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, 
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -425,7 +431,7 @@ for (YEAR in (START$MIN+5):2020) {
   
   results_year <- bind_rows(results_year, extract_year)
   
-  extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+  extract_age <- m_age$pred_grouped_deaths %>% 
     select(Country, Year, Age_cat, Deaths,
            pred, lower, upper,
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -446,16 +452,16 @@ for (YEAR in (START$MIN+5):2020) {
 
 
 
-# 6 - Including pandemic years, observed population data, 2021 ----
+# 6 - Including post-pandemic years, observed population data, 2021 ----
 
 
 ## Global model
 
 print("Global Serfling (Stan, NB)")
 
-global_serfling_nb_stan <- fn_global_serfling_nb_stan_21(2021, deaths_monthly, pandemic_years = NULL)
+m_glo <- fn_m_glo_21(2021, deaths_monthly, pandemic_years = NULL)
 
-extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_glo$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -464,7 +470,7 @@ extract_month <- global_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_glo$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -477,9 +483,9 @@ results_year <- bind_rows(results_year, extract_year)
 
 print("Age Serfling (Stan, NB)")
 
-age_serfling_nb_stan <- fn_age_serfling_nb_stan_21(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = NULL)
+m_age <- fn_m_age_21(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = NULL)
 
-extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_age$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -488,7 +494,7 @@ extract_month <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_age$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -497,7 +503,7 @@ extract_year <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_year <- bind_rows(results_year, extract_year)
 
-extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+extract_age <- m_age$pred_grouped_deaths %>% 
   select(Country, Year, Age_cat, Deaths,
          pred, lower, upper,
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -520,7 +526,7 @@ write_rds(results_age, paste0(path0,"Switzerland_results_age_pand.Rds"))
 
 
 
-# 7 - Excluding pandemic years, observed population data, until 2020, exclude highest and lowest of last 7 years ----
+# 7 - Excluding post-pandemic years, observed population data, until 2020, exclude highest and lowest of last 7 years ----
 
 ## Years
 year_smooth <- 7
@@ -547,9 +553,9 @@ for (YEAR in (START$MIN+7):2020) {
   
   print("          Global Serfling (Stan, NB)")
   
-  global_serfling_nb_stan <- fn_global_serfling_nb_stan_sst1(YEAR, deaths_monthly, pandemic_years = pandemic, pop="obs")
+  m_glo <- fn_m_glo_sst1(YEAR, deaths_monthly, pandemic_years = pandemic, pop="obs")
   
-  extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+  extract_month <- m_glo$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
            pred, lower, upper, n_eff, Rhat,
            excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -558,7 +564,7 @@ for (YEAR in (START$MIN+7):2020) {
   
   results_month <- bind_rows(results_month, extract_month)
   
-  extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+  extract_year <- m_glo$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, 
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -571,9 +577,9 @@ for (YEAR in (START$MIN+7):2020) {
   
   print("          Age Serfling (Stan, NB)")
   
-  age_serfling_nb_stan <- fn_age_serfling_nb_stan_sst1(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="obs")
+  m_age <- fn_m_age_sst1(YEAR, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic, pop="obs")
   
-  extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+  extract_month <- m_age$pred_total_deaths %>% 
     select(Country, Year, Month, Deaths,
            pred, lower, upper, n_eff, Rhat,
            excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -582,7 +588,7 @@ for (YEAR in (START$MIN+7):2020) {
   
   results_month <- bind_rows(results_month, extract_month)
   
-  extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+  extract_year <- m_age$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, 
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -591,7 +597,7 @@ for (YEAR in (START$MIN+7):2020) {
   
   results_year <- bind_rows(results_year, extract_year)
   
-  extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+  extract_age <- m_age$pred_grouped_deaths %>% 
     select(Country, Year, Age_cat, Deaths,
            pred, lower, upper,
            excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -612,16 +618,16 @@ for (YEAR in (START$MIN+7):2020) {
 
 
 
-# 8 - Excluding pandemic years, observed population data, 2021, exclude highest and lowest of last 7 years ----
+# 8 - Excluding post-pandemic years, observed population data, 2021, exclude highest and lowest of last 7 years ----
 
 
 ## Global model
 
 print("Global Serfling (Stan, NB)")
 
-global_serfling_nb_stan <- fn_global_serfling_nb_stan_21_sst1(2021, deaths_monthly, pandemic_years = pandemic)
+m_glo <- fn_m_glo_21_sst1(2021, deaths_monthly, pandemic_years = pandemic)
 
-extract_month <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_glo$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -630,7 +636,7 @@ extract_month <- global_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- global_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_glo$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -643,9 +649,9 @@ results_year <- bind_rows(results_year, extract_year)
 
 print("Age Serfling (Stan, NB)")
 
-age_serfling_nb_stan <- fn_age_serfling_nb_stan_21_sst1(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic)
+m_age <- fn_m_age_21_sst1(2021, deaths_monthly, deaths_yearly_age_sex, pandemic_years = pandemic)
 
-extract_month <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_month <- m_age$pred_total_deaths %>% 
   select(Country, Year, Month, Deaths,
          pred, lower, upper, n_eff, Rhat,
          excess_month, excess_month_lower, excess_month_upper) %>% 
@@ -654,7 +660,7 @@ extract_month <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_month <- bind_rows(results_month, extract_month)
 
-extract_year <- age_serfling_nb_stan$pred_total_deaths %>% 
+extract_year <- m_age$pred_total_deaths %>% 
   filter(row_number() == 1) %>% 
   select(Country, Year, 
          excess_year, excess_year_lower, excess_year_upper) %>% 
@@ -663,7 +669,7 @@ extract_year <- age_serfling_nb_stan$pred_total_deaths %>%
 
 results_year <- bind_rows(results_year, extract_year)
 
-extract_age <- age_serfling_nb_stan$pred_grouped_deaths %>% 
+extract_age <- m_age$pred_grouped_deaths %>% 
   select(Country, Year, Age_cat, Deaths,
          pred, lower, upper,
          excess_year, excess_year_lower, excess_year_upper) %>% 
