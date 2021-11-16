@@ -1,15 +1,15 @@
 # function for the global Serfling model, negative binomial version
 
-# pred_year = YEAR
+# pred_year = 2020
 # monthly_data = deaths_monthly
 # pandemic_years =  pandemic
-# pop = "exp"
+# pop = "obs"
 # prior=10
 # prior_intercept=10
 
-fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
+fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
   
-  require(rstan)
+  require(cmdstanr)
   # select population
   if(pop=="obs") monthly_data$Population = monthly_data$Population_obs
   if(pop=="exp") monthly_data$Population = monthly_data$Population_exp
@@ -45,15 +45,18 @@ fn_global_serfling_nb_stan = function(pred_year, monthly_data, pandemic_years, p
   # set priors (default is normal(0,10))
   dd_list$p_beta = prior
   dd_list$p_alpha = prior_intercept
-  # compiling and save compiled model (need to recompile on a new machine)
-  mm = stan_model(file="stan/global_serfling_nb.stan", save_dso = FALSE)
+  
   # sampling
-  ss = sampling(mm,
-                data=dd_list,
-                chains=4,
-                iter=2000,
-                refresh=0,
-                save_warmup = FALSE)
+  ss = global_serfling_nb$sample(
+    data = dd_list, 
+    seed = 12345, 
+    chains = 4, 
+    iter_sampling=2000,
+    parallel_chains = 4,
+    refresh = 0,
+    save_warmup = FALSE
+  )
+  
   # get prediction
   lp = (1 - p) / 2
   up = 1 - lp
