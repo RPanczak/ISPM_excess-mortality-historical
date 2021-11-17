@@ -48,6 +48,8 @@ if (COUNTRY == "Spain") {
     seq(1918 + 1, 1918 + year_smooth),
     seq(1957 + 1, 1957 + year_smooth))
   
+  
+  
 } else {
   
   pandemic <- c(1890, 1918, 1957, 2020)
@@ -62,7 +64,11 @@ if (COUNTRY == "Spain") {
 START <- deaths_monthly %>% 
   summarize(MIN = min(Year))
 
+END <- deaths_yearly_age_sex %>% 
+  summarize(MAX = max(Year))
 
+# FIXME: problem with death data by age in 2021 in Spain!
+if(COUNTRY=="Spain") END$MAX = 2020
 
 
 # 1 - Excluding post-pandemic years, observed population data ----
@@ -72,7 +78,7 @@ results_year <- tibble()
 results_age <- tibble()
 
 ## Loop
-for (YEAR in (START$MIN+5):2021) {
+for (YEAR in (START$MIN+5):END$MAX) {
   
   # Global model
   print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
@@ -142,7 +148,7 @@ results_year <- tibble()
 results_age <- tibble()
 
 ## Loop
-for (YEAR in 2020:2021) {
+for (YEAR in 2020:END$MAX) {
   
   # Global model
   print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
@@ -283,7 +289,7 @@ results_year <- tibble()
 results_age <- tibble()
 
 ## Loop
-for (YEAR in (START$MIN+7):2021) {
+for (YEAR in (START$MIN+7):END$MAX) {
   
   # Global model
   print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
