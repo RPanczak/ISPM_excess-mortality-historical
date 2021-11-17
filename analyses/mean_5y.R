@@ -1,28 +1,100 @@
 # using monthly data without age
-test1 <- deaths_monthly %>% 
-  arrange(Country, Month, Year) %>% 
-  group_by(Country, Month) %>% 
-  mutate(mean_5y = slider::slide_dbl(Deaths, mean, 
-                                     na.rm = TRUE, .complete = TRUE,
-                                     .before = 5, .after = -1)) %>% 
-  ungroup() %>% 
-  arrange(Country, Year, Month) %>% 
-  mutate(excess = as.integer(Deaths - mean_5y)) %>% 
-  group_by(Country, Year) %>% 
-  summarise(excess = sum(excess)) %>% 
-  ungroup()
+deaths_monthly <- read_rds("data/deaths_monthly.Rds") %>% 
+  select(-starts_with("Population"), -starts_with("si_"), -starts_with("co_")) %>% 
+  filter(! is.na(Deaths))
 
 # using yearly data with age
-test2 <- deaths_yearly_age_sex %>% 
-  select(-Population_obs, -Population_exp) %>% 
-  arrange(Country, Age_cat, Year) %>% 
-  group_by(Country, Age_cat) %>% 
-  mutate(mean_5y = slider::slide_dbl(Deaths, mean, 
-                                     na.rm = TRUE, .complete = TRUE,
-                                     .before = 5, .after = -1)) %>% 
-  ungroup() %>% 
-  arrange(Country, Year, Age_cat) %>% 
-  mutate(excess = as.integer(Deaths - mean_5y)) %>% 
-  group_by(Country, Year) %>% 
-  summarise(excess = sum(excess)) %>% 
-  ungroup()
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds") %>% 
+  select(-starts_with("Population")) %>% 
+  filter(Year >= 1851)
+
+deaths_monthly %>% 
+  filter(Year == 2021 & Country == "Switzerland") %>% 
+  summarise(Excess = sum(Deaths, na.rm = TRUE))
+
+deaths_yearly_age_sex %>% 
+  filter(Year == 2021 & Country == "Switzerland") %>% 
+  summarise(Excess = sum(Deaths, na.rm = TRUE))
+
+result_long <- bind_rows(
+  
+  deaths_monthly %>% 
+    arrange(Country, Month, Year) %>% 
+    group_by(Country, Month) %>% 
+    mutate(mean_5y = slider::slide_dbl(Deaths, mean, 
+                                       na.rm = TRUE, .complete = TRUE,
+                                       .before = 5, .after = -1)) %>% 
+    ungroup() %>% 
+    arrange(Country, Year, Month) %>% 
+    mutate(excess = as.integer(Deaths - mean_5y)) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Excess = sum(excess)) %>% 
+    mutate(Type = "month") %>% 
+    ungroup(),
+  
+  deaths_yearly_age_sex %>% 
+    arrange(Country, Age_cat, Year) %>% 
+    group_by(Country, Age_cat) %>% 
+    mutate(mean_5y = slider::slide_dbl(Deaths, mean, 
+                                       na.rm = TRUE, .complete = TRUE,
+                                       .before = 5, .after = -1)) %>% 
+    ungroup() %>% 
+    arrange(Country, Year, Age_cat) %>% 
+    mutate(excess = as.integer(Deaths - mean_5y)) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Excess = sum(excess)) %>% 
+    mutate(Type = "age") %>% 
+    ungroup()
+  
+) %>% 
+  filter(! is.na(Excess))
+
+result_long %>% 
+  filter(Year == 2021 & Country == "Switzerland") 
+
+result_long %>% 
+  ggplot(aes(x = Year, y = Excess, color = Type)) +
+  geom_line() + 
+  facet_grid(vars(Country), scales = "free_y")
+
+result_wide <- left_join(
+  
+  deaths_monthly %>% 
+    arrange(Country, Month, Year) %>% 
+    group_by(Country, Month) %>% 
+    mutate(mean_5y = slider::slide_dbl(Deaths, mean, 
+                                       na.rm = TRUE, .complete = TRUE,
+                                       .before = 5, .after = -1)) %>% 
+    ungroup() %>% 
+    arrange(Country, Year, Month) %>% 
+    mutate(excess = as.integer(Deaths - mean_5y)) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Excess_month = sum(excess)) %>% 
+    ungroup(),
+  
+  deaths_yearly_age_sex %>% 
+    arrange(Country, Age_cat, Year) %>% 
+    group_by(Country, Age_cat) %>% 
+    mutate(mean_5y = slider::slide_dbl(Deaths, mean, 
+                                       na.rm = TRUE, .complete = TRUE,
+                                       .before = 5, .after = -1)) %>% 
+    ungroup() %>% 
+    arrange(Country, Year, Age_cat) %>% 
+    mutate(excess = as.integer(Deaths - mean_5y)) %>% 
+    group_by(Country, Year) %>% 
+    summarise(Excess_age = sum(excess)) %>% 
+    ungroup()
+  
+)
+
+result_wide %>% 
+  ggplot(aes(x = Year, y = Excess_month - Excess_age)) +
+  geom_line() + 
+  scale_y_continuous()+
+  facet_grid(vars(Country), scales = "free_y")
+
+result_wide %>% 
+  ggplot(aes(x = Year, y = (Excess_month - Excess_age) / Excess_month)) +
+  geom_line() + 
+  scale_y_continuous(labels = percent)+
+  facet_grid(vars(Country), scales = "free_y")
