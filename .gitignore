@@ -1,6 +1,12 @@
 # slurm
 *.out
 
+# compiled stan files
+stan/age_serfling_nb
+stan/age_serfling_nb_21
+stan/global_serfling_nb
+stan/global_serfling_nb_21
+
 # History files
 .Rhistory
 .Rapp.history
