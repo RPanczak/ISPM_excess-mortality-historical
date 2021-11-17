@@ -1,12 +1,12 @@
 # function for the global Serfling model, negative binomial version
 
-pred_year = 1877
-monthly_data = deaths_monthly
-pandemic_years =  pandemic
-pop = "obs"
-version = "last_5"
-prior = 10
-prior_intercept = 10
+# pred_year = 1877
+# monthly_data = deaths_monthly
+# pandemic_years =  pandemic
+# pop = "obs"
+# version = "last_5"
+# prior = 10
+# prior_intercept = 10
 
 fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years, pop="obs", version="last_5", prior=10, prior_intercept=10, p=0.95) {
   
