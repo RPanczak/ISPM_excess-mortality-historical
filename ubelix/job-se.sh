@@ -18,4 +18,4 @@ module load R nodejs
 
 # R CMD BATCH --verbose --no-save --no-restore $HOME/ISPM_excess-mortality/analyses/20_joint-model-all.R
 cd $HOME/projects/ISPM_excess-mortality/
-Rscript analyses/20_joint-model-stan-se.R
+Rscript analyses/23_joint-model-cmdstan-ch.R 3

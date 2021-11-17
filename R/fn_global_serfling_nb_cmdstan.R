@@ -1,59 +1,109 @@
 # function for the global Serfling model, negative binomial version
 
-# pred_year = 2020
-# monthly_data = deaths_monthly
-# pandemic_years =  pandemic
-# pop = "obs"
-# prior = 10
-# prior_intercept = 10
+pred_year = 1877
+monthly_data = deaths_monthly
+pandemic_years =  pandemic
+pop = "obs"
+version = "last_5"
+prior = 10
+prior_intercept = 10
 
-fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years, pop="obs", prior=10, prior_intercept=10, p=0.95) {
+fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years, pop="obs", version="last_5", prior=10, prior_intercept=10, p=0.95) {
   
   require(cmdstanr)
-  
-  # compile model
-  global_serfling_nb <- cmdstan_model("stan/global_serfling_nb.stan",
-                                      quiet = FALSE,
-                                      force_recompile = FALSE)
-  
-  # global_serfling_nb$print()
-  # global_serfling_nb$exe_file()
-  # global_serfling_nb$check_syntax()
-  # global_serfling_nb$check_syntax(pedantic = TRUE)
+  require(posterior)
   
   # select population
   if(pop=="obs") monthly_data$Population = monthly_data$Population_obs
   if(pop=="exp") monthly_data$Population = monthly_data$Population_exp
   
-  # select last 5 years
-  dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
-  dd %<>% dplyr::arrange(Month,Year)
+  # select last X years
+  if(version=="last_5") {
+    # select last 5 years
+    dd = dplyr::filter(monthly_data, Year >= pred_year - 5, Year < pred_year)
+    # remove special year (e.g. 1918 because of the flu pandemic)
+    dd %<>% dplyr::filter(!(Year %in% pandemic_years))
+    # arrange
+    dd %<>% dplyr::arrange(Month,Year)
+  }
+  if(version=="last_7_trim") {
+    # select last 7 years
+    dd = dplyr::filter(monthly_data, Year >= pred_year - 7, Year < pred_year)
+    # remove special year (e.g. 1918 because of the flu pandemic)
+    dd %<>% dplyr::filter(!(Year %in% pandemic_years))
+    # trim highest and lowest
+    num_year = length(unique(dd$Year))
+    dd %<>% 
+      dplyr::group_by(Year) %>% 
+      dplyr::mutate(TotDeaths=sum(Deaths)) %>% 
+      dplyr::group_by(Month) %>% 
+      dplyr::mutate(Rank=dplyr::dense_rank(TotDeaths)) %>% 
+      dplyr::filter(Rank %in% 2:(num_year-1)) %>% 
+      dplyr::arrange(Month,Year)
+  }
   
-  # remove special year (e.g. 1918 because of the flu pandemic)
-  dd %<>% dplyr::filter(!(Year %in% pandemic_years))
-  
-  # extract prediction data
-  pp = dplyr::filter(monthly_data, Year == pred_year)
-  
-  # format data into multi-dimensional arrays
-  years = unique(dd$Year)
-  years = years - min(years) + 1
-  months = unique(dd$Month)
-  I = length(years)
-  J = length(months)
-  total_deaths = array(dd$Deaths, dim=c(I,J))
-  total_population = array(dd$Population, dim=c(I,J))
-  predyear_total_deaths = array(pp$Deaths, dim=J)
-  predyear_total_population = array(pp$Population, dim=J)
-  
-  # transform data into list
-  dd_list = list(I=I,J=J,
-                 years=years,
-                 months=months,
-                 total_deaths = total_deaths,
-                 total_population = total_population,
-                 predyear_total_deaths = predyear_total_deaths,
-                 predyear_total_population = predyear_total_population)
+  if(pred_year!=2021) {
+    # extract prediction data
+    pp = dplyr::filter(monthly_data, Year == pred_year)
+    
+    # format data into multi-dimensional arrays
+    years = unique(dd$Year)
+    years = years - min(years) + 1
+    months = unique(dd$Month)
+    I = length(years)
+    J = length(months)
+    total_deaths = array(dd$Deaths, dim=c(I,J))
+    total_population = array(dd$Population, dim=c(I,J))
+    predyear_total_deaths = array(pp$Deaths, dim=J)
+    predyear_total_population = array(pp$Population, dim=J)
+    
+    # transform data into list
+    dd_list = list(I=I,J=J,
+                   years=years,
+                   months=months,
+                   total_deaths = total_deaths,
+                   total_population = total_population,
+                   predyear_total_deaths = predyear_total_deaths,
+                   predyear_total_population = predyear_total_population)
+    
+    # compile model
+    global_serfling_nb <- cmdstan_model("stan/global_serfling_nb.stan",
+                                        quiet = TRUE,
+                                        force_recompile = FALSE)
+  }
+  if(pred_year==2021) {
+    # extract prediction data excluding last 6 mo of 2021
+    pp = dplyr::filter(monthly_data, Year == pred_year) %>% 
+      dplyr::filter(!is.na(Deaths))
+    
+    # format data into multi-dimensional arrays
+    years = unique(dd$Year)
+    years = years - min(years) + 1
+    months = unique(dd$Month)
+    months2 = unique(pp$Month) # for 2021
+    I = length(years)
+    J = length(months)
+    J2 = length(months2) # for 2021
+    total_deaths = array(dd$Deaths, dim=c(I,J))
+    total_population = array(dd$Population, dim=c(I,J))
+    predyear_total_deaths = array(pp$Deaths, dim=J2)
+    predyear_total_population = array(pp$Population, dim=J2)
+    # transform data into list
+    dd_list = list(I=I,J=J,
+                   J2=J2, # for 2021
+                   years=years,
+                   months=months,
+                   months2=months2, # for 2021
+                   total_deaths = total_deaths,
+                   total_population = total_population,
+                   predyear_total_deaths = predyear_total_deaths,
+                   predyear_total_population = predyear_total_population)
+    
+    # compile model
+    global_serfling_nb <- cmdstan_model("stan/global_serfling_nb_21.stan",
+                                        quiet = TRUE,
+                                        force_recompile = FALSE)
+  }
   
   # set priors (default is normal(0,10))
   dd_list$p_beta = prior
@@ -67,66 +117,22 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
     iter_sampling = 2000,
     parallel_chains = 4,
     refresh = 0,
-    save_warmup = FALSE
-  )
+    save_warmup = FALSE,
+    show_messages = FALSE)
+  
+  # get prediction
+  lp = (1 - p) / 2
+  up = 1 - lp
+  pp = posterior::summarise_draws(ss$draws("pred_total_deaths"), "mean", ~quantile(.x, probs = c(lp,up)),"rhat","ess_bulk") %>% 
+    bind_cols(pp) %>%
+    dplyr::rename(pred=mean,lower=3,upper=4) %>%
+    dplyr::select(Country,Year,Month,Date,Deaths,Population,pred,lower,upper,n_eff=ess_bulk,Rhat=rhat)
+  pp = posterior::summarise_draws(ss$draws("excess_total_deaths"),"mean", ~quantile(.x, probs = c(lp,up))) %>% 
+    dplyr::select(excess_month=mean,excess_month_lower=3,excess_month_upper=4) %>%
+    bind_cols(pp,.)
+  pp = posterior::summarise_draws(ss$draws("yearly_excess_total_deaths"),"mean",~quantile(.x, probs = c(lp,up))) %>% 
+    dplyr::select(excess_year=mean,excess_year_lower=3,excess_year_upper=4) %>%
+    bind_cols(pp,.)
 
-  # median too?
-  ss = ss$summary() %>% 
-    dplyr::select(variable, mean, 
-                  # median,
-                  q5, q95)
-  
-  # base = pp %>% 
-  #   select(-si_one, -si_two, -co_one, -co_two)
-  
-  excess_month = 
-    dplyr::bind_cols(
-      
-      # predicted
-      ss %>%
-        dplyr::filter(stringr::str_detect(variable, 
-                                          stringr::fixed("pred_total_deaths["))) %>%
-        dplyr::rename(pred_month = mean,
-                      pred_month_lower = q5,
-                      pred_month_upper  = q95) %>% 
-        dplyr::select(-variable), 
-      
-      # excess 
-      ss %>% 
-        dplyr::filter(stringr::str_detect(variable, 
-                                          stringr::fixed("excess_total_deaths["))) %>% 
-        dplyr::rename(excess_month = mean,
-                      excess_month_lower = q5,
-                      excess_month_upper  = q95) %>% 
-        dplyr::select(-variable) ) %>% 
-    dplyr::mutate(Year = as.integer(pred_year),
-                  Month = as.integer(1:12),
-                  Model = "Global Serfling (Stan, NB)")
-  
-  excess_year = ss %>% 
-    dplyr::filter(stringr::str_detect(variable, 
-                                      "yearly_excess_total_deaths")) %>% 
-    dplyr::mutate(Year = as.integer(pred_year),
-                  Model = "Global Serfling (Stan, NB)") %>% 
-    dplyr::rename(excess_year = mean,
-                  excess_year_lower = q5,
-                  excess_year_upper  = q95)  %>% 
-    dplyr::select(-variable)
-  
-  return(list(
-    # base = base,
-    excess_month = excess_month, 
-    excess_year = excess_year)) 
-  
-}
-
-if(FALSE) {
-  
-  # ss$cmdstan_diagnose()
-  # ss$cmdstan_summary()
-  # fit_mle <- global_serfling_nb$optimize(data = dd_list, seed = 12345) 
-  # fit_mle$summary()
-  # fit_vb <- global_serfling_nb$variational(data = dd_list, seed = 12345, output_samples = 4000) 
-  # fit_vb$summary()
-  
+return(list(samples=ss,pred_total_deaths=pp))
 }

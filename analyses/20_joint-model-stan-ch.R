@@ -5,6 +5,10 @@
 # Libs
 library(pacman)
 p_load(tidyverse, magrittr, rstan)
+
+source("R/fn_global_serfling_nb_cmdstan.R")
+source("R/fn_age_serfling_nb_cmdstan.R")
+
 source("R/fn_global_serfling_nb_stan.R")
 source("R/fn_age_serfling_nb_stan.R")
 source("R/fn_global_serfling_nb_stan_21.R")
