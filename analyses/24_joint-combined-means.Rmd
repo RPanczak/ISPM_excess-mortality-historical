@@ -264,7 +264,9 @@ pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
 
 # Paper outputs
 
-## COVID-19 data
+## Table 1
+
+### COVID-19 data
 
 Using `COVID19` [package](https://cran.r-project.org/web/packages/COVID19/index.html) ([citation](https://doi.org/10.21105/joss.02376)).  
 
@@ -314,7 +316,7 @@ covid_cases_deaths <- bind_rows(
 covid_cases_deaths 
 ```
 
-## Table 1
+### Data used 
 
 ```{r echo=FALSE}
 table_1 <- 
@@ -365,6 +367,8 @@ table_1 %>%
 ```
 
 ## Table 2
+
+three measures of excess (all from main, age adjusted NB model with observed population counts).  
 
 ```{r echo=FALSE}
 table_2 <- 
@@ -798,12 +802,11 @@ ggsave("paper/Figure_3.png", dpi = 300, width = 200, height = 100, units = "mm")
 
 ## Table S1
 
-Comparing estimates of excess from different methods: 
+Comparing estimates of excess from alternative methods: 
 
-- Global Serfling (bootstrap)
-- Global Serfling (Stan, NB)
-- Age Serfling with alternative time window (Stan, NB)
-
+- Global Serfling (bootstrap)  
+- Global Serfling (Stan, NB)  
+- Age Serfling with alternative time window (Stan, NB)  
 
 ```{r echo=FALSE}
 pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
@@ -814,8 +817,9 @@ table_s1 <-
     
     # global serfling model without CrI for yearly
     results_month_boot %>% 
+      mutate(excess = Deaths - pred) %>% 
       group_by(Model, Country, Year) %>% 
-      summarise(excess_year = sum(pred)) %>% 
+      summarise(excess_year = sum(excess)) %>% 
       ungroup() %>% 
       mutate(Model = "m1"),
     
@@ -884,8 +888,8 @@ table_s1 %>%
                     "Excess", "95% CrI")) %>% 
   add_header_above(c(" " = 1, 
                      "Poisson Serfling" = 1, 
-                     "NB serfling, no age" = 2, 
-                     "NB serfling, age, alt time" = 2)) %>%   
+                     "NB Serfling, no age" = 2, 
+                     "NB Serfling, age, alt time" = 2)) %>%   
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
