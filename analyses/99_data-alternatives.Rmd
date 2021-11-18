@@ -490,9 +490,9 @@ bind_rows(
 
 # Spain
 
-## Yearly pops 
+## Yearly pops until 2019
 
-INE data until 2019. 
+INE data vs. HMD. 
 
 ```{r}
 es_pop_year <- read_xlsx("data-raw/INE/Spain_population.xlsx") %>% 
