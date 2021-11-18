@@ -105,7 +105,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
   REG_DATA <- deaths_monthly %>% 
     filter(Country == COUNTRY)
   
-  for (YEAR in (YEARS$MIN+5):2021) {
+  for (YEAR in 2020:2021) {
     
     print(paste("Loop 2 >>", COUNTRY, "::", YEAR))
     
@@ -184,59 +184,3 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
     write_rds(results_month_pand_obs, paste0(path0, "All_results_month_pand.Rds"))
   }
 } 
-
-# #############################################
-# Expected pop
-
-results_month_pand_exp <- tibble(Country = character(), 
-                                 Year = double(), Month = double(), 
-                                 Deaths = double(),
-                                 pred = double(), 
-                                 lower = double(), 
-                                 upper = double(),
-                                 excess_month = double(), 
-                                 excess_month_lower = double(), 
-                                 excess_month_upper = double(),
-                                 Model = character())
-
-for (COUNTRY in unique(deaths_monthly$Country)) {
-  
-  YEARS <- deaths_monthly %>% 
-    filter(Country == COUNTRY) %>% 
-    summarize(MIN = min(Year))
-  
-  REG_DATA <- deaths_monthly %>% 
-    filter(Country == COUNTRY)
-  
-  # Different pandemics for Spain - missing data on oldest
-  if (COUNTRY == "Spain"){
-    
-    pandemic_affected <- c(seq(1918 + 1, 1918 + year_smooth),
-                           seq(1957 + 1, 1957 + year_smooth))
-    
-  } else {
-    
-    pandemic_affected <- c(seq(1890 + 1, 1890 + year_smooth),
-                           seq(1918 + 1, 1918 + year_smooth),
-                           seq(1957 + 1, 1957 + year_smooth))
-  }
-  
-  for (YEAR in pandemic_affected) {
-    
-    print(paste("Loop 4 >>", COUNTRY, "::", YEAR))
-    
-    global_serfling <- fn_global_serfling(YEAR, REG_DATA, 
-                                          pop = "exp",
-                                          pandemic_years = NULL)
-    
-    results_month_pand_exp <- global_serfling$pred_total_deaths %>% 
-      select(Country, Year, Month, Deaths, pred, lower, upper) %>% 
-      mutate(excess_month = round(Deaths - pred),
-             excess_month_upper = round(Deaths - upper),
-             excess_month_lower = round(Deaths - lower)) %>% 
-      mutate(Model = "Global Serfling") %>% 
-      bind_rows(., results_month_pand_exp)
-    
-    write_rds(results_month_pand_exp, paste0(path0, "All_results_month_pand_exp.Rds"))
-  }
-}
