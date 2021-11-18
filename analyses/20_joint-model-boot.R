@@ -78,7 +78,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       mutate(Model = "Global Serfling") %>% 
       bind_rows(., results_month_obs)
     
-    write_rds(results_month_obs, paste0(path0, "All_results_month_obs.Rds"))
+    write_rds(results_month_obs, paste0(path0, "All_results_month.Rds"))
   }
 } 
 
@@ -181,7 +181,7 @@ for (COUNTRY in unique(deaths_monthly$Country)) {
       mutate(Model = "Global Serfling") %>% 
       bind_rows(., results_month_pand_obs)
     
-    write_rds(results_month_pand_obs, paste0(path0, "All_results_month_pand_obs.Rds"))
+    write_rds(results_month_pand_obs, paste0(path0, "All_results_month_pand.Rds"))
   }
 } 
 
