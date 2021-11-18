@@ -153,7 +153,6 @@ hmd_deaths_age_sex %>%
 ```
 
 Yearly totals per country indicating different time frames of data.  
-
 ```{r}
 hmd_deaths_year <- hmd_deaths_age_sex %>% 
   group_by(Country, Year) %>%
@@ -171,7 +170,7 @@ hmd_deaths_year %>%
   xlab("") + ylab("Yearly number of deaths")
 ```
 
-Example of age breakdown, showing demographic transition and first, crude indication of the effects of pandemics.  
+Example of age breakdown, showing demographic transition and first, crude indication of the effects of pandemics (and also - smaller coverage of ESP data!).  
 
 ```{r echo=FALSE}
 hmd_deaths_age_sex %>% 
@@ -242,7 +241,7 @@ hmd_pop_year  %>%
   scale_y_continuous(labels = comma)
 ```
 
-Again, age structure is available on yearly resolution. Example of three countries, starting at minimum year of coverage for all of them.    
+Again, age structure is available on yearly resolution. Example of three countries (starting in `1908` - at minimum year of coverage for all countries).      
 
 ```{r echo=FALSE}
 hmd_pop_age_sex %>% 
@@ -268,7 +267,7 @@ hmd_pop_age_sex %>%
 
 Historical data from [Todesfälle nach Monat und Sterblichkeit seit 1803](https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.18584915.html).  
 
-Using data **since 1877 only** when *monthly reporting starts*.  
+Using data **only since** `1877` when *monthly reporting starts*.  
 
 ```{r message=FALSE, warning=FALSE}
 ch_deaths_month <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>% 
@@ -289,7 +288,7 @@ ch_deaths_month <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>%
 
 ## Monthly 2021 deaths 
 
-BfS delivered custom data to supplement first six months of 2021. Merged to dataset covering period until 2020.  
+BfS delivered custom data to supplement first six months of `2021`. Merged to dataset covering period until `2020`.  
 
 ```{r}
 ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
@@ -326,7 +325,7 @@ ggplot(data = ch_deaths_month,
 
 ## Yearly 2021 deaths with age & sex structure
 
-BfS delivered data to supplement missing six months of 2021.  
+BfS delivered data to supplement missing six months of `2021`.  
 
 ```{r}
 ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
@@ -348,8 +347,8 @@ ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_Monatsdate
 
 Data from INE:
 - data prior to 1940 was transcribed from PDFs available from INE  
-- `Vital Statistics: Deaths (Historical series 1941-1974)` *1941-1974* [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1)  
-- `Vital Statistics: Deaths (Series since 1975)` *since 1975* [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1)  
+- *Vital Statistics: Deaths (Historical series 1941-1974) `1941-1974` [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6563&L=1)  
+- *Vital Statistics: Deaths (Series since 1975)* since `1975` [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6561&L=1)  
 
 ```{r}
 es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>% 
@@ -367,7 +366,7 @@ es_deaths_month <- read_xlsx("data-raw/INE/Spain.xlsx") %>%
 
 ## Monthly 2020 deaths 
 
-2020 update is from `Vital Statistics. **Provisional** data: Year 2020` [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
+`2020` update is from *Vital Statistics. **Provisional** data: Year 2020* [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1)
 
 ```{r}
 source("R/fn_get_death_data_spain.R")
@@ -386,7 +385,7 @@ es_2020 <- fn_get_death_data_spain("data-raw/INE/Spain_2020.xlsx") %>%
 
 ## Monthly 2021 deaths 
 
-2021 data is from `Estimate of number of weekly deaths during the Covid-19 outbreak` [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+`2021` data is from *Estimate of number of weekly deaths during the Covid-19 outbreak* [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
 Note: data are in *weekly format* and **converted** with methods (and caveats!) described STMF chapter of weekly data doc.  
 
@@ -434,7 +433,7 @@ es_deaths_month %>%
 
 INE data to supplement missing 2019-20 years in HMD.  
 
-2019 data available in `Vital Statistics: Deaths` [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and 2020 data available in`Vital Statistics. Provisional data: Year 2020`  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
+`2019` data available in *Vital Statistics: Deaths* [here](https://www.ine.es/jaxiT3/Tabla.htm?t=6547&L=1) and `2020` data available in*Vital Statistics. Provisional data: Year 2020*  [here](https://www.ine.es/jaxi/Tabla.htm?path=/t20/e301/provi/l1/&file=02001.px&L=1).  
 
 ```{r}
 es_deaths_age_2019_2020 <- bind_rows(
@@ -466,9 +465,7 @@ es_deaths_age_2019_2020 <- bind_rows(
 
 ## Yearly 2021 deaths with age structure
 
-INE data to supplement missing 6 months of 2021 in HMD.  
-
-2021 data available from `Weekly death estimates (EDeS) during the covid-19 outbreak` [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
+INE data to supplement missing 6 months of `2021` in HMD available from *Weekly death estimates (EDeS) during the covid-19 outbreak* [here](https://www.ine.es/en/experimental/defunciones/experimental_defunciones.htm#tablas_resultados).  
 
 Note: data are in weekly format and converted with methods (and caveats!) described above in STMF chapter.  
 
@@ -542,13 +539,15 @@ es_deaths_age_2021 <- bind_rows(
   as_tibble() %>% 
   mutate(Country = "Spain") %>%
   separate(yearMonth, c("Year", "Month"), convert = TRUE) %>% 
-  rename(Total = value) %>% 
-  mutate(Total = as.integer(Total),  
+  rename(Deaths = value) %>% 
+  mutate(Deaths = as.integer(Deaths),  
          Age = as.integer(Age)) %>% 
-  relocate(Country, Year, Month) %>% 
+  relocate(Country, Year, Month, Age) %>% 
   filter(Year == 2021) %>% 
-  filter(! (Month == 8)) %>% 
-  filter(! (Month == 7))
+  filter(Month <= 6) %>% 
+  group_by(Country, Year, Age) %>% 
+  summarise(Deaths = sum(Deaths)) %>% 
+  ungroup()
 
 rm(temp)
 ```
@@ -660,7 +659,7 @@ hmd_pop_age_agg %>%
   geom_vline(xintercept = 2019.5, color = "red")
 ```
 
-For each year, age, country stratum, linear model is fit using the 2015-2019 data; then prediction is made for 2020 & 2021 years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
+For each year, age, country stratum, linear model is fit using the `2015-2019` data; then prediction is made for `2020` & `2021` years. The gist of this operation is to exclude the effect of pandemic from the population counts in years affected.   
 
 ```{r}
 # p_load(mgcv)
@@ -691,7 +690,7 @@ pop_age_2020 <- hmd_pop_age_agg %>%
   relocate(Country, Year, Age_cat, Population)
 ```
 
-For comparison against 2020 & 21 we use data from HMD (for SWE & CHE) and INE (for ESP). For the latter we use `Main series since 1971` from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304). # HMD docs say that pop Spain 2013-2019 are from: *"1 Jan"* so using data from this time point for consistency.  
+For comparison against `2020` & `2021` we use data from HMD (for SWE & CHE) and INE (for ESP). For the latter we use `Main series since 1971` from [here](https://www.ine.es/jaxiT3/Tabla.htm?t=31304). # HMD docs say that pop Spain 2013-2019 are from: *"1 Jan"* so using data from this time point for consistency.  
 
 ```{r}
 es_pop_age_new <- 
@@ -726,7 +725,7 @@ es_pop_age_new <-
   relocate(Country, Year)
 ```
 
-Absolute difference across countries and age groups in 2020/21:  
+Absolute difference across countries and age groups in `2020/21`:  
 
 ```{r echo=FALSE, warning=FALSE}
 bind_rows(
@@ -751,7 +750,7 @@ bind_rows(
   facet_grid(vars(Country), vars(Year), scales = "free_y")
 ```
 
-Relative differences in 2020/21:  
+Relative differences in `2020/21`:  
 
 ```{r echo=FALSE, warning=FALSE}
 bind_rows(
@@ -776,7 +775,7 @@ bind_rows(
   facet_grid(vars(Country), vars(Year))
 ```
 
-Fit & prediction 2020/21:
+Fit & prediction `2020/21`:
 
 ```{r include=FALSE}
 data <- bind_rows(
