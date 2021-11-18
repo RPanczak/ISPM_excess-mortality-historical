@@ -67,8 +67,7 @@ START <- deaths_monthly %>%
 END <- deaths_yearly_age_sex %>% 
   summarize(MAX = max(Year))
 
-# FIXME: problem with death data by age in 2021 in Spain!
-if(COUNTRY=="Spain") END$MAX = 2020
+
 
 
 # 1 - Excluding post-pandemic years, observed population data ----
@@ -78,7 +77,7 @@ results_year <- tibble()
 results_age <- tibble()
 
 ## Loop
-for (YEAR in (START$MIN+5):END$MAX) {
+for (YEAR in (START$MIN+5):2021) {
   
   # Global model
   print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
@@ -102,6 +101,9 @@ for (YEAR in (START$MIN+5):END$MAX) {
     bind_rows(.,results_year)
   
   # Age model
+  
+  if(COUNTRY=="Sweden" & YEAR==2021) next
+  
   print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
@@ -148,7 +150,7 @@ results_year <- tibble()
 results_age <- tibble()
 
 ## Loop
-for (YEAR in 2020:END$MAX) {
+for (YEAR in 2020:2021) {
   
   # Global model
   print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
@@ -172,6 +174,9 @@ for (YEAR in 2020:END$MAX) {
     bind_rows(.,results_year)
   
   # Age model
+  
+  if(COUNTRY=="Sweden" & YEAR==2021) next
+  
   print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
@@ -241,6 +246,9 @@ for (YEAR in pandemic_affected) {
     bind_rows(.,results_year)
   
   # Age model
+  
+  if(COUNTRY=="Sweden" & YEAR==2021) next
+  
   print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
@@ -289,7 +297,7 @@ results_year <- tibble()
 results_age <- tibble()
 
 ## Loop
-for (YEAR in (START$MIN+7):END$MAX) {
+for (YEAR in (START$MIN+7):2021) {
   
   # Global model
   print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
@@ -313,6 +321,9 @@ for (YEAR in (START$MIN+7):END$MAX) {
     bind_rows(.,results_year)
   
   # Age model
+  
+  if(COUNTRY=="Sweden" & YEAR==2021) next
+  
   print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
@@ -348,6 +359,3 @@ for (YEAR in (START$MIN+7):END$MAX) {
   rm(m_glo, m_age)
   gc()
 }
-
-
-
