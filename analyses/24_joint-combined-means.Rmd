@@ -59,7 +59,7 @@ merge_mort <- function(data){
   # mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain"))
 }
 
-# #########################################################################
+# ###############################################################
 # primary results from age adjusted models
 results_month <- merge_mort(bind_rows(
   # read_rds("data/outputs_2021-11-17/Sweden_results_month.Rds"), 
@@ -94,7 +94,7 @@ results_age <- merge_mort(bind_rows(
 
 
 
-# #########################################################################
+# ###############################################################
 # secondary results from unadjusted models
 results_month_global <- merge_mort(bind_rows(
   # read_rds("data/outputs_2021-11-17/Sweden_results_month.Rds"), 
@@ -129,7 +129,7 @@ results_age_global <- merge_mort(bind_rows(
 
 
 
-# #########################################################################
+# ###############################################################
 # sensitivity for using frequentist model, unadjusted for age
 results_month_boot <- read_rds("data/outputs_2021-11-17/All_results_month.Rds") %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
@@ -140,7 +140,7 @@ results_month_boot <- read_rds("data/outputs_2021-11-17/All_results_month.Rds") 
 
 
 
-# #########################################################################
+# ###############################################################
 # sensitivity for alternative time window & min/max selection
 results_month_last_7 <- merge_mort(bind_rows(
   # read_rds("data/outputs_2021-11-17/Sweden_results_month_last_7_trim.Rds"), 
@@ -175,15 +175,15 @@ results_age_last_7 <- merge_mort(bind_rows(
 
 
 
-# #########################################################################
+# ###############################################################
 # sensitivity for including effects of pandemics
 results_month_pand <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-17/All_results_month_pand.Rds"),
   # read_rds("data/outputs_2021-11-17/Sweden_results_month_pand.Rds"), 
   # read_rds("data/outputs_2021-11-17/Spain_results_month_pand.Rds"),
   read_rds("data/outputs_2021-11-17/Switzerland_results_month_pand.Rds")
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
+  filter(Model == "Age Serfling (Stan, NB)") %>%
+  mutate(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   arrange(Country, Year, Month) %>% 
   mutate(across(pred:excess_month_lower, round)) %>% 
@@ -194,7 +194,8 @@ results_year_pand <- merge_mort(bind_rows(
   # read_rds("data/outputs_2021-11-17/Spain_results_year_pand.Rds"),
   read_rds("data/outputs_2021-11-17/Switzerland_results_year_pand.Rds") 
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
+  filter(Model == "Age Serfling (Stan, NB)") %>%
+  mutate(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   arrange(Country, Year) %>% 
   mutate(across(excess_year:excess_year_upper, round)) %>% 
   relocate(Model)
@@ -204,14 +205,15 @@ results_age_pand <- merge_mort(bind_rows(
   # read_rds("data/outputs_2021-11-17/Spain_results_age_pand.Rds"),
   read_rds("data/outputs_2021-11-17/Switzerland_results_age_pand.Rds") 
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
+  filter(Model == "Age Serfling (Stan, NB)") %>%
+  mutate(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   arrange(Country, Year) %>% 
   mutate(across(pred:excess_year_upper, round)) %>% 
   relocate(Model, Country, Year, Age_cat, Deaths)
 
 
 
-# #########################################################################
+# ###############################################################
 # sensitivity for using expected pops in 2021
 results_month_exp <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-17/All_results_month_exp.Rds"),
@@ -247,7 +249,7 @@ results_age_exp <- merge_mort(bind_rows(
 
 
 
-# #########################################################################
+# ###############################################################
 pops <- read_rds("data/deaths_monthly.Rds") %>% 
   filter(Month == 1) %>% 
   select(Year, Country, Population_obs) %>% 
@@ -1091,7 +1093,7 @@ extreme_data %>%
   collapse_rows(columns = 1, valign = "top")
 ```
 
-### Figure 2020
+### Figure 2021
 
 ```{r echo=FALSE}
 extreme_data <- 
@@ -1238,7 +1240,7 @@ ggplot(data = data_year,
 
 ## Comparing to BfS estimates
 
-Data from BfS prepared in `03`. No CI included in comparisons since different age groups are used.  
+Data from BfS prepared in `03`. No CI included in comparisons since different age groups are used!  
 
 ```{r echo=FALSE}
 excess_2010_2020 <- 
@@ -1289,7 +1291,7 @@ summary(results_month[results_month$Model != "Global Serfling", ]$n_eff)
 
 ## Model agreement
 
-Example of last year  
+Example of 2020    
 
 ```{r echo=FALSE}
 bind_rows(
