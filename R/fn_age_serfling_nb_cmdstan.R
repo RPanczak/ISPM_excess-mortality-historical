@@ -1,11 +1,11 @@
 # function for the joint Serfling model, negative binomial version
 
-# pred_year = 2020
+# pred_year = 2021
 # monthly_data = deaths_monthly
 # yearly_data = deaths_yearly_age_sex
 # pandemic_years =  c(1890, 1918, 1957, 2020, 2021)
 # pop = "obs"
-# version = "last_7_trim"
+# version = "last_5"
 # prior = 10
 # prior_intercept = 10
 # p = 0.95
