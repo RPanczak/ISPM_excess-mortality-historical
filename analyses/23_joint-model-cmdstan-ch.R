@@ -46,7 +46,8 @@ if (COUNTRY == "Spain") {
   pandemic <- c(1918, 1957, 2020)
   pandemic_affected <- c(
     seq(1918 + 1, 1918 + year_smooth),
-    seq(1957 + 1, 1957 + year_smooth))
+    seq(1957 + 1, 1957 + year_smooth),
+    2021)
   
   
   
@@ -56,7 +57,8 @@ if (COUNTRY == "Spain") {
   pandemic_affected <- c(
     seq(1890 + 1, 1890 + year_smooth),
     seq(1918 + 1, 1918 + year_smooth),
-    seq(1957 + 1, 1957 + year_smooth))
+    seq(1957 + 1, 1957 + year_smooth),
+    2021)
   
 }
 
@@ -226,7 +228,7 @@ results_age <- tibble()
 for (YEAR in pandemic_affected) {
   
   # Global model
-  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
+  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB, pandemic)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -236,20 +238,20 @@ for (YEAR in pandemic_affected) {
   
   results_month <- m_glo$pred_total_deaths %>% 
     dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Global Serfling (Stan, NB)") %>% 
+    dplyr::mutate(Model = "Global Serfling (Stan, NB, pandemic)") %>% 
     bind_rows(.,results_month)
   
   results_year <- m_glo$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Global Serfling (Stan, NB)") %>% 
+    mutate(Model = "Global Serfling (Stan, NB, pandemic)") %>% 
     bind_rows(.,results_year)
   
   # Age model
   
   if(COUNTRY=="Sweden" & YEAR==2021) next
   
-  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
+  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB, pandemic)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
                                       deaths_monthly, 
@@ -260,17 +262,17 @@ for (YEAR in pandemic_affected) {
   
   results_month <- m_age$pred_total_deaths %>% 
     dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Age Serfling (Stan, NB)") %>% 
+    dplyr::mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
     bind_rows(.,results_month)
   
   results_year <- m_age$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
+    mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
     bind_rows(.,results_year)
   
   results_age <- m_age$pred_grouped_deaths %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
+    mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
     bind_rows(.,results_age)
   
   # Save
@@ -300,7 +302,7 @@ results_age <- tibble()
 for (YEAR in (START$MIN+7):2021) {
   
   # Global model
-  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
+  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB, last 7)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -311,20 +313,20 @@ for (YEAR in (START$MIN+7):2021) {
   
   results_month <- m_glo$pred_total_deaths %>% 
     dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Global Serfling (Stan, NB)") %>% 
+    dplyr::mutate(Model = "Global Serfling (Stan, NB, last 7)") %>% 
     bind_rows(.,results_month)
   
   results_year <- m_glo$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Global Serfling (Stan, NB)") %>% 
+    mutate(Model = "Global Serfling (Stan, NB, last 7)") %>% 
     bind_rows(.,results_year)
   
   # Age model
   
   if(COUNTRY=="Sweden" & YEAR==2021) next
   
-  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
+  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB, last 7)"))
   
   m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
                                       deaths_monthly, 
@@ -335,17 +337,17 @@ for (YEAR in (START$MIN+7):2021) {
   
   results_month <- m_age$pred_total_deaths %>% 
     dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Age Serfling (Stan, NB)") %>% 
+    dplyr::mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
     bind_rows(.,results_month)
   
   results_year <- m_age$pred_total_deaths %>% 
     filter(row_number() == 1) %>% 
     select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
+    mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
     bind_rows(.,results_year)
   
   results_age <- m_age$pred_grouped_deaths %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
+    mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
     bind_rows(.,results_age)
   
   # Save
