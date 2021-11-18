@@ -135,7 +135,7 @@ results_month_boot <- read_rds("data/outputs_2021-11-17/All_results_month.Rds") 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   arrange(Country, Year, Month) %>% 
   mutate(across(pred:excess_month_lower, round)) %>% 
-  mutate(Model = "(Global Serfling (bootstrap)") %>% 
+  mutate(Model = "Global Serfling (bootstrap)") %>% 
   relocate(Model, Country, Year, Month, Date)
 
 
@@ -364,7 +364,6 @@ table_1 %>%
   row_spec(1, italic = FALSE)
 ```
 
-
 ## Table 2
 
 ```{r echo=FALSE}
@@ -374,7 +373,7 @@ table_2 <-
     
     pops %>% 
       filter(Year %in% pandemic_year) %>% 
-      select(Year, Country), 
+      select(Year, Country, Population), 
     
     results_month %>% 
       filter(Year %in% pandemic_year) %>%
@@ -393,20 +392,48 @@ table_2 <-
              Excess_lci = excess_year_lower, Excess_uci = excess_year_upper)
     
   ) %>% 
-  mutate(Percent_excess = 
-           percent(Excess / Expected, accuracy = 0.1),
-         Percent_lci = 
-           percent(Excess_lci / Expected, accuracy = 0.1),
-         Percent_uci = 
-           percent(Excess_uci / Expected, accuracy = 0.1)) %>% 
+  mutate(
+    Percent_excess = 
+      percent(Excess / Expected, accuracy = 0.1),
+    Percent_lci = 
+      percent(Excess_lci / Expected, accuracy = 0.1),
+    Percent_uci = 
+      percent(Excess_uci / Expected, accuracy = 0.1)
+  ) %>% 
+  mutate(
+    Rate_excess = 
+      number((Excess / Population) * 100000, 
+             accuracy = 0.1, big.mark = ","),
+    Rate_lci = 
+      number((Excess_lci / Population) * 100000, 
+             accuracy = 0.1, big.mark = ","),
+    Rate_uci = 
+      number((Excess_uci / Population) * 100000, 
+             accuracy = 0.1, big.mark = ",")
+  ) %>% 
   relocate(Year, Country, 
-           starts_with("Excess"), starts_with("Percent")) %>% 
-  mutate(excess_cri = str_c("(", Excess_lci, ", ", Excess_uci, ")")) %>% 
+           starts_with("Excess"), 
+           starts_with("Percent"), 
+           starts_with("Rate")) %>% 
+  mutate(Excess = number(Excess, big.mark = ","),
+         excess_cri = str_c("(", 
+                            number(Excess_lci, big.mark = ","), 
+                            "; ", 
+                            number(Excess_uci, big.mark = ","), 
+                            ")")) %>% 
   relocate(excess_cri, .after = Excess) %>% 
   select(-Excess_lci, -Excess_uci) %>% 
-  mutate(percent_cri = str_c("(", Percent_lci, ", ", Percent_uci, ")")) %>% 
+  mutate(percent_cri = str_c("(", 
+                             Percent_lci, 
+                             "; ", 
+                             Percent_uci, 
+                             ")")) %>% 
   relocate(percent_cri, .after = Percent_excess) %>% 
   select(-Percent_lci, -Percent_uci, -Expected) %>% 
+  
+  mutate(rate_cri = str_c("(", Rate_lci, ", ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
+  select(-Rate_lci, -Rate_uci, -Population) %>% 
+  
   arrange(Year, desc(Country))
 
 openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx", 
@@ -417,14 +444,17 @@ openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx",
 table_2 %>% 
   filter(!(Country == "Sweden" & Year == 2021)) %>% 
   select(-Year) %>% 
-  kbl(align = "lrrrrr",
+  kbl(align = "lrrrrrrr",
       col.names = c("Country", 
                     "No.", "95% CrI", 
-                    "%", "95% CrI")) %>% 
+                    "%", "95% CrI",
+                    "Per 100,000", "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c(" " = 1, 
-                     "Excess" = 2, "% excess" = 2)) %>% 
+                     "Excess" = 2, 
+                     "% excess" = 2,
+                     "Absolute excess mortality rate" = 2)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -768,72 +798,80 @@ ggsave("paper/Figure_3.png", dpi = 300, width = 200, height = 100, units = "mm")
 
 ## Table S1
 
-Comparing estimates of excess from different methods
+Comparing estimates of excess from different methods: 
+
+- Global Serfling (bootstrap)
+- Global Serfling (Stan, NB)
+- Age Serfling with alternative time window (Stan, NB)
+
 
 ```{r echo=FALSE}
 pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
 
-table_s1 <- bind_rows(
+table_s1 <- 
   
-  # needs all models
-  
-  # global serfling model without CrI
-  read_rds("data/outputs_2021-11-17/All_results_month.Rds") %>% 
-    select(Country, Year, Model, excess_month) %>% 
-    group_by(Country, Year, Model) %>% 
-    summarise(excess_year = sum(excess_month)) %>% 
-    ungroup() %>% 
-    mutate(excess_year_lower = NA_real_,
-           excess_year_upper = NA_real_),
-  
-  # 2021
-  read_rds("data/outputs_2021-11-17/All_results_month.Rds") %>% 
-    select(Country, Year, Model, excess_month) %>% 
-    group_by(Country, Year, Model) %>% 
-    summarise(excess_year = sum(excess_month, na.rm = TRUE)) %>% 
-    ungroup() %>% 
-    mutate(excess_year_lower = NA_real_,
-           excess_year_upper = NA_real_),
-  
-  # remaining three
   bind_rows(
-    read_rds("data/outputs_2021-11-17/Switzerland_results_year.Rds"), 
-    read_rds("data/outputs_2021-11-17/Sweden_results_year.Rds"), 
-    read_rds("data/outputs_2021-11-17/Spain_results_year.Rds"),
     
-    read_rds("data/outputs_2021-11-17/Switzerland_results_year.Rds"), 
-    read_rds("data/outputs_2021-11-17/Sweden_results_year.Rds"), 
-    read_rds("data/outputs_2021-11-17/Spain_results_year.Rds")
+    # global serfling model without CrI for yearly
+    results_month_boot %>% 
+      group_by(Model, Country, Year) %>% 
+      summarise(excess_year = sum(pred)) %>% 
+      ungroup() %>% 
+      mutate(Model = "m1"),
+    
+    # global serfling stan without age
+    results_year_global  %>% 
+      mutate(Model = "m2"),
+    
+    # global serfling stan without age, different time window
+    results_year_last_7  %>% 
+      mutate(Model = "m3")
+    
   ) %>% 
-    select(Country, Year, Model, starts_with("excess_"))
-  
-) %>% 
   filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
+  select(-Pandemic) %>% 
   arrange(desc(Country), Year, Model) %>% 
-  # mutate(Model = str_remove(Model, fixed(" (Stan, NB)"))) %>% 
   pivot_wider(names_from = Model, 
               values_from = starts_with("excess_"),
               names_sort = FALSE) %>% 
   relocate(Country, Year,
-           `excess_year_Global Serfling`, 
-           `excess_year_lower_Global Serfling`, 
-           `excess_year_upper_Global Serfling`,
-           `excess_year_Global Serfling (Stan, NB)`, 
-           `excess_year_lower_Global Serfling (Stan, NB)`,
-           `excess_year_upper_Global Serfling (Stan, NB)`,
-           `excess_year_Age Serfling (Stan, NB)`, 
-           `excess_year_lower_Age Serfling (Stan, NB)`, 
-           `excess_year_upper_Age Serfling (Stan, NB)`) %>% 
-  select(-`excess_year_lower_Global Serfling`, -`excess_year_upper_Global Serfling`,
+           excess_year_m1, 
+           excess_year_lower_m1, 
+           excess_year_upper_m1,
+           excess_year_m2, 
+           excess_year_lower_m2, 
+           excess_year_upper_m2,
+           excess_year_m3, 
+           excess_year_lower_m3, 
+           excess_year_upper_m3
+  ) %>% 
+  select(-excess_year_lower_m1, -excess_year_upper_m1) %>% 
+  
+  mutate(
+    excess_year_m1 = number(excess_year_m1, big.mark = ","),
+    excess_year_m2 = number(excess_year_m2, big.mark = ","),
+    excess_year_m3 = number(excess_year_m3, big.mark = ",")
   ) %>% 
   
-  mutate(excess_stan_global = str_c("(", `excess_year_lower_Global Serfling (Stan, NB)`, ", ", `excess_year_upper_Global Serfling (Stan, NB)`, ")")) %>% 
-  relocate(excess_stan_global, .after = `excess_year_Global Serfling (Stan, NB)`) %>% 
-  select(-`excess_year_lower_Global Serfling (Stan, NB)`, -`excess_year_upper_Global Serfling (Stan, NB)`) %>% 
+  mutate(
+    excess_year_m2_cri = str_c("(", 
+                               excess_year_lower_m2, 
+                               "; ",
+                               excess_year_upper_m2, 
+                               ")")
+  ) %>% 
+  relocate(excess_year_m2_cri, .after = excess_year_m2) %>% 
+  select(-excess_year_lower_m2, -excess_year_upper_m2) %>% 
   
-  mutate(excess_stan_age = str_c("(", `excess_year_lower_Age Serfling (Stan, NB)`, ", ", `excess_year_upper_Age Serfling (Stan, NB)`, ")")) %>% 
-  relocate(excess_stan_age, .after = `excess_year_Age Serfling (Stan, NB)`) %>% 
-  select(-`excess_year_lower_Age Serfling (Stan, NB)`, -`excess_year_upper_Age Serfling (Stan, NB)`)
+  mutate(
+    excess_year_m3_cri = str_c("(", 
+                               number(excess_year_lower_m3, big.mark = ","), 
+                               "; ",
+                               number(excess_year_upper_m3, big.mark = ","), 
+                               ")")
+  ) %>% 
+  relocate(excess_year_m3_cri, .after = excess_year_m3) %>% 
+  select(-excess_year_lower_m3, -excess_year_upper_m3)
 ```
 
 ```{r echo=FALSE}
@@ -846,8 +884,8 @@ table_s1 %>%
                     "Excess", "95% CrI")) %>% 
   add_header_above(c(" " = 1, 
                      "Poisson Serfling" = 1, 
-                     "NB Serfling" = 2, 
-                     "NB serfling (age)" = 2)) %>%   
+                     "NB serfling, no age" = 2, 
+                     "NB serfling, age, alt time" = 2)) %>%   
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
@@ -859,6 +897,11 @@ table_s1 %>%
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
+
+## Table S2
+
+Comparing using observed versus expected population counts.  
+
 
 ## Figure S1 
 
