@@ -135,7 +135,7 @@ results_month_boot <- read_rds("data/outputs_2021-11-17/All_results_month.Rds") 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   arrange(Country, Year, Month) %>% 
   mutate(across(pred:excess_month_lower, round)) %>% 
-  mutate(Model = "(Global Serfling (bootstrap)")
+  mutate(Model = "(Global Serfling (bootstrap)") %>% 
   relocate(Model, Country, Year, Month, Date)
 
 
@@ -268,7 +268,7 @@ pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
 
 Using `COVID19` [package](https://cran.r-project.org/web/packages/COVID19/index.html) ([citation](https://doi.org/10.21105/joss.02376)).  
 
-Data retrieved for `2021-07-01`.  
+Data retrieved for `2021-11-18`.  
 
 ```{r}
 covid_cases_deaths_20 <- covid19(c("Switzerland", "Sweden", "Spain"), 
@@ -279,8 +279,8 @@ covid_cases_deaths_20 <- covid19(c("Switzerland", "Sweden", "Spain"),
 
 covid_cases_deaths_21 <- covid19(c("Switzerland", "Sweden", "Spain"), 
                                  level = 1, 
-                                 start = "2021-06-30", 
-                                 end = "2021-06-30", 
+                                 start = "2021-07-01", 
+                                 end = "2021-07-01", 
                                  vintage = FALSE)
 
 covid_cases_deaths <- bind_rows(
@@ -302,7 +302,16 @@ covid_cases_deaths <- bind_rows(
     mutate(Year = 2021)
   
 ) %>% 
-  relocate(Year)
+  rename(Country = administrative_area_level_1) %>% 
+  relocate(Year) %>% 
+  ungroup() %>% 
+  select(-id) %>% 
+  rename(Cases = confirmed,
+         Deaths = deaths)
+```
+
+```{r}
+covid_cases_deaths 
 ```
 
 ## Table 1
@@ -327,6 +336,56 @@ table_1 <-
   ) %>% 
   left_join(
     
+    covid_cases_deaths) %>% 
+  arrange(Year, desc(Country))
+
+openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
+                     row.names = FALSE, overwrite = TRUE)
+```
+
+```{r echo=FALSE}
+table_1 %>% 
+  filter(!(Country == "Sweden" & Year == 2021)) %>% 
+  select(-Year) %>% 
+  kbl(align = "lrrrrr",
+      col.names = c("Country", "Population", 
+                    "Observed", "Expected", 
+                    "Cases", "Deaths")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  add_header_above(c(" " = 2, 
+                     "All-cause deaths" = 2, "COVID-19" = 2)) %>% 
+  pack_rows("1890", 1, 2) %>%
+  pack_rows("1918", 3, 5) %>% 
+  pack_rows("1957", 6, 8) %>% 
+  pack_rows("2020", 9, 11) %>% 
+  pack_rows("2021", 12, 13) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE)
+```
+
+
+## Table 2
+
+```{r echo=FALSE}
+table_2 <- 
+  
+  left_join(
+    
+    pops %>% 
+      filter(Year %in% pandemic_year) %>% 
+      select(Year, Country), 
+    
+    results_month %>% 
+      filter(Year %in% pandemic_year) %>%
+      group_by(Country, Year) %>% 
+      summarise(Expected = sum(pred)
+      ) %>% 
+      ungroup()
+    
+  ) %>% 
+  left_join(
+    
     results_year %>%
       select(Country, Year, excess_year, excess_year_lower, excess_year_upper) %>%
       filter(Year %in% pandemic_year) %>%
@@ -340,32 +399,31 @@ table_1 <-
            percent(Excess_lci / Expected, accuracy = 0.1),
          Percent_uci = 
            percent(Excess_uci / Expected, accuracy = 0.1)) %>% 
-  relocate(Year, Country, Population, Observed, Expected, 
+  relocate(Year, Country, 
            starts_with("Excess"), starts_with("Percent")) %>% 
   mutate(excess_cri = str_c("(", Excess_lci, ", ", Excess_uci, ")")) %>% 
   relocate(excess_cri, .after = Excess) %>% 
   select(-Excess_lci, -Excess_uci) %>% 
   mutate(percent_cri = str_c("(", Percent_lci, ", ", Percent_uci, ")")) %>% 
   relocate(percent_cri, .after = Percent_excess) %>% 
-  select(-Percent_lci, -Percent_uci) %>% 
+  select(-Percent_lci, -Percent_uci, -Expected) %>% 
   arrange(Year, desc(Country))
 
-openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
+openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
 
 ```{r echo=FALSE}
-table_1 %>% 
+table_2 %>% 
   filter(!(Country == "Sweden" & Year == 2021)) %>% 
   select(-Year) %>% 
-  kbl(align = "lrrrrrrr",
-      col.names = c("Country", "Population", 
-                    "Observed", "Expected", 
+  kbl(align = "lrrrrr",
+      col.names = c("Country", 
                     "No.", "95% CrI", 
                     "%", "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
-  add_header_above(c(" " = 4, 
+  add_header_above(c(" " = 1, 
                      "Excess" = 2, "% excess" = 2)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
