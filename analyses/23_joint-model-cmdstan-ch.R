@@ -66,8 +66,6 @@ if (COUNTRY == "Spain") {
 START <- deaths_monthly %>% 
   summarize(MIN = min(Year))
 
-END <- deaths_yearly_age_sex %>% 
-  summarize(MAX = max(Year))
 
 
 
@@ -82,7 +80,7 @@ results_age <- tibble()
 for (YEAR in (START$MIN+5):2021) {
   
   # Global model
-  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
+  print(paste("Loop 1.", "Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -104,31 +102,33 @@ for (YEAR in (START$MIN+5):2021) {
   
   # Age model
   
-  if(COUNTRY=="Sweden" & YEAR==2021) next
-  
-  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
-  
-  m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
-                                      deaths_monthly, 
-                                      deaths_yearly_age_sex, 
-                                      pandemic_years = pandemic, 
-                                      pop = "obs",
-                                      version = "last_5")
-  
-  results_month <- m_age$pred_total_deaths %>% 
-    dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Age Serfling (Stan, NB)") %>% 
-    bind_rows(.,results_month)
-  
-  results_year <- m_age$pred_total_deaths %>% 
-    filter(row_number() == 1) %>% 
-    select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
-    bind_rows(.,results_year)
-  
-  results_age <- m_age$pred_grouped_deaths %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
-    bind_rows(.,results_age)
+  if(! (COUNTRY=="Sweden" & YEAR==2021)) {
+    
+    print(paste("Loop 1.", "Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
+    
+    m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
+                                        deaths_monthly, 
+                                        deaths_yearly_age_sex, 
+                                        pandemic_years = pandemic, 
+                                        pop = "obs",
+                                        version = "last_5")
+    
+    results_month <- m_age$pred_total_deaths %>% 
+      dplyr::select(-starts_with("excess_year")) %>% 
+      dplyr::mutate(Model = "Age Serfling (Stan, NB)") %>% 
+      bind_rows(.,results_month)
+    
+    results_year <- m_age$pred_total_deaths %>% 
+      filter(row_number() == 1) %>% 
+      select(Country, Year, starts_with("excess_year")) %>% 
+      mutate(Model = "Age Serfling (Stan, NB)") %>% 
+      bind_rows(.,results_year)
+    
+    results_age <- m_age$pred_grouped_deaths %>% 
+      mutate(Model = "Age Serfling (Stan, NB)") %>% 
+      bind_rows(.,results_age)
+    
+  }
   
   # Save
   write_rds(results_month, 
@@ -155,7 +155,7 @@ results_age <- tibble()
 for (YEAR in 2020:2021) {
   
   # Global model
-  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
+  print(paste("Loop 2.", "Year:", YEAR, "Model: Global Serfling (Stan, NB)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -177,31 +177,33 @@ for (YEAR in 2020:2021) {
   
   # Age model
   
-  if(COUNTRY=="Sweden" & YEAR==2021) next
-  
-  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
-  
-  m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
-                                      deaths_monthly, 
-                                      deaths_yearly_age_sex, 
-                                      pandemic_years = pandemic, 
-                                      pop = "exp",
-                                      version = "last_5")
-  
-  results_month <- m_age$pred_total_deaths %>% 
-    dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Age Serfling (Stan, NB)") %>% 
-    bind_rows(.,results_month)
-  
-  results_year <- m_age$pred_total_deaths %>% 
-    filter(row_number() == 1) %>% 
-    select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
-    bind_rows(.,results_year)
-  
-  results_age <- m_age$pred_grouped_deaths %>% 
-    mutate(Model = "Age Serfling (Stan, NB)") %>% 
-    bind_rows(.,results_age)
+  if(! (COUNTRY=="Sweden" & YEAR==2021)) {
+    
+    print(paste("Loop 2.", "Year:", YEAR, "Model: Age Serfling (Stan, NB)"))
+    
+    m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
+                                        deaths_monthly, 
+                                        deaths_yearly_age_sex, 
+                                        pandemic_years = pandemic, 
+                                        pop = "exp",
+                                        version = "last_5")
+    
+    results_month <- m_age$pred_total_deaths %>% 
+      dplyr::select(-starts_with("excess_year")) %>% 
+      dplyr::mutate(Model = "Age Serfling (Stan, NB)") %>% 
+      bind_rows(.,results_month)
+    
+    results_year <- m_age$pred_total_deaths %>% 
+      filter(row_number() == 1) %>% 
+      select(Country, Year, starts_with("excess_year")) %>% 
+      mutate(Model = "Age Serfling (Stan, NB)") %>% 
+      bind_rows(.,results_year)
+    
+    results_age <- m_age$pred_grouped_deaths %>% 
+      mutate(Model = "Age Serfling (Stan, NB)") %>% 
+      bind_rows(.,results_age)
+    
+  }
   
   # Save
   write_rds(results_month, 
@@ -228,7 +230,7 @@ results_age <- tibble()
 for (YEAR in pandemic_affected) {
   
   # Global model
-  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB, pandemic)"))
+  print(paste("Loop 3.", "Year:", YEAR, "Model: Global Serfling (Stan, NB, pandemic)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -249,31 +251,33 @@ for (YEAR in pandemic_affected) {
   
   # Age model
   
-  if(COUNTRY=="Sweden" & YEAR==2021) next
-  
-  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB, pandemic)"))
-  
-  m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
-                                      deaths_monthly, 
-                                      deaths_yearly_age_sex, 
-                                      pandemic_years = NULL, 
-                                      pop = "obs",
-                                      version = "last_5")
-  
-  results_month <- m_age$pred_total_deaths %>% 
-    dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
-    bind_rows(.,results_month)
-  
-  results_year <- m_age$pred_total_deaths %>% 
-    filter(row_number() == 1) %>% 
-    select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
-    bind_rows(.,results_year)
-  
-  results_age <- m_age$pred_grouped_deaths %>% 
-    mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
-    bind_rows(.,results_age)
+  if(! (COUNTRY=="Sweden" & YEAR==2021)) {
+    
+    print(paste("Loop 3.", "Year:", YEAR, "Model: Age Serfling (Stan, NB, pandemic)"))
+    
+    m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
+                                        deaths_monthly, 
+                                        deaths_yearly_age_sex, 
+                                        pandemic_years = NULL, 
+                                        pop = "obs",
+                                        version = "last_5")
+    
+    results_month <- m_age$pred_total_deaths %>% 
+      dplyr::select(-starts_with("excess_year")) %>% 
+      dplyr::mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
+      bind_rows(.,results_month)
+    
+    results_year <- m_age$pred_total_deaths %>% 
+      filter(row_number() == 1) %>% 
+      select(Country, Year, starts_with("excess_year")) %>% 
+      mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
+      bind_rows(.,results_year)
+    
+    results_age <- m_age$pred_grouped_deaths %>% 
+      mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
+      bind_rows(.,results_age)
+    
+  }
   
   # Save
   write_rds(results_month, 
@@ -302,7 +306,7 @@ results_age <- tibble()
 for (YEAR in (START$MIN+7):2021) {
   
   # Global model
-  print(paste("Year:", YEAR, "Model: Global Serfling (Stan, NB, last 7)"))
+  print(paste("Loop 4.", "Year:", YEAR, "Model: Global Serfling (Stan, NB, last 7)"))
   
   m_glo <- fn_global_serfling_nb_cmdstan(YEAR, 
                                          deaths_monthly, 
@@ -324,31 +328,33 @@ for (YEAR in (START$MIN+7):2021) {
   
   # Age model
   
-  if(COUNTRY=="Sweden" & YEAR==2021) next
-  
-  print(paste("Year:", YEAR, "Model: Age Serfling (Stan, NB, last 7)"))
-  
-  m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
-                                      deaths_monthly, 
-                                      deaths_yearly_age_sex, 
-                                      pandemic_years = pandemic, 
-                                      pop = "obs",
-                                      version = "last_7_trim")
-  
-  results_month <- m_age$pred_total_deaths %>% 
-    dplyr::select(-starts_with("excess_year")) %>% 
-    dplyr::mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
-    bind_rows(.,results_month)
-  
-  results_year <- m_age$pred_total_deaths %>% 
-    filter(row_number() == 1) %>% 
-    select(Country, Year, starts_with("excess_year")) %>% 
-    mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
-    bind_rows(.,results_year)
-  
-  results_age <- m_age$pred_grouped_deaths %>% 
-    mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
-    bind_rows(.,results_age)
+  if(! (COUNTRY=="Sweden" & YEAR==2021)) {
+    
+    print(paste("Loop 4.", "Year:", YEAR, "Model: Age Serfling (Stan, NB, last 7)"))
+    
+    m_age <- fn_age_serfling_nb_cmdstan(YEAR, 
+                                        deaths_monthly, 
+                                        deaths_yearly_age_sex, 
+                                        pandemic_years = pandemic, 
+                                        pop = "obs",
+                                        version = "last_7_trim")
+    
+    results_month <- m_age$pred_total_deaths %>% 
+      dplyr::select(-starts_with("excess_year")) %>% 
+      dplyr::mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
+      bind_rows(.,results_month)
+    
+    results_year <- m_age$pred_total_deaths %>% 
+      filter(row_number() == 1) %>% 
+      select(Country, Year, starts_with("excess_year")) %>% 
+      mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
+      bind_rows(.,results_year)
+    
+    results_age <- m_age$pred_grouped_deaths %>% 
+      mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
+      bind_rows(.,results_age)
+    
+  }
   
   # Save
   write_rds(results_month, 
