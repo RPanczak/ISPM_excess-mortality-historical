@@ -53,6 +53,8 @@ result_long %>%
   filter(Year == 2021 & Country == "Switzerland") 
 
 result_long %>% 
+  # 2021 age has to go away since it's based on 6 mo only!
+  filter(! (Type == "age" & Year == 2021)) %>% 
   ggplot(aes(x = Year, y = Excess, color = Type)) +
   geom_line() + 
   facet_grid(vars(Country), scales = "free_y")
@@ -88,13 +90,17 @@ result_wide <- left_join(
 )
 
 result_wide %>% 
+  # 2021 has to go away since it's based on 6 mo only!
+  filter(! (Year == 2021)) %>%   
   ggplot(aes(x = Year, y = Excess_month - Excess_age)) +
   geom_line() + 
   scale_y_continuous()+
   facet_grid(vars(Country), scales = "free_y")
 
 result_wide %>% 
+  # 2021 has to go away since it's based on 6 mo only!
+  filter(! (Year == 2021)) %>%   
   ggplot(aes(x = Year, y = (Excess_month - Excess_age) / Excess_month)) +
   geom_line() + 
-  scale_y_continuous(labels = percent)+
+  scale_y_continuous(labels = scales::percent)+
   facet_grid(vars(Country), scales = "free_y")
