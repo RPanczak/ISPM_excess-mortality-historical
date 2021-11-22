@@ -272,11 +272,11 @@ pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
 
 ## Table 1
 
-### COVID-19 data
+### COVID-19 data v1
 
 Using `COVID19` [package](https://cran.r-project.org/web/packages/COVID19/index.html) ([citation](https://doi.org/10.21105/joss.02376)).  
 
-Data retrieved for `2021-11-19`.  
+Data retrieved for `2021-11-22`.  
 
 ```{r}
 covid_cases_deaths_20 <- covid19(c("Switzerland", "Sweden", "Spain"), 
@@ -316,6 +316,50 @@ covid_cases_deaths <- bind_rows(
   select(-id) %>% 
   rename(Cases = confirmed,
          Deaths = deaths)
+```
+
+```{r}
+covid_cases_deaths 
+```
+
+### COVID-19 data v2
+
+Pulling data directly from [Johns Hopkins Coronavirus Resource Center](https://coronavirus.jhu.edu/about/how-to-use-our-data) [github repo](https://github.com/CSSEGISandData/COVID-19) (using [`csse_covid_19_daily_reports`](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports) with appropriate time stamps).   
+
+Sources indicated are:  
+
+  - Spain - [RTVE](https://www.rtve.es/noticias/20200514/mapa-del-coronavirus-espana/2004681.shtml)
+  - Sweden - [The Swedish Public Health Agency](https://experience.arcgis.com/experience/09f821667ce64bf7be6f9f87457ed9aa)
+  - Switzerland 
+    - [Federal Office Of Public Health](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html)
+    - [Open Government Data Reported By The Swiss Cantons](https://github.com/openZH/covid_19)
+
+```{r}
+covid_cases_deaths_jh <- bind_rows(
+  
+  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/12-31-2020.csv") %>% 
+    filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
+    group_by(Country_Region) %>% 
+    summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
+              Deaths = sum(Deaths, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    mutate(Year = 2020),
+  
+  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/07-01-2021.csv") %>% 
+    filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
+    group_by(Country_Region) %>% 
+    summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
+              Deaths = sum(Deaths, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    left_join(covid_cases_deaths_jh_20 %>% 
+                rename (Deaths_20 = Deaths,
+                        Confirmed_20 = Confirmed)) %>% 
+    mutate(Deaths = Deaths - Deaths_20,
+           Confirmed_20 = Confirmed - Confirmed_20) %>% 
+    select(-ends_with("_20")) %>% 
+    mutate(Year = 2021)
+  
+)
 ```
 
 ```{r}
