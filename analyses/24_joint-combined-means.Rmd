@@ -280,13 +280,15 @@ covid_cases_deaths_20 <- covid19(c("Switzerland", "Sweden", "Spain"),
                                  level = 1, 
                                  start = "2020-12-31", 
                                  end = "2020-12-31", 
-                                 vintage = FALSE)
+                                 vintage = FALSE,
+                                 verbose = FALSE)
 
 covid_cases_deaths_21 <- covid19(c("Switzerland", "Sweden", "Spain"), 
                                  level = 1, 
                                  start = "2021-07-01", 
                                  end = "2021-07-01", 
-                                 vintage = FALSE)
+                                 vintage = FALSE,
+                                 verbose = FALSE)
 
 covid_cases_deaths <- bind_rows(
   
@@ -315,7 +317,7 @@ covid_cases_deaths <- bind_rows(
          Deaths = deaths)
 ```
 
-```{r}
+```{r echo=FALSE}
 covid_cases_deaths 
 ```
 
@@ -332,15 +334,17 @@ Sources indicated are:
 - [Open Government Data Reported By The Swiss Cantons](https://github.com/openZH/covid_19)
 
 ```{r}
+covid_cases_deaths_jh_20 <-   read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/12-31-2020.csv") %>% 
+  filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
+  group_by(Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
+            Deaths = sum(Deaths, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(Year = 2020)
+
 covid_cases_deaths_jh <- bind_rows(
   
-  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/12-31-2020.csv") %>% 
-    filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
-    group_by(Country_Region) %>% 
-    summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
-              Deaths = sum(Deaths, na.rm = TRUE)) %>% 
-    ungroup() %>% 
-    mutate(Year = 2020),
+  covid_cases_deaths_jh_20,
   
   read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/07-01-2021.csv") %>% 
     filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
@@ -352,15 +356,16 @@ covid_cases_deaths_jh <- bind_rows(
                 rename (Deaths_20 = Deaths,
                         Confirmed_20 = Confirmed)) %>% 
     mutate(Deaths = Deaths - Deaths_20,
-           Confirmed_20 = Confirmed - Confirmed_20) %>% 
+           Confirmed = Confirmed - Confirmed_20) %>% 
     select(-ends_with("_20")) %>% 
     mutate(Year = 2021)
-  
-)
+) %>% 
+  rename(Country = Country_Region)
 ```
 
-```{r}
+```{r echo=FALSE}
 covid_cases_deaths 
+rm(covid_cases_deaths_jh_20)
 ```
 
 ### Integrated with mortality data 
@@ -385,9 +390,10 @@ table_1 <-
   ) %>% 
   left_join(
     
-    covid_cases_deaths) %>% 
-  mutate(across(Population:Deaths, number, big.mark = ",")) %>% 
-  mutate(across(Observed:Deaths, 
+    covid_cases_deaths_jh) %>% 
+  mutate(across(Population:Expected, number, big.mark = ",")) %>% 
+  mutate(across(Confirmed:Deaths, number, big.mark = ",")) %>% 
+  mutate(across(Confirmed:Deaths, 
                 ~replace(., is.na(.), "--"))) %>% 
   arrange(Year, desc(Country))
 
@@ -398,7 +404,7 @@ openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx",
 ```{r echo=FALSE}
 table_1 %>% 
   filter(!(Country == "Sweden" & Year == 2021)) %>% 
-  select(-Year) %>% 
+  select(-Year) %>%
   kbl(align = "lrrrrr",
       col.names = c("Country", "Population", 
                     "Observed", "Expected", 
@@ -1102,7 +1108,7 @@ Impact of extremes: using 1918 pandemic as an example of impact on estimates fro
 Estimates with extreme year (blue) and without (red).  
 Converge after 5 year smoothing window stops having effect (ie. in 1924).  
 
-### Figure 1918
+### Figure 1918-1925
 
 ```{r echo=FALSE}
 extreme_data <- 
@@ -1140,7 +1146,7 @@ extreme_data %>%
 ggsave("paper/Figure_S3a.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
-### Table 1918
+### Table 1919
 
 Using 1918 pandemic as an example of impact on estimates from 1919.   
 
@@ -1170,7 +1176,7 @@ extreme_data %>%
   collapse_rows(columns = 1, valign = "top")
 ```
 
-### Figure 2021
+### Figure 2020-21
 
 ```{r echo=FALSE}
 extreme_data <- 
