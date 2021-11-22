@@ -100,6 +100,8 @@ for (YEAR in (START$MIN+5):2021) {
     mutate(Model = "Global Serfling (Stan, NB)") %>% 
     bind_rows(.,results_year)
   
+  rm(m_glo)
+  
   # Age model
   
   if(! (COUNTRY=="Sweden" & YEAR==2021)) {
@@ -128,6 +130,8 @@ for (YEAR in (START$MIN+5):2021) {
       mutate(Model = "Age Serfling (Stan, NB)") %>% 
       bind_rows(.,results_age)
     
+    rm(m_age)
+    
   }
   
   # Save
@@ -138,7 +142,6 @@ for (YEAR in (START$MIN+5):2021) {
   write_rds(results_age, 
             paste0(path0, COUNTRY, "_results_age.Rds"))
   
-  rm(m_glo, m_age)
   gc()
 }
 
@@ -175,6 +178,8 @@ for (YEAR in 2020:2021) {
     mutate(Model = "Global Serfling (Stan, NB)") %>% 
     bind_rows(.,results_year)
   
+  rm(m_glo)
+  
   # Age model
   
   if(! (COUNTRY=="Sweden" & YEAR==2021)) {
@@ -203,6 +208,8 @@ for (YEAR in 2020:2021) {
       mutate(Model = "Age Serfling (Stan, NB)") %>% 
       bind_rows(.,results_age)
     
+    rm(m_age)
+    
   }
   
   # Save
@@ -213,8 +220,7 @@ for (YEAR in 2020:2021) {
   write_rds(results_age, 
             paste0(path0, COUNTRY, "_results_age_exp.Rds"))
   
-  rm(m_glo, m_age)
-  gc()
+    gc()
 }
 
 
@@ -249,6 +255,8 @@ for (YEAR in pandemic_affected) {
     mutate(Model = "Global Serfling (Stan, NB, pandemic)") %>% 
     bind_rows(.,results_year)
   
+  rm(m_glo)
+  
   # Age model
   
   if(! (COUNTRY=="Sweden" & YEAR==2021)) {
@@ -277,6 +285,8 @@ for (YEAR in pandemic_affected) {
       mutate(Model = "Age Serfling (Stan, NB, pandemic)") %>% 
       bind_rows(.,results_age)
     
+    rm(m_age)
+    
   }
   
   # Save
@@ -287,7 +297,6 @@ for (YEAR in pandemic_affected) {
   write_rds(results_age, 
             paste0(path0, COUNTRY, "_results_age_pand.Rds"))
   
-  rm(m_glo, m_age)
   gc()
 }
 
@@ -326,6 +335,8 @@ for (YEAR in (START$MIN+7):2021) {
     mutate(Model = "Global Serfling (Stan, NB, last 7)") %>% 
     bind_rows(.,results_year)
   
+  rm(m_glo)
+  
   # Age model
   
   if(! (COUNTRY=="Sweden" & YEAR==2021)) {
@@ -354,6 +365,8 @@ for (YEAR in (START$MIN+7):2021) {
       mutate(Model = "Age Serfling (Stan, NB, last 7)") %>% 
       bind_rows(.,results_age)
     
+    rm(m_age)
+    
   }
   
   # Save
@@ -364,6 +377,5 @@ for (YEAR in (START$MIN+7):2021) {
   write_rds(results_age, 
             paste0(path0, COUNTRY, "_results_age_last_7_trim.Rds"))
   
-  rm(m_glo, m_age)
   gc()
 }
