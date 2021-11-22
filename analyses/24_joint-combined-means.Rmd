@@ -150,7 +150,7 @@ results_month_last_7 <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-18-local/Spain_results_month_last_7_trim.Rds"),
   read_rds("data/outputs_2021-11-18-local/Switzerland_results_month_last_7_trim.Rds")
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
+  filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   arrange(Country, Year, Month) %>% 
   mutate(across(pred:excess_month_lower, round)) %>% 
@@ -161,7 +161,7 @@ results_year_last_7 <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-18-local/Spain_results_year_last_7_trim.Rds"),
   read_rds("data/outputs_2021-11-18-local/Switzerland_results_year_last_7_trim.Rds") 
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
+  filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
   arrange(Country, Year) %>% 
   mutate(across(excess_year:excess_year_upper, round)) %>% 
   relocate(Model)
@@ -171,7 +171,7 @@ results_age_last_7 <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-18-local/Spain_results_age_last_7_trim.Rds"),
   read_rds("data/outputs_2021-11-18-local/Switzerland_results_age_last_7_trim.Rds") 
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
+  filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
   arrange(Country, Year) %>% 
   mutate(across(pred:excess_year_upper, round)) %>% 
   relocate(Model, Country, Year, Age_cat, Deaths)
@@ -185,8 +185,7 @@ results_month_pand <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-18-local/Spain_results_month_pand.Rds"),
   read_rds("data/outputs_2021-11-18-local/Switzerland_results_month_pand.Rds")
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>%
-  mutate(Model == "Age Serfling (Stan, NB, pandemic)") %>%
+  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   arrange(Country, Year, Month) %>% 
   mutate(across(pred:excess_month_lower, round)) %>% 
@@ -197,8 +196,7 @@ results_year_pand <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-18-local/Spain_results_year_pand.Rds"),
   read_rds("data/outputs_2021-11-18-local/Switzerland_results_year_pand.Rds") 
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>%
-  mutate(Model == "Age Serfling (Stan, NB, pandemic)") %>%
+  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   arrange(Country, Year) %>% 
   mutate(across(excess_year:excess_year_upper, round)) %>% 
   relocate(Model)
@@ -208,8 +206,7 @@ results_age_pand <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-18-local/Spain_results_age_pand.Rds"),
   read_rds("data/outputs_2021-11-18-local/Switzerland_results_age_pand.Rds") 
 )) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>%
-  mutate(Model == "Age Serfling (Stan, NB, pandemic)") %>%
+  filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   arrange(Country, Year) %>% 
   mutate(across(pred:excess_year_upper, round)) %>% 
   relocate(Model, Country, Year, Age_cat, Deaths)
@@ -328,11 +325,11 @@ Pulling data directly from [Johns Hopkins Coronavirus Resource Center](https://c
 
 Sources indicated are:  
 
-  - Spain - [RTVE](https://www.rtve.es/noticias/20200514/mapa-del-coronavirus-espana/2004681.shtml)
-  - Sweden - [The Swedish Public Health Agency](https://experience.arcgis.com/experience/09f821667ce64bf7be6f9f87457ed9aa)
-  - Switzerland 
-    - [Federal Office Of Public Health](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html)
-    - [Open Government Data Reported By The Swiss Cantons](https://github.com/openZH/covid_19)
+- Spain - [RTVE](https://www.rtve.es/noticias/20200514/mapa-del-coronavirus-espana/2004681.shtml)
+- Sweden - [The Swedish Public Health Agency](https://experience.arcgis.com/experience/09f821667ce64bf7be6f9f87457ed9aa)
+- Switzerland 
+- [Federal Office Of Public Health](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html)
+- [Open Government Data Reported By The Swiss Cantons](https://github.com/openZH/covid_19)
 
 ```{r}
 covid_cases_deaths_jh <- bind_rows(
@@ -366,7 +363,7 @@ covid_cases_deaths_jh <- bind_rows(
 covid_cases_deaths 
 ```
 
-### Data used 
+### Integrated with mortality data 
 
 ```{r echo=FALSE}
 table_1 <- 
@@ -389,6 +386,9 @@ table_1 <-
   left_join(
     
     covid_cases_deaths) %>% 
+  mutate(across(Population:Deaths, number, big.mark = ",")) %>% 
+  mutate(across(Observed:Deaths, 
+                ~replace(., is.na(.), "--"))) %>% 
   arrange(Year, desc(Country))
 
 openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
@@ -446,6 +446,7 @@ table_2 <-
              Excess_lci = excess_year_lower, Excess_uci = excess_year_upper)
     
   ) %>% 
+  
   mutate(
     Percent_excess = 
       percent(Excess / Expected, accuracy = 0.1),
@@ -454,21 +455,23 @@ table_2 <-
     Percent_uci = 
       percent(Excess_uci / Expected, accuracy = 0.1)
   ) %>% 
+  
   mutate(
     Rate_excess = 
       number((Excess / Population) * 100000, 
-             accuracy = 0.1, big.mark = ","),
+             accuracy = 5L, big.mark = ","),
     Rate_lci = 
       number((Excess_lci / Population) * 100000, 
-             accuracy = 0.1, big.mark = ","),
+             accuracy = 5L, big.mark = ","),
     Rate_uci = 
       number((Excess_uci / Population) * 100000, 
-             accuracy = 0.1, big.mark = ",")
+             accuracy = 5L, big.mark = ",")
   ) %>% 
   relocate(Year, Country, 
            starts_with("Excess"), 
            starts_with("Percent"), 
            starts_with("Rate")) %>% 
+  
   mutate(Excess = number(Excess, big.mark = ","),
          excess_cri = str_c("(", 
                             number(Excess_lci, big.mark = ","), 
@@ -477,6 +480,7 @@ table_2 <-
                             ")")) %>% 
   relocate(excess_cri, .after = Excess) %>% 
   select(-Excess_lci, -Excess_uci) %>% 
+  
   mutate(percent_cri = str_c("(", 
                              Percent_lci, 
                              "; ", 
@@ -485,7 +489,7 @@ table_2 <-
   relocate(percent_cri, .after = Percent_excess) %>% 
   select(-Percent_lci, -Percent_uci, -Expected) %>% 
   
-  mutate(rate_cri = str_c("(", Rate_lci, ", ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
+  mutate(rate_cri = str_c("(", Rate_lci, "; ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
   select(-Rate_lci, -Rate_uci, -Population) %>% 
   
   arrange(Year, desc(Country))
@@ -877,9 +881,13 @@ table_s1 <-
     results_year_global  %>% 
       mutate(Model = "m2"),
     
-    # global serfling stan without age, different time window
+    # global serfling stan with age, different time window
     results_year_last_7  %>% 
-      mutate(Model = "m3")
+      mutate(Model = "m3"),
+    
+    # global serfling stan with age, expected pop
+    results_year_exp  %>% 
+      mutate(Model = "m4")
     
   ) %>% 
   filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
@@ -897,14 +905,22 @@ table_s1 <-
            excess_year_upper_m2,
            excess_year_m3, 
            excess_year_lower_m3, 
-           excess_year_upper_m3
+           excess_year_upper_m3,
+           excess_year_m4, 
+           excess_year_lower_m4, 
+           excess_year_upper_m4
   ) %>% 
   select(-excess_year_lower_m1, -excess_year_upper_m1) %>% 
   
   mutate(
-    excess_year_m1 = number(excess_year_m1, big.mark = ","),
-    excess_year_m2 = number(excess_year_m2, big.mark = ","),
-    excess_year_m3 = number(excess_year_m3, big.mark = ",")
+    excess_year_m1 = number(excess_year_m1, 
+                            accuracy = 5L, big.mark = ","),
+    excess_year_m2 = number(excess_year_m2, 
+                            accuracy = 5L, big.mark = ","),
+    excess_year_m3 = number(excess_year_m3, 
+                            accuracy = 5L, big.mark = ","),
+    excess_year_m4 = number(excess_year_m4, 
+                            accuracy = 5L, big.mark = ",")
   ) %>% 
   
   mutate(
@@ -919,13 +935,29 @@ table_s1 <-
   
   mutate(
     excess_year_m3_cri = str_c("(", 
-                               number(excess_year_lower_m3, big.mark = ","), 
+                               number(excess_year_lower_m3,
+                                      accuracy = 5L, big.mark = ","), 
                                "; ",
-                               number(excess_year_upper_m3, big.mark = ","), 
+                               number(excess_year_upper_m3,
+                                      accuracy = 5L, big.mark = ","), 
                                ")")
   ) %>% 
   relocate(excess_year_m3_cri, .after = excess_year_m3) %>% 
-  select(-excess_year_lower_m3, -excess_year_upper_m3)
+  select(-excess_year_lower_m3, -excess_year_upper_m3) %>% 
+  
+  mutate(
+    excess_year_m4_cri = str_c("(", 
+                               number(excess_year_lower_m4,
+                                      accuracy = 5L, big.mark = ","), 
+                               "; ",
+                               number(excess_year_upper_m4,
+                                      accuracy = 5L, big.mark = ","), 
+                               ")")
+  ) %>% 
+  relocate(excess_year_m4_cri, .after = excess_year_m4) %>% 
+  select(-excess_year_lower_m4, -excess_year_upper_m4) %>% 
+  mutate(across(excess_year_m4:excess_year_m4_cri, 
+                ~replace(., is.na(.), "--"))) 
 ```
 
 ```{r echo=FALSE}
@@ -935,11 +967,13 @@ table_s1 %>%
       col.names = c("Year", 
                     "Excess", 
                     "Excess", "95% CrI", 
+                    "Excess", "95% CrI", 
                     "Excess", "95% CrI")) %>% 
   add_header_above(c(" " = 1, 
                      "Poisson Serfling" = 1, 
                      "NB Serfling, no age" = 2, 
-                     "NB Serfling, age, alt time" = 2)) %>%   
+                     "NB Serfling, age, alt time" = 2,  
+                     "NB Serfling, age, exp pops" = 2)) %>%   
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
@@ -951,11 +985,6 @@ table_s1 %>%
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
-
-## Table S2
-
-Comparing using observed versus expected population counts.  
-
 
 ## Figure S1 
 
