@@ -189,6 +189,9 @@ fn_age_serfling_nb_cmdstan = function(pred_year, monthly_data, yearly_data, pand
   qq = posterior::summarise_draws(ss$draws("excess_grouped_deaths"), "mean", ~quantile(.x, probs = c(lp,up))) %>% 
     dplyr::select(excess_grouped_deaths=mean,excess_grouped_deaths_lower=3,excess_grouped_deaths_upper=4) %>%
     bind_cols(qq,.) 
+  qq = posterior::summarise_draws(ss$draws("excess_grouped_lifelost70"), "mean", ~quantile(.x, probs = c(lp,up))) %>% 
+    dplyr::select(excess_grouped_lifelost70=mean,excess_grouped_lifelost70_lower=3,excess_grouped_lifelost70_upper=4) %>%
+    bind_cols(qq,.) 
   qq = posterior::summarise_draws(ss$draws("rel_excess_grouped_deaths"), "mean", ~quantile(.x, probs = c(lp,up))) %>% 
     dplyr::select(rel_excess_grouped_deaths=mean,rel_excess_grouped_deaths_lower=3,rel_excess_grouped_deaths_upper=4) %>%
     bind_cols(qq,.) 
@@ -197,6 +200,9 @@ fn_age_serfling_nb_cmdstan = function(pred_year, monthly_data, yearly_data, pand
     bind_cols(qq,.) 
   qq = posterior::summarise_draws(ss$draws("yearly_excess_grouped_deaths"), "mean", ~quantile(.x, probs = c(lp,up))) %>% 
     dplyr::select(yearly_excess_grouped_deaths=mean,yearly_excess_grouped_deaths_lower=3,yearly_excess_grouped_deaths_upper=4) %>%
+    bind_cols(qq,.) 
+  qq = posterior::summarise_draws(ss$draws("yearly_excess_grouped_lifelost70"), "mean", ~quantile(.x, probs = c(lp,up))) %>% 
+    dplyr::select(yearly_excess_grouped_lifelost70=mean,yearly_excess_grouped_lifelost70_lower=3,yearly_excess_grouped_lifelost70_upper=4) %>%
     bind_cols(qq,.) 
   qq = posterior::summarise_draws(ss$draws("yearly_rel_excess_grouped_deaths"), "mean", ~quantile(.x, probs = c(lp,up))) %>% 
     dplyr::select(yearly_rel_excess_grouped_deaths=mean,yearly_rel_excess_grouped_deaths_lower=3,yearly_rel_excess_grouped_deaths_upper=4) %>%

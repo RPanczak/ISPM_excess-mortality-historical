@@ -96,7 +96,9 @@ generated quantities {
   int pred_grouped_deaths[K];
   int yearly_pred_grouped_deaths;
   int excess_grouped_deaths[K];
+  real excess_grouped_lifelost70[K];
   int yearly_excess_grouped_deaths;
+  real yearly_excess_grouped_lifelost70;
   real rel_excess_grouped_deaths[K];
   real yearly_rel_excess_grouped_deaths;
 
@@ -134,9 +136,11 @@ generated quantities {
   pred_grouped_deaths = multinomial_rng(prop_pred_lin_grouped_deaths, sum(pred_total_deaths));
   for(k in 1:K) {
     excess_grouped_deaths[k] = predyear_grouped_deaths[k] - pred_grouped_deaths[k];
+    excess_grouped_lifelost70[k] = excess_grouped_deaths[k] * (k<8 ? (70.0-(k*10.0)+5.0) : 0.0) ;
     rel_excess_grouped_deaths[k] = (predyear_grouped_deaths[k] - pred_grouped_deaths[k]) / (0.0+pred_grouped_deaths[k]);
   }
   yearly_pred_grouped_deaths = sum(pred_grouped_deaths);
   yearly_excess_grouped_deaths = sum(excess_grouped_deaths);
+  yearly_excess_grouped_lifelost70 = sum(excess_grouped_lifelost70);
   yearly_rel_excess_grouped_deaths = (sum(predyear_grouped_deaths) - sum(pred_grouped_deaths)) / (0.0+sum(pred_grouped_deaths));
 }
