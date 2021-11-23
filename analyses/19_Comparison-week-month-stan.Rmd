@@ -197,6 +197,8 @@ for(COUNTRY in COUNTRIES) {
 rm(deaths_monthly, deaths_weekly, COUNTRIES, pandemic, START); gc()
 ```
 
+**Experimental:** Adding week 53 by using (and CrI (?)) estimates of predicted from week 52 and suing them to estimate excess in week 53.  
+
 ```{r echo=FALSE}
 weekly_results_53 <- weekly_results %>% 
   bind_rows(
@@ -243,10 +245,7 @@ weekly_results_53 %>%
             color = "black") +
   facet_grid(vars(Year), scales = "free_x") +
   scale_y_continuous(
-    
     name = "Weekly counts",
-    
-    # Add a second axis and specify its features
     sec.axis = sec_axis(~.*coeff, name = "Monthly counts")
   ) + 
   theme_light()
@@ -268,12 +267,17 @@ differences <- monthly_results_year %>%
          relative = absolute / excess_year)
 ```
 
+```{r}
+summary(differences$relative)
+```
+
 ### Relative 
 
 ```{r}
 ggplot(differences, aes(x = Year, y = relative)) +
   geom_col() +
-  facet_grid(vars(Country))
+  facet_grid(vars(Country)) + 
+  theme_light()
 ```
 
 ### Absolute 
@@ -281,7 +285,8 @@ ggplot(differences, aes(x = Year, y = relative)) +
 ```{r}
 ggplot(differences, aes(x = Year, y = absolute)) +
   geom_col() +
-  facet_grid(vars(Country))
+  facet_grid(vars(Country)) + 
+  theme_light()
 ```
 
 
