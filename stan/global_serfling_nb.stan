@@ -49,11 +49,19 @@ model {
       target += neg_binomial_2_lpmf(total_deaths[i,j] | exp_lin[i,j], phi);
 }
 generated quantities {
+  // linear predictors
   real pred_lin[J];
   real exp_pred_lin[J];
+  
+  // predictions
   int pred_total_deaths[J];
+  int yearly_pred_total_deaths;
   int excess_total_deaths[J];
   int yearly_excess_total_deaths;
+  real rel_excess_total_deaths[J];
+  real yearly_rel_excess_total_deaths;
+  
+  // compute linear predictors
   for(j in 1:J) {
     pred_lin[j] = alpha + 
       beta_year*(years[I]+1) + 
@@ -63,11 +71,18 @@ generated quantities {
         beta_periodic[4]*cos(4*pi()*months[j]/12) + 
       log(predyear_total_population[j]);
     exp_pred_lin[j] = exp(pred_lin[j]);
+  }
+  
+  // compute predictions
+  for(j in 1:J) {
     if(exp_pred_lin[j] < overflow_limit && phi > 1e-3) // avoid overflow
       pred_total_deaths[j] = neg_binomial_2_rng(exp_pred_lin[j], phi);
     else
       pred_total_deaths[j] = overflow_limit; 
     excess_total_deaths[j] = predyear_total_deaths[j] - pred_total_deaths[j];
-    yearly_excess_total_deaths = sum(excess_total_deaths);
+    rel_excess_total_deaths[j] = (predyear_total_deaths[j] - pred_total_deaths[j]) / (0.0+pred_total_deaths[j]);
   }
+  yearly_pred_total_deaths = sum(pred_total_deaths);
+  yearly_excess_total_deaths = sum(excess_total_deaths);
+  yearly_rel_excess_total_deaths = (sum(predyear_total_deaths) - sum(pred_total_deaths)) / (0.0+sum(pred_total_deaths));
 }

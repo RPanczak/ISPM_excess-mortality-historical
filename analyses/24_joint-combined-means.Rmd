@@ -364,7 +364,7 @@ covid_cases_deaths_jh <- bind_rows(
 ```
 
 ```{r echo=FALSE}
-covid_cases_deaths 
+covid_cases_deaths_jh 
 rm(covid_cases_deaths_jh_20)
 ```
 
@@ -393,7 +393,7 @@ table_1 <-
     covid_cases_deaths_jh) %>% 
   mutate(across(Population:Expected, number, big.mark = ",")) %>% 
   mutate(across(Confirmed:Deaths, number, big.mark = ",")) %>% 
-  mutate(across(Confirmed:Deaths, 
+  mutate(across(Observed:Deaths, 
                 ~replace(., is.na(.), "--"))) %>% 
   arrange(Year, desc(Country))
 
@@ -475,8 +475,8 @@ table_2 <-
   ) %>% 
   relocate(Year, Country, 
            starts_with("Excess"), 
-           starts_with("Percent"), 
-           starts_with("Rate")) %>% 
+           starts_with("Rate"), 
+           starts_with("Percent")) %>% 
   
   mutate(Excess = number(Excess, big.mark = ","),
          excess_cri = str_c("(", 
@@ -510,22 +510,24 @@ table_2 %>%
   select(-Year) %>% 
   kbl(align = "lrrrrrrr",
       col.names = c("Country", 
-                    "No.", "95% CrI", 
-                    "%", "95% CrI",
-                    "Per 100,000", "95% CrI")) %>% 
+                    "Count", "95% CrI",
+                    "Per 100,000", "95% CrI", 
+                    "%", "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c(" " = 1, 
-                     "Excess" = 2, 
-                     "% excess" = 2,
-                     "Absolute excess mortality rate" = 2)) %>% 
+                     "Absolute excess deaths" = 2,
+                     "Absolute excess deaths\nper population$^a$" = 2,
+                     "Relative excess deaths$^b$" = 2)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
   pack_rows("2020", 9, 11) %>% 
   pack_rows("2021", 12, 13) %>% 
   column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE)
+  row_spec(1, italic = FALSE) %>% 
+  footnote(alphabet=c("Absolute number of excess deaths scaled by population.",
+                      "Abolute number of excess deaths scaled by the number of expected deaths."))
 ```
 
 ## Figure 1
@@ -533,46 +535,43 @@ table_2 %>%
 Monthly absolute estimates of excess.  
 
 ```{r echo=FALSE}
-hline_pandemic <- results_month %>% 
-  filter(Year >= 2020) %>% 
+
+hline_pandemic <- results_year %>% 
+  filter(Year == 2020) %>% 
+  left_join(pops) %>%
   group_by(Country) %>% 
-  summarise(yintercept = max(excess_month)) %>% 
-  ungroup() 
-
-vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
-                                as.Date("1918-01-01"),
-                                as.Date("1957-01-01"),
-                                as.Date("1968-01-01"),
-                                as.Date("1977-01-01"),
-                                as.Date("2009-01-01"),
-                                as.Date("2020-01-01"))) 
-
-results_month %>% 
-  mutate(Difference = ifelse(excess_month > 0, "More than expected", "Fewer than expected")) %>% 
-  ggplot(aes(x = Date)) +
+  mutate(yintercept = excess_year/Population*100000) %>% 
+  ungroup()
+vline_pandemic <- tibble(Year=c(1890,1918,1957,1968,1977,2009,2020)) 
+results_year %>% 
+  left_join(pops) %>% 
+  mutate(Difference = ifelse(excess_year > 0, "More than expected", "Less than expected"),
+         rel_excess=excess_year/Population*100000) %>% 
+  ggplot(aes(x = Year)) +
   geom_vline(data = vline_pandemic, 
-             aes(xintercept = Date+365/2), 
-             size = 2, colour = "grey90") +
-  geom_hline(data = hline_pandemic, 
-             aes(yintercept = yintercept), 
+             aes(xintercept = Year), 
+             size = 3, colour = "grey90", alpha = 0.7) +  
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25) +
-  geom_col(aes(y = excess_month, fill = Difference, colour = Difference), width = 1) +
-  geom_hline(yintercept = 0, linetype = 2, size = 0.25) +
-  scale_x_date(date_labels = "%Y",
-               breaks = seq(as.Date("1860-01-01"), as.Date("2020-12-31"), "10 years"),
-               limits = c(as.Date("1855-01-01"), 
-                          as.Date("2021-07-01")), 
-               expand = c(0.01, 0)) +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = rel_excess, fill = Difference)) +
+  scale_x_continuous(
+    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
+    limits = c(1856-1, 2020+1),
+    expand = c(0, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
-  facet_grid(Country~., scales = "free_y") + 
-  scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", scale = 1e-3)) +
+  facet_grid(vars(Country)) + 
   theme_bw() +
-  theme(legend.position = c(.12, .95),
-        legend.background = element_blank(),
-        plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x = "Year",y = "Monthly excess deaths", fill = NULL) +
-  guides(fill = guide_legend(reverse = TRUE)) 
+  theme(
+    panel.background = element_blank(), 
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    legend.position = c(.10, .95),
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    plot.margin = margin(0.5, 0.5, 0, 0)) +
+  xlab("") + ylab("Absolute excess deaths per 100,000 population") +
+  guides(fill = guide_legend(reverse = TRUE))
 
 rm(hline_pandemic)
 
