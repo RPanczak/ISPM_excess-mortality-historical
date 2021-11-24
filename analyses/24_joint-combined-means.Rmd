@@ -65,70 +65,72 @@ merge_mort <- function(data){
 
 ```{r}
 results_month <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_month.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_month.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_month.Rds")
+  read_rds("data/outputs_2021-11-23/Sweden_results_month.Rds"),
+  read_rds("data/outputs_2021-11-23/Spain_results_month.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_month.Rds")
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB)") %>% 
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
   arrange(Country, Year, Month) %>% 
-  mutate(across(pred:excess_month_lower, round)) %>% 
-  relocate(Model, Country, Year, Month, Date)
+  relocate(c(n_eff, Rhat), .after = last_col()) %>% 
+  mutate(across(pred_total_deaths:excess_month_upper, round)) %>% 
+  relocate(Model, Pandemic, Country, Year, Month, Date)
 
 results_year <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_year.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_year.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_year.Rds") 
+  read_rds("data/outputs_2021-11-23/Sweden_results_year.Rds"),
+  read_rds("data/outputs_2021-11-23/Spain_results_year.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_year.Rds") 
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB)") %>% 
   arrange(Country, Year) %>% 
-  mutate(across(excess_year:excess_year_upper, round)) %>% 
-  relocate(Model)
+  mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
+  relocate(Model, Pandemic)
 
 results_age <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_age.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_age.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_age.Rds") 
+  read_rds("data/outputs_2021-11-23/Sweden_results_age.Rds"),
+  read_rds("data/outputs_2021-11-23/Spain_results_age.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_age.Rds") 
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB)") %>% 
   arrange(Country, Year) %>% 
-  mutate(across(pred:excess_year_upper, round)) %>% 
-  relocate(Model, Country, Year, Age_cat, Deaths)
+  mutate(across(pred_grouped_deaths:excess_grouped_lifelost70_upper, round)) %>% 
+  relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
 ## Secondary results from unadjusted models
 
 ```{r}
 # results_month_global <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_month.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_month.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_month.Rds")
+#   read_rds("data/outputs_2021-11-23/Sweden_results_month.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_month.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_month.Rds")
 # )) %>% 
 #   filter(Model == "Global Serfling (Stan, NB)") %>% 
 #   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+#   relocate(c(n_eff, Rhat), .after = last_col()) %>% 
 #   arrange(Country, Year, Month) %>% 
 #   mutate(across(pred:excess_month_lower, round)) %>% 
-#   relocate(Model, Country, Year, Month, Date)
+#   relocate(Model, Pandemic, Country, Year, Month, Date)
 
 results_year_global <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_year.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_year.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_year.Rds") 
+  read_rds("data/outputs_2021-11-23/Sweden_results_year.Rds"),
+  read_rds("data/outputs_2021-11-23/Spain_results_year.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_year.Rds") 
 )) %>% 
   filter(Model == "Global Serfling (Stan, NB)") %>% 
   arrange(Country, Year) %>% 
-  mutate(across(excess_year:excess_year_upper, round)) %>% 
-  relocate(Model)
+  mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
+  relocate(Model, Pandemic)
 
 # results_age_global <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_age.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_age.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_age.Rds") 
+#   read_rds("data/outputs_2021-11-23/Sweden_results_age.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_age.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_age.Rds") 
 # )) %>% 
 #   filter(Model == "Global Serfling (Stan, NB)") %>% 
 #   arrange(Country, Year) %>% 
 #   mutate(across(pred:excess_year_upper, round)) %>% 
-#   relocate(Model, Country, Year, Age_cat, Deaths)
+#   relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
 ## Sensitivity analysis using frequentist model, unadjusted for age
@@ -146,106 +148,110 @@ results_month_boot <- read_rds("data/outputs_2021-11-18/All_results_month.Rds") 
 
 ```{r}
 # results_month_last_7 <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_month_last_7_trim.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_month_last_7_trim.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_month_last_7_trim.Rds")
+#   read_rds("data/outputs_2021-11-23/Sweden_results_month_last_7_trim.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_month_last_7_trim.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_month_last_7_trim.Rds")
 # )) %>% 
 #   filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
 #   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+#   relocate(c(n_eff, Rhat), .after = last_col()) %>% 
 #   arrange(Country, Year, Month) %>% 
 #   mutate(across(pred:excess_month_lower, round)) %>% 
-#   relocate(Model, Country, Year, Month, Date)
+#   relocate(Model, Pandemic, Country, Year, Month, Date)
 
 results_year_last_7 <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_year_last_7_trim.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_year_last_7_trim.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_year_last_7_trim.Rds") 
+  read_rds("data/outputs_2021-11-23/Sweden_results_year_last_7_trim.Rds"),
+  # read_rds("data/outputs_2021-11-23/Spain_results_year_last_7_trim.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_year_last_7_trim.Rds"),
+  tibble(Country = "Spain")
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
   arrange(Country, Year) %>% 
-  mutate(across(excess_year:excess_year_upper, round)) %>% 
-  relocate(Model)
+  mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
+  relocate(Model, Pandemic)
 
 # results_age_last_7 <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_age_last_7_trim.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_age_last_7_trim.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_age_last_7_trim.Rds") 
+#   read_rds("data/outputs_2021-11-23/Sweden_results_age_last_7_trim.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_age_last_7_trim.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_age_last_7_trim.Rds") 
 # )) %>% 
 #   filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
 #   arrange(Country, Year) %>% 
 #   mutate(across(pred:excess_year_upper, round)) %>% 
-#   relocate(Model, Country, Year, Age_cat, Deaths)
+#   relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
 ## Sensitivity analysis for including effects of pandemics
 
 ```{r}
 results_month_pand <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_month_pand.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_month_pand.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_month_pand.Rds")
+  read_rds("data/outputs_2021-11-23/Sweden_results_month_pand.Rds"),
+  read_rds("data/outputs_2021-11-23/Spain_results_month_pand.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_month_pand.Rds")
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+  relocate(c(n_eff, Rhat), .after = last_col()) %>% 
   arrange(Country, Year, Month) %>% 
-  mutate(across(pred:excess_month_lower, round)) %>% 
-  relocate(Model, Country, Year, Month, Date)
+  mutate(across(pred_total_deaths:excess_month_upper, round)) %>% 
+  relocate(Model, Pandemic, Country, Year, Month, Date)
 
 # results_year_pand <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_year_pand.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_year_pand.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_year_pand.Rds") 
+#   read_rds("data/outputs_2021-11-23/Sweden_results_year_pand.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_year_pand.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_year_pand.Rds") 
 # )) %>% 
 #   filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
 #   arrange(Country, Year) %>% 
 #   mutate(across(excess_year:excess_year_upper, round)) %>% 
-#   relocate(Model)
+#   relocate(Model, Pandemic)
 
 # results_age_pand <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_age_pand.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_age_pand.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_age_pand.Rds") 
+#   read_rds("data/outputs_2021-11-23/Sweden_results_age_pand.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_age_pand.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_age_pand.Rds") 
 # )) %>% 
 #   filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
 #   arrange(Country, Year) %>% 
 #   mutate(across(pred:excess_year_upper, round)) %>% 
-#   relocate(Model, Country, Year, Age_cat, Deaths)
+#   relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
 ## Sensitivity analysis for using expected pops in 2021
 
 ```{r}
 # results_month_exp <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/All_results_month_exp.Rds"),
-#   read_rds("data/outputs_2021-11-18/Sweden_results_month_exp.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_month_exp.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_month_exp.Rds")
+#   read_rds("data/outputs_2021-11-23/All_results_month_exp.Rds"),
+#   read_rds("data/outputs_2021-11-23/Sweden_results_month_exp.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_month_exp.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_month_exp.Rds")
 # )) %>% 
 #   filter(Model == "Age Serfling (Stan, NB)") %>% 
 #   mutate(Date = anytime::anydate(paste0(Year, "-", Month))) %>% 
+#   relocate(c(n_eff, Rhat), .after = last_col()) %>% 
 #   arrange(Country, Year, Month) %>% 
 #   mutate(across(pred:excess_month_lower, round)) %>% 
-#   relocate(Model, Country, Year, Month, Date)
+#   relocate(Model, Pandemic, Country, Year, Month, Date)
 
 results_year_exp <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-18/Sweden_results_year_exp.Rds"),
-  read_rds("data/outputs_2021-11-18/Spain_results_year_exp.Rds"),
-  read_rds("data/outputs_2021-11-18/Switzerland_results_year_exp.Rds") 
+  read_rds("data/outputs_2021-11-23/Sweden_results_year_exp.Rds"),
+  read_rds("data/outputs_2021-11-23/Spain_results_year_exp.Rds"),
+  read_rds("data/outputs_2021-11-23/Switzerland_results_year_exp.Rds") 
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB)") %>% 
   arrange(Country, Year) %>% 
-  mutate(across(excess_year:excess_year_upper, round)) %>% 
-  relocate(Model)
+  mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
+  relocate(Model, Pandemic)
 
 # results_age_exp <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-18/Sweden_results_age_exp.Rds"),
-#   read_rds("data/outputs_2021-11-18/Spain_results_age_exp.Rds"),
-#   read_rds("data/outputs_2021-11-18/Switzerland_results_age_exp.Rds") 
+#   read_rds("data/outputs_2021-11-23/Sweden_results_age_exp.Rds"),
+#   read_rds("data/outputs_2021-11-23/Spain_results_age_exp.Rds"),
+#   read_rds("data/outputs_2021-11-23/Switzerland_results_age_exp.Rds") 
 # )) %>% 
 #   filter(Model == "Age Serfling (Stan, NB)") %>% 
 #   arrange(Country, Year) %>% 
 #   mutate(across(pred:excess_year_upper, round)) %>% 
-#   relocate(Model, Country, Year, Age_cat, Deaths)
+#   relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
 ## Population
@@ -269,59 +275,7 @@ pops <- read_rds("data/deaths_monthly.Rds") %>%
 
 ## Table 1
 
-### COVID-19 data v1
-
-Using `COVID19` [package](https://cran.r-project.org/web/packages/COVID19/index.html) ([citation](https://doi.org/10.21105/joss.02376)).  
-
-Data retrieved for `2021-11-22`.  
-
-```{r}
-covid_cases_deaths_20 <- covid19(c("Switzerland", "Sweden", "Spain"), 
-                                 level = 1, 
-                                 start = "2020-12-31", 
-                                 end = "2020-12-31", 
-                                 vintage = FALSE,
-                                 verbose = FALSE)
-
-covid_cases_deaths_21 <- covid19(c("Switzerland", "Sweden", "Spain"), 
-                                 level = 1, 
-                                 start = "2021-07-01", 
-                                 end = "2021-07-01", 
-                                 vintage = FALSE,
-                                 verbose = FALSE)
-
-covid_cases_deaths <- bind_rows(
-  
-  covid_cases_deaths_20 %<>% 
-    select(id, administrative_area_level_1,
-           confirmed, deaths) %>% 
-    mutate(Year = 2020),
-  
-  covid_cases_deaths_21 %<>% 
-    select(id, administrative_area_level_1,
-           confirmed, deaths) %>% 
-    left_join(covid_cases_deaths_20 %>% 
-                rename(substract_confirmed = confirmed,
-                       substract_deaths = deaths)) %>% 
-    mutate(confirmed = confirmed - substract_confirmed,
-           deaths = deaths - substract_deaths) %>% 
-    select(-substract_deaths, -substract_confirmed) %>% 
-    mutate(Year = 2021)
-  
-) %>% 
-  rename(Country = administrative_area_level_1) %>% 
-  relocate(Year) %>% 
-  ungroup() %>% 
-  select(-id) %>% 
-  rename(Cases = confirmed,
-         Deaths = deaths)
-```
-
-```{r echo=FALSE}
-covid_cases_deaths 
-```
-
-### COVID-19 data v2
+### COVID-19 data
 
 Pulling data directly from [Johns Hopkins Coronavirus Resource Center](https://coronavirus.jhu.edu/about/how-to-use-our-data) [github repo](https://github.com/CSSEGISandData/COVID-19) (using [`csse_covid_19_daily_reports`](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports) with appropriate time stamps).   
 
@@ -360,7 +314,8 @@ covid_cases_deaths_jh <- bind_rows(
     select(-ends_with("_20")) %>% 
     mutate(Year = 2021)
 ) %>% 
-  rename(Country = Country_Region)
+  rename(Country = Country_Region) %>% 
+  select(-Confirmed)
 ```
 
 ```{r echo=FALSE}
@@ -380,19 +335,28 @@ table_1 <-
       select(Year, Country, Population), 
     
     results_month %>% 
-      filter(Year %in% pandemic_year) %>%
+            filter(Year %in% pandemic_year) %>% 
+      select(Year, Country, Deaths) %>% 
       group_by(Country, Year) %>% 
-      summarise(Observed = sum(Deaths),
-                Expected = sum(pred)
-      ) %>% 
-      ungroup()
+      summarise(Observed = sum(Deaths))
     
   ) %>% 
   left_join(
     
+    results_year %>% 
+      filter(Year %in% pandemic_year) %>% 
+      mutate(Expected = paste0(number(plyr::round_any(yearly_pred_total_deaths_lower, 100),
+                                      big.mark = ","), 
+                       "-",
+                number(plyr::round_any(yearly_pred_total_deaths_upper, 100),
+                                      big.mark = ","))) %>% 
+            select(Year, Country, Expected)
+  ) %>% 
+  left_join(
+    
     covid_cases_deaths_jh) %>% 
-  mutate(across(Population:Expected, number, big.mark = ",")) %>% 
-  mutate(across(Confirmed:Deaths, number, big.mark = ",")) %>% 
+  mutate(across(Population:Observed, number, big.mark = ",")) %>% 
+  mutate(Deaths = number(Deaths, big.mark = ",")) %>% 
   mutate(across(Observed:Deaths, 
                 ~replace(., is.na(.), "--"))) %>% 
   arrange(Year, desc(Country))
@@ -403,23 +367,24 @@ openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx",
 
 ```{r echo=FALSE}
 table_1 %>% 
-  filter(!(Country == "Sweden" & Year == 2021)) %>% 
   select(-Year) %>%
   kbl(align = "lrrrrr",
       col.names = c("Country", "Population", 
-                    "Observed", "Expected", 
-                    "Cases", "Deaths")) %>% 
+                    "Observed", "Expected$^a$", 
+                    "Observed$^b$")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c(" " = 2, 
-                     "All-cause deaths" = 2, "COVID-19" = 2)) %>% 
+                     "All-cause deaths" = 2, "COVID-19 deaths" = 1)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
   pack_rows("2020", 9, 11) %>% 
-  pack_rows("2021", 12, 13) %>% 
+  pack_rows("2021", 12, 14) %>% 
   column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE)
+  row_spec(1, italic = FALSE) %>% 
+  footnote(alphabet=c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
+                      "Data from ..."))
 ```
 
 ## Table 2
@@ -435,31 +400,22 @@ table_2 <-
       filter(Year %in% pandemic_year) %>% 
       select(Year, Country, Population), 
     
-    results_month %>% 
-      filter(Year %in% pandemic_year) %>%
-      group_by(Country, Year) %>% 
-      summarise(Expected = sum(pred)
-      ) %>% 
-      ungroup()
-    
-  ) %>% 
-  left_join(
-    
     results_year %>%
-      select(Country, Year, excess_year, excess_year_lower, excess_year_upper) %>%
+      select(-starts_with("yearly_pred"), -Model, -Pandemic) %>%
       filter(Year %in% pandemic_year) %>%
-      rename(Excess = excess_year,
-             Excess_lci = excess_year_lower, Excess_uci = excess_year_upper)
+      rename(Excess = yearly_excess_total_deaths,
+             Excess_lci = yearly_excess_total_deaths_lower, 
+             Excess_uci = yearly_excess_total_deaths_upper)
     
   ) %>% 
   
   mutate(
     Percent_excess = 
-      percent(Excess / Expected, accuracy = 0.1),
+      percent(yearly_rel_excess_total_deaths, accuracy = 0.1),
     Percent_lci = 
-      percent(Excess_lci / Expected, accuracy = 0.1),
+      percent(yearly_rel_excess_total_deaths_lower, accuracy = 0.1),
     Percent_uci = 
-      percent(Excess_uci / Expected, accuracy = 0.1)
+      percent(yearly_rel_excess_total_deaths_upper, accuracy = 0.1)
   ) %>% 
   
   mutate(
@@ -485,7 +441,7 @@ table_2 <-
                             number(Excess_uci, big.mark = ","), 
                             ")")) %>% 
   relocate(excess_cri, .after = Excess) %>% 
-  select(-Excess_lci, -Excess_uci) %>% 
+  select(-Excess_lci, -Excess_uci, -starts_with("yearly")) %>% 
   
   mutate(percent_cri = str_c("(", 
                              Percent_lci, 
@@ -493,7 +449,7 @@ table_2 <-
                              Percent_uci, 
                              ")")) %>% 
   relocate(percent_cri, .after = Percent_excess) %>% 
-  select(-Percent_lci, -Percent_uci, -Expected) %>% 
+  select(-Percent_lci, -Percent_uci) %>% 
   
   mutate(rate_cri = str_c("(", Rate_lci, "; ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
   select(-Rate_lci, -Rate_uci, -Population) %>% 
@@ -1377,10 +1333,10 @@ Example of 2020
 
 ```{r echo=FALSE}
 bind_rows(
-  read_rds("data/outputs_2021-11-18/All_results_month.Rds"), 
-  read_rds("data/outputs_2021-11-18/Switzerland_results_month.Rds"), 
-  read_rds("data/outputs_2021-11-18/Sweden_results_month.Rds"), 
-  read_rds("data/outputs_2021-11-18/Spain_results_month.Rds")
+  read_rds("data/outputs_2021-11-23/All_results_month.Rds"), 
+  read_rds("data/outputs_2021-11-23/Switzerland_results_month.Rds"), 
+  read_rds("data/outputs_2021-11-23/Sweden_results_month.Rds"), 
+  read_rds("data/outputs_2021-11-23/Spain_results_month.Rds")
 ) %>%  
   filter(Year == 2020) %>% 
   ggplot() +
@@ -1396,10 +1352,10 @@ And 1918
 
 ```{r echo=FALSE}
 bind_rows(
-  read_rds("data/outputs_2021-11-18/All_results_month.Rds"), 
-  read_rds("data/outputs_2021-11-18/Switzerland_results_month.Rds"), 
-  read_rds("data/outputs_2021-11-18/Sweden_results_month.Rds"), 
-  read_rds("data/outputs_2021-11-18/Spain_results_month.Rds")
+  read_rds("data/outputs_2021-11-23/All_results_month.Rds"), 
+  read_rds("data/outputs_2021-11-23/Switzerland_results_month.Rds"), 
+  read_rds("data/outputs_2021-11-23/Sweden_results_month.Rds"), 
+  read_rds("data/outputs_2021-11-23/Spain_results_month.Rds")
 ) %>%  
   filter(Year == 1918) %>% 
   ggplot() +
