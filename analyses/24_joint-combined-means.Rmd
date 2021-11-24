@@ -262,11 +262,11 @@ pops <- read_rds("data/deaths_monthly.Rds") %>%
   select(Year, Country, Population_obs) %>% 
   rename(Population = Population_obs)
 
-# pops_exp <- read_rds("data/deaths_monthly.Rds") %>% 
-#   filter(Year >= 2020) %>%
-#   filter(Month == 1) %>% 
-#   select(Year, Country, Population_exp) %>% 
-#   rename(Population = Population_exp)
+pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
+  filter(Year >= 2020) %>%
+  filter(Month == 1) %>%
+  select(Year, Country, Population_exp) %>%
+  rename(Population = Population_exp)
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -335,7 +335,7 @@ table_1 <-
       select(Year, Country, Population), 
     
     results_month %>% 
-            filter(Year %in% pandemic_year) %>% 
+      filter(Year %in% pandemic_year) %>% 
       select(Year, Country, Deaths) %>% 
       group_by(Country, Year) %>% 
       summarise(Observed = sum(Deaths))
@@ -347,10 +347,10 @@ table_1 <-
       filter(Year %in% pandemic_year) %>% 
       mutate(Expected = paste0(number(plyr::round_any(yearly_pred_total_deaths_lower, 100),
                                       big.mark = ","), 
-                       "-",
-                number(plyr::round_any(yearly_pred_total_deaths_upper, 100),
+                               "-",
+                               number(plyr::round_any(yearly_pred_total_deaths_upper, 100),
                                       big.mark = ","))) %>% 
-            select(Year, Country, Expected)
+      select(Year, Country, Expected)
   ) %>% 
   left_join(
     
@@ -830,7 +830,7 @@ gg = results_month %>%
   geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
   facet_grid(Country ~ shown_years,scales="free", spac="free_x") +
   # scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
-                                           # scale = 1e-3)) +
+  # scale = 1e-3)) +
   scale_x_date(date_breaks="2 years",date_labels = "%Y") +
   theme_bw()+
   theme(plot.margin = margin(0.5, 0.5, 0, 0))+
@@ -980,118 +980,157 @@ table_s1 <-
   
   bind_rows(
     
+    results_year  %>% 
+      mutate(Model = "m0") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths")),
+    
     # global serfling model without CrI for yearly
     results_month_boot %>% 
       mutate(excess = Deaths - pred) %>% 
       group_by(Model, Country, Year) %>% 
-      summarise(excess_year = sum(excess)) %>% 
+      summarise(yearly_excess_total_deaths = sum(excess)) %>% 
       ungroup() %>% 
       mutate(Model = "m1"),
     
     # global serfling stan without age
     results_year_global  %>% 
-      mutate(Model = "m2"),
+      mutate(Model = "m2") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths")),
     
     # global serfling stan with age, different time window
     results_year_last_7  %>% 
-      mutate(Model = "m3"),
+      mutate(Model = "m3") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths")),
     
     # global serfling stan with age, expected pop
     results_year_exp  %>% 
-      mutate(Model = "m4")
+      mutate(Model = "m4") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths"))
     
   ) %>% 
   filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
-  select(-Pandemic) %>% 
   arrange(desc(Country), Year, Model) %>% 
   pivot_wider(names_from = Model, 
-              values_from = starts_with("excess_"),
+              values_from = starts_with("yearly_excess"),
               names_sort = FALSE) %>% 
   relocate(Country, Year,
-           excess_year_m1, 
-           excess_year_lower_m1, 
-           excess_year_upper_m1,
-           excess_year_m2, 
-           excess_year_lower_m2, 
-           excess_year_upper_m2,
-           excess_year_m3, 
-           excess_year_lower_m3, 
-           excess_year_upper_m3,
-           excess_year_m4, 
-           excess_year_lower_m4, 
-           excess_year_upper_m4
+           yearly_excess_total_deaths_m0, 
+           yearly_excess_total_deaths_lower_m0, 
+           yearly_excess_total_deaths_upper_m0,
+           yearly_excess_total_deaths_m1, 
+           yearly_excess_total_deaths_lower_m1, 
+           yearly_excess_total_deaths_upper_m1,
+           yearly_excess_total_deaths_m2, 
+           yearly_excess_total_deaths_lower_m2, 
+           yearly_excess_total_deaths_upper_m2,
+           yearly_excess_total_deaths_m3, 
+           yearly_excess_total_deaths_lower_m3, 
+           yearly_excess_total_deaths_upper_m3,
+           yearly_excess_total_deaths_m4, 
+           yearly_excess_total_deaths_lower_m4, 
+           yearly_excess_total_deaths_upper_m4
   ) %>% 
-  select(-excess_year_lower_m1, -excess_year_upper_m1) %>% 
+  select(-yearly_excess_total_deaths_lower_m1, -yearly_excess_total_deaths_upper_m1) %>% 
   
   mutate(
-    excess_year_m1 = number(excess_year_m1, 
-                            accuracy = 5L, big.mark = ","),
-    excess_year_m2 = number(excess_year_m2, 
-                            accuracy = 5L, big.mark = ","),
-    excess_year_m3 = number(excess_year_m3, 
-                            accuracy = 5L, big.mark = ","),
-    excess_year_m4 = number(excess_year_m4, 
-                            accuracy = 5L, big.mark = ",")
+    yearly_excess_total_deaths_m0 = number(yearly_excess_total_deaths_m0, 
+                                           accuracy = 5L, big.mark = ","), 
+    yearly_excess_total_deaths_m1 = number(yearly_excess_total_deaths_m1, 
+                                           accuracy = 5L, big.mark = ","),
+    yearly_excess_total_deaths_m2 = number(yearly_excess_total_deaths_m2, 
+                                           accuracy = 5L, big.mark = ","),
+    yearly_excess_total_deaths_m3 = number(yearly_excess_total_deaths_m3, 
+                                           accuracy = 5L, big.mark = ","),
+    yearly_excess_total_deaths_m4 = number(yearly_excess_total_deaths_m4, 
+                                           accuracy = 5L, big.mark = ",")
   ) %>% 
   
   mutate(
-    excess_year_m2_cri = str_c("(", 
-                               excess_year_lower_m2, 
-                               "; ",
-                               excess_year_upper_m2, 
-                               ")")
+    yearly_excess_total_deaths_m0_cri = str_c("(",
+                                              number(yearly_excess_total_deaths_lower_m0,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              "; ",
+                                              number(yearly_excess_total_deaths_upper_m0,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              ")")
   ) %>% 
-  relocate(excess_year_m2_cri, .after = excess_year_m2) %>% 
-  select(-excess_year_lower_m2, -excess_year_upper_m2) %>% 
+  relocate(yearly_excess_total_deaths_m0_cri, 
+           .after = yearly_excess_total_deaths_m0) %>% 
+  select(-yearly_excess_total_deaths_lower_m0,
+         -yearly_excess_total_deaths_upper_m0) %>% 
   
   mutate(
-    excess_year_m3_cri = str_c("(", 
-                               number(excess_year_lower_m3,
-                                      accuracy = 5L, big.mark = ","), 
-                               "; ",
-                               number(excess_year_upper_m3,
-                                      accuracy = 5L, big.mark = ","), 
-                               ")")
+    yearly_excess_total_deaths_m2_cri = str_c("(",
+                                              number(yearly_excess_total_deaths_lower_m2,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              "; ",
+                                              number(yearly_excess_total_deaths_upper_m2,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              ")")
   ) %>% 
-  relocate(excess_year_m3_cri, .after = excess_year_m3) %>% 
-  select(-excess_year_lower_m3, -excess_year_upper_m3) %>% 
+  relocate(yearly_excess_total_deaths_m2_cri, 
+           .after = yearly_excess_total_deaths_m2) %>% 
+  select(-yearly_excess_total_deaths_lower_m2,
+         -yearly_excess_total_deaths_upper_m2) %>% 
   
   mutate(
-    excess_year_m4_cri = str_c("(", 
-                               number(excess_year_lower_m4,
-                                      accuracy = 5L, big.mark = ","), 
-                               "; ",
-                               number(excess_year_upper_m4,
-                                      accuracy = 5L, big.mark = ","), 
-                               ")")
+    yearly_excess_total_deaths_m3_cri = str_c("(",
+                                              number(yearly_excess_total_deaths_lower_m3,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              "; ",
+                                              number(yearly_excess_total_deaths_upper_m3,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              ")")
   ) %>% 
-  relocate(excess_year_m4_cri, .after = excess_year_m4) %>% 
-  select(-excess_year_lower_m4, -excess_year_upper_m4) %>% 
-  mutate(across(excess_year_m4:excess_year_m4_cri, 
+  relocate(yearly_excess_total_deaths_m3_cri, .after = yearly_excess_total_deaths_m3) %>% 
+  select(-yearly_excess_total_deaths_lower_m3, -yearly_excess_total_deaths_upper_m3) %>% 
+  
+  mutate(
+    yearly_excess_total_deaths_m4_cri = str_c("(", 
+                                              number(yearly_excess_total_deaths_lower_m4,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              "; ",
+                                              number(yearly_excess_total_deaths_upper_m4,
+                                                     accuracy = 5L, big.mark = ","), 
+                                              ")")
+  ) %>% 
+  relocate(yearly_excess_total_deaths_m4_cri, .after = yearly_excess_total_deaths_m4) %>% 
+  select(-yearly_excess_total_deaths_lower_m4, -yearly_excess_total_deaths_upper_m4) %>% 
+  mutate(across(yearly_excess_total_deaths_m4:yearly_excess_total_deaths_m4_cri, 
                 ~replace(., is.na(.), "--"))) 
 ```
 
 ```{r echo=FALSE}
 table_s1 %>% 
   select(-Country) %>% 
-  kbl(align = "lrrrrrr",
+  kbl(align = "lrrrrrrrr",
       col.names = c("Year", 
+                    "Excess", "95% CrI", 
                     "Excess", 
                     "Excess", "95% CrI", 
                     "Excess", "95% CrI", 
                     "Excess", "95% CrI")) %>% 
   add_header_above(c(" " = 1, 
-                     "Poisson Serfling" = 1, 
-                     "NB Serfling, no age" = 2, 
-                     "NB Serfling, age, alt time" = 2,  
-                     "NB Serfling, age, exp pops" = 2)) %>%   
+                     "Baseline" = 2, 
+                     "Sensitivity 1$^a$" = 1, 
+                     "Sensitivity 2$^b$" = 2, 
+                     "Sensitivity 3$^c$" = 2,  
+                     "Sensitivity 4$^d$" = 2)) %>%   
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE) %>% 
   pack_rows("Switzerland", 1, 12) %>%
   pack_rows("Sweden", 13, 24) %>% 
-  pack_rows("Spain", 25, 33)
+  pack_rows("Spain", 25, 33) %>% 
+  footnote(alphabet=c("",
+                      "",
+                      "",
+                      ""))
 
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
