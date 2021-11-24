@@ -496,13 +496,13 @@ hline_pandemic <- results_year %>%
   filter(Year == 2020) %>% 
   left_join(pops) %>%
   group_by(Country) %>% 
-  mutate(yintercept = excess_year/Population*100000) %>% 
+  mutate(yintercept = yearly_excess_total_deaths/Population*100000) %>% 
   ungroup()
 vline_pandemic <- tibble(Year=c(1890,1918,1957,1968,1977,2009,2020)) 
 results_year %>% 
   left_join(pops) %>% 
-  mutate(Difference = ifelse(excess_year > 0, "More than expected", "Less than expected"),
-         rel_excess=excess_year/Population*100000) %>% 
+  mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Less than expected"),
+         abs_excess_pop=yearly_excess_total_deaths/Population*100000) %>% 
   ggplot(aes(x = Year)) +
   geom_vline(data = vline_pandemic, 
              aes(xintercept = Year), 
@@ -510,7 +510,7 @@ results_year %>%
   geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
              colour = "#984ea3", size = 0.25) +
   geom_hline(yintercept = 0, colour = "grey80") +
-  geom_col(aes(y = rel_excess, fill = Difference)) +
+  geom_col(aes(y = abs_excess_pop, fill = Difference)) +
   scale_x_continuous(
     breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
     limits = c(1856-1, 2020+1),
@@ -533,6 +533,53 @@ rm(hline_pandemic)
 
 ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
+
+
+
+```{r echo=FALSE}
+
+hline_pandemic <- results_year %>% 
+  filter(Year == 2020) %>% 
+  left_join(pops) %>%
+  group_by(Country) %>% 
+  mutate(yintercept = yearly_rel_excess_total_deaths) %>% 
+  ungroup()
+vline_pandemic <- tibble(Year=c(1890,1918,1957,1968,1977,2009,2020)) 
+results_year %>% 
+  left_join(pops) %>% 
+  mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Less than expected"),
+         abs_excess_pop=yearly_rel_excess_total_deaths) %>% 
+  ggplot(aes(x = Year)) +
+  geom_vline(data = vline_pandemic, 
+             aes(xintercept = Year), 
+             size = 3, colour = "grey90", alpha = 0.7) +  
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25) +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = abs_excess_pop, fill = Difference)) +
+  scale_x_continuous(
+    # breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
+    limits = c(1918-1, 1957+1),
+    expand = c(0, 0)) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  facet_grid(vars(Country)) + 
+  theme_bw() +
+  theme(
+    panel.background = element_blank(), 
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    legend.position = c(.10, .95),
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    plot.margin = margin(0.5, 0.5, 0, 0)) +
+  xlab("") + ylab("Absolute excess deaths per 100,000 population") +
+  guides(fill = guide_legend(reverse = TRUE))
+
+rm(hline_pandemic)
+
+ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
+
 
 ## Figure 2 
 
