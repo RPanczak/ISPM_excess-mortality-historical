@@ -14,7 +14,7 @@
 # dos2unix $HOME/ISPM_excess-mortality/stan/*.stan
 
 # module load R/4.0.0-foss-2020a
-module load R nodejs
+module load R
 
 # R CMD BATCH --verbose --no-save --no-restore $HOME/ISPM_excess-mortality/analyses/20_joint-model-all.R
 cd $HOME/projects/ISPM_excess-mortality/
