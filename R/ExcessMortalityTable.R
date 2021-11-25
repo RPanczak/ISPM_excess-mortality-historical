@@ -8,12 +8,12 @@ head(data_mort)
 pandemic_year <- c("1890","1918","1957","2020")
   
 table_mort <- as.data.frame(data_mort) %>%
-  select(Country,Year, deaths, pop, fit_flu_hc) %>%
+  select(Country,Year, Deaths,fit_flu_hc) %>%
   filter(Year %in% pandemic_year)%>%
  group_by(Year, Country) %>%
  summarise(Expected_Mortality=round(sum(fit_flu_hc),0),
-           Deaths_num=sum(deaths),
-           Cum_excess_death=round(sum(deaths)-sum(fit_flu_hc),0),
+           Deaths_num=sum(Deaths),
+           Cum_excess_death=round(sum(Deaths)-sum(fit_flu_hc),0),
            Percent_excess_death=round((Cum_excess_death/Expected_Mortality)*100,1))%>%
   ungroup()
 
