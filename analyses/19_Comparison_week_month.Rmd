@@ -63,6 +63,7 @@ CH %>%
 
 ```{r}
 CH %>% 
+  mutate(Year=as.integer(as.character(Year))) %>%
   ggplot(aes(x = Year, y = Difference)) +
   geom_line()
 ```
@@ -71,6 +72,7 @@ CH %>%
 
 ```{r}
 CH %>% 
+  mutate(Year=as.integer(as.character(Year))) %>%
   ggplot(aes(x = Year, y = Perc_diff)) +
   geom_line()
 ```
@@ -87,6 +89,7 @@ SW %>%
 
 ```{r}
 SW %>% 
+  mutate(Year=as.integer(as.character(Year))) %>%
   ggplot(aes(x = Year, y = Difference)) +
   geom_line()
 ```
@@ -95,6 +98,7 @@ SW %>%
 
 ```{r}
 SW %>% 
+  mutate(Year=as.integer(as.character(Year))) %>%
   ggplot(aes(x = Year, y = Perc_diff)) +
   geom_line()
 ```
@@ -111,6 +115,7 @@ ES %>%
 
 ```{r}
 ES %>% 
+  mutate(Year=as.integer(as.character(Year))) %>%
   ggplot(aes(x = Year, y = Difference)) +
   geom_line()
 ```
@@ -119,6 +124,7 @@ ES %>%
 
 ```{r}
 ES %>% 
+  mutate(Year=as.integer(as.character(Year))) %>%
   ggplot(aes(x = Year, y = Perc_diff)) +
   geom_line()
 ```

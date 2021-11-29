@@ -20,12 +20,15 @@ function_plot_appendix_month_weeks <- function(){
     select(Perc_diff, Year) %>%
     mutate(country="Sweden")
   
-  dataCom <- rbind(CHdata,ESdata,SWdata)
+  dataCom <- rbind(CHdata,ESdata,SWdata) %>%
+    mutate(country = as.factor(country),
+           Perc_diff = as.numeric(Perc_diff),
+           Year=as.integer(as.character(Year)))
   
-  plot_appendix <- ggplot(data=dataCom)+
-    geom_line(aes(x=Year, y=Perc_diff, col=country),lwd=lwd_size)+
+  plot_appendix <- ggplot()+
+    geom_line(data=dataCom,aes(x=Year, y=Perc_diff, col=country),lwd=lwd_size)+
     ylab("Differences in percentages of excess death between months and weeks")+
-    ylim(-0.5, 0.9)+
+    ylim(-0.5, 1.0)+
     scale_color_manual("",
                       values = c(col_brew[1],col_brew[5],col_brew[7]),
                       breaks=c("Switzerland","Spain","Sweden"),

@@ -36,6 +36,7 @@ source("R/plot_appendix_month_weeks.R")
 function_plot_appendix_month_weeks()
 
 # render 
-setwd("./analyses")
-render("19_Comparison_week_month.Rmd")
-setwd(rprojroot::find_rstudio_root_file())
+# setwd("./analyses")
+render("analyses/19_Comparison_week_month.Rmd", output_file ="C:/Users/kmatth/Dropbox/ISPM_excess-mortality/docs/19_Comparison_week_month.html")
+# setwd(rprojroot::find_rstudio_root_file())
+
