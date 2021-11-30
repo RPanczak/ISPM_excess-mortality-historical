@@ -297,8 +297,8 @@ table_1 %>%
   select(-Year) %>%
   kbl(align = "lrrrrr",
       col.names = c("", "", 
-                    "Observed", "Expected$^*$", 
-                    "Observed$^†$")) %>% 
+                    "Count", "Expected$^*$", 
+                    "Count$^†$")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c("Country", "Population", 
@@ -307,11 +307,12 @@ table_1 %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
   pack_rows("2020", 9, 11) %>% 
-  pack_rows("2021", 12, 14) %>% 
+  pack_rows("2021$^‡$", 12, 14) %>% 
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE) %>% 
   footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
-                      "Data from Johns Hopkins Coronavirus Resource Center"))
+                      "Data from Johns Hopkins Coronavirus Resource Center",
+                      "First six months of the year only included in the analyses."))
 ```
 
 ## Table 2
