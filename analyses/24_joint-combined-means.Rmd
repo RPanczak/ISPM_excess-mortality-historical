@@ -316,88 +316,6 @@ table_1 %>%
 
 
 
-```{r echo=FALSE}
-table_1b <- 
-  
-  left_join(
-    
-    # population
-    pops %>% 
-      filter(Year %in% pandemic_year) %>% 
-      select(Year, Country, Population), 
-    
-    # observed deaths, aggregated from months
-    results_month %>% 
-      filter(Year %in% pandemic_year) %>% 
-      select(Year, Country, Deaths) %>% 
-      group_by(Country, Year) %>% 
-      summarise(Observed = sum(Deaths))
-    
-  ) %>% 
-  left_join(
-    
-    results_year %>% 
-      filter(Year %in% pandemic_year) %>% 
-      mutate(Expected = paste0(number(plyr::round_any(yearly_pred_total_deaths_lower,
-                                                      100),
-                                      big.mark = ","), 
-                               " to ",
-                               number(plyr::round_any(yearly_pred_total_deaths_upper,
-                                                      100),
-                                      big.mark = ","))) %>% 
-      select(Year, Country, Expected)
-  ) %>% 
-  
-  left_join(
-    results_age %>% 
-      filter(Year %in% pandemic_year,Age_cat=="[0,10)") %>%  
-      mutate(Lifeyearlost70=round(yearly_excess_grouped_lifelost70/1000,0),
-             Lifeyearlost70_CI = paste0(round(yearly_excess_grouped_lifelost70_lower/1000,0), 
-                                        " to ",
-                                        round(yearly_excess_grouped_lifelost70_upper/1000,0)))  %>% 
-      select(Year,Country,Lifeyearlost70_CI)
-    
-  ) %>% 
-  
-  left_join(
-    
-    covid_cases_deaths_jh) %>% 
-  mutate(across(Population:Observed, number, big.mark = ",")) %>% 
-  mutate(Deaths = number(Deaths, big.mark = ",")) %>% 
-  mutate(across(Observed:Deaths, 
-                ~replace(., is.na(.), "--"))) %>% 
-  arrange(Year, desc(Country))
-
-```
-
-```{r echo=FALSE}
-table_1b %>% 
-  select(-Year) %>%
-  kbl(align = "lrrrrrrr",
-      col.names = c("", "", 
-                    "Observed", "Expected$^*$","1,000 life years lost$^†$", 
-                    "Observed$^‡$")) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE) %>% 
-  add_header_above(c("Country", "Population", 
-                     "All-cause deaths" = 3, "COVID-19 deaths" = 1)) %>% 
-  pack_rows("1890", 1, 2) %>%
-  pack_rows("1918", 3, 5) %>% 
-  pack_rows("1957", 6, 8) %>% 
-  pack_rows("2020", 9, 11) %>% 
-  pack_rows("2021", 12, 14) %>% 
-  column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE) %>% 
-  footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
-                      "Sum of life years lost until the age of 70 in thousands (95% credible interval).",
-                      "Data from Johns Hopkins Coronavirus Resource Center"))
-```
-
-
-
-
-
-
 ## Table 2
 
 three measures of excess (all from main, age adjusted NB model with observed population counts).  
@@ -465,6 +383,17 @@ table_2 <-
   mutate(rate_cri = str_c("(", Rate_lci, "; ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
   select(-Rate_lci, -Rate_uci, -Population) %>% 
   
+    left_join(
+      
+    results_age %>% 
+      filter(Year %in% pandemic_year, Age_cat=="[0,10)") %>%  
+      mutate(Lifeyearlost70 = round(yearly_excess_grouped_lifelost70/1000, 0),
+             Lifeyearlost70_CI = paste0(round(yearly_excess_grouped_lifelost70_lower/1000, 0),
+                                        " to ",
+                                        round(yearly_excess_grouped_lifelost70_upper/1000,0)))  %>% 
+      select(Year,Country,Lifeyearlost70_CI)
+    
+  ) %>% 
   arrange(Year, desc(Country))
 
 openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx", 
@@ -475,17 +404,19 @@ openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx",
 table_2 %>% 
   filter(!(Country == "Sweden" & Year == 2021)) %>% 
   select(-Year) %>% 
-  kbl(align = "lrrrrrrr",
+  kbl(align = "lrrrrrrrr",
       col.names = c("Country", 
                     "Count", "95% CrI",
                     "Per 100,000", "95% CrI", 
-                    "%", "95% CrI")) %>% 
+                    "%", "95% CrI",
+                    "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c(" " = 1, 
                      "Absolute excess deaths" = 2,
                      "Absolute excess deaths\nper population$^*$" = 2,
-                     "Relative excess deaths$^†$" = 2)) %>% 
+                     "Relative excess deaths$^†$" = 2,
+                     "1,000 life years lost$^‡$")) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -494,7 +425,8 @@ table_2 %>%
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE) %>% 
   footnote(symbol=c("Absolute number of excess deaths scaled by country population.",
-                    "Absolute number of excess deaths scaled by the number of expected deaths."))
+                    "Absolute number of excess deaths scaled by the number of expected deaths.",
+                    "Sum of life years lost until the age of 70 in thousands (95% credible interval)."))
 ```
 
 ## Figure 1
