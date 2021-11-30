@@ -137,6 +137,10 @@ results_year_last_7 <- merge_mort(bind_rows(
   relocate(Model, Pandemic)
 ```
 
+## Sensitivity analysis for alternative time window & min/max selection
+
+FIXME
+
 ## Sensitivity analysis for including effects of pandemics
 
 ```{r}
@@ -785,7 +789,7 @@ openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx",
 
 ## Figure S1
 
-Absolute numbers of excess yearly.  
+### Absolute numbers of excess yearly.  
 
 ```{r echo=FALSE}
 hline_pandemic <- results_year %>% 
@@ -835,7 +839,7 @@ rm(hline_pandemic)
 ggsave("paper/Figure_S1a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
-### Relative
+### Relative numbers of excess yearly.  
 
 ```{r echo=FALSE}
 hline_pandemic <- results_year %>% 
@@ -887,7 +891,7 @@ ggsave("paper/Figure_S1b.png", dpi = 300, width = 190, height = 140, units = "mm
 
 ## Figure S2 
 
-### Monthly absolute estimates of excess.  
+### Monthly absolute estimates of excess
 
 ```{r echo=FALSE}
 hline_pandemic <- results_month %>% 
@@ -936,7 +940,7 @@ rm(hline_pandemic)
 ggsave("paper/Figure_S2a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
-### Monthly relative estimates of excess.  
+### Monthly relative estimates of excess 
 
 ```{r echo=FALSE}
 hline_pandemic <- results_month %>% 
