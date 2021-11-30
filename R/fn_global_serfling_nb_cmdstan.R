@@ -46,7 +46,12 @@ fn_global_serfling_nb_cmdstan = function(pred_year, monthly_data, pandemic_years
       dplyr::filter(Rank %in% 2:(num_year-1)) %>% 
       dplyr::arrange(Month,Year)
   }
-  
+  if(version=="last_7_notrim") {
+    # select last 7 years
+    dd = dplyr::filter(monthly_data, Year >= pred_year - 7, Year < pred_year)
+    # remove special year (e.g. 1918 because of the flu pandemic)
+    dd %<>% dplyr::filter(!(Year %in% pandemic_years))
+  }
   if(pred_year!=2021) {
     # extract prediction data
     pp = dplyr::filter(monthly_data, Year == pred_year)
