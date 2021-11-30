@@ -314,11 +314,9 @@ table_1 %>%
                       "Data from Johns Hopkins Coronavirus Resource Center"))
 ```
 
-
-
 ## Table 2
 
-three measures of excess (all from main, age adjusted NB model with observed population counts).  
+Three measures of excess (all from main, age adjusted NB model with observed population counts) and years life lost.   
 
 ```{r echo=FALSE}
 table_2 <- 
@@ -431,57 +429,9 @@ table_2 %>%
 
 ## Figure 1
 
-### Absolute numbers  
+### Yearly excess per population 
 
-```{r echo=FALSE}
-hline_pandemic <- results_year %>% 
-  filter(Year == 2020) %>% 
-  left_join(pops) %>%
-  group_by(Country) %>% 
-  mutate(yintercept = yearly_excess_total_deaths) %>% 
-  ungroup()
-
-vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020)) 
-# vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 2020)) 
-
-results_year %>% 
-  filter(Year <= 2020) %>% 
-  left_join(pops) %>% 
-  mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Fewer than expected"),
-         abs_excess_pop=yearly_excess_total_deaths) %>% 
-  ggplot(aes(x = Year)) +
-  geom_vline(data = vline_pandemic, 
-             aes(xintercept = Year), 
-             size = 3, colour = "grey90", alpha = 0.7) +  
-  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
-             colour = "#984ea3", size = 0.25) +
-  geom_hline(yintercept = 0, colour = "grey80") +
-  geom_col(aes(y = abs_excess_pop, fill = Difference)) +
-  scale_x_continuous(
-    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
-    limits = c(1856-1, 2020+1),
-    expand = c(0, 0)) +
-  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  scale_y_continuous(labels=function(x) number(x,big.mark=",")) +
-  facet_grid(vars(Country),scales="free_y") + 
-  theme_bw() +
-  theme(
-    panel.background = element_blank(), 
-    axis.line = element_line(colour = "grey40"),
-    axis.ticks = element_line(),
-    legend.position = c(.10, .95),
-    legend.background = element_blank(),
-    legend.title = element_blank(),
-    plot.margin = margin(0.5, 0.5, 0, 0)) +
-  xlab("") + ylab("Absolute excess deaths") +
-  guides(fill = guide_legend(reverse = TRUE))
-
-rm(hline_pandemic)
-
-ggsave("paper/Figure_1a.png", dpi = 300, width = 190, height = 140, units = "mm")
-```
-
-### Absolute numbers per population 
+**Note:** *the varying scales on Y axes of the panels!*
 
 ```{r echo=FALSE}
 hline_pandemic <- results_year %>% 
@@ -512,7 +462,7 @@ results_year %>%
     limits = c(1856-1, 2020+1),
     expand = c(0, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  facet_grid(vars(Country)) + 
+  facet_grid(vars(Country), scales = "free_y") + 
   theme_bw() +
   theme(
     panel.background = element_blank(), 
@@ -525,9 +475,9 @@ results_year %>%
   xlab("") + ylab("Absolute excess deaths per 100,000 population") +
   guides(fill = guide_legend(reverse = TRUE))
 
-rm(hline_pandemic)
+rm(hline_pandemic, vline_pandemic)
 
-ggsave("paper/Figure_1b.png", dpi = 300, width = 190, height = 140, units = "mm")
+ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
 ### Relative
@@ -1187,7 +1137,70 @@ openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx",
                      row.names = FALSE, overwrite = TRUE)
 ```
 
-## Figure S1 
+
+
+
+
+
+
+## Figure S1
+
+### Absolute numbers yearly
+
+```{r echo=FALSE}
+hline_pandemic <- results_year %>% 
+  filter(Year == 2020) %>% 
+  left_join(pops) %>%
+  group_by(Country) %>% 
+  mutate(yintercept = yearly_excess_total_deaths) %>% 
+  ungroup()
+
+vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020)) 
+# vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 2020)) 
+
+results_year %>% 
+  filter(Year <= 2020) %>% 
+  left_join(pops) %>% 
+  mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Fewer than expected"),
+         abs_excess_pop=yearly_excess_total_deaths) %>% 
+  ggplot(aes(x = Year)) +
+  geom_vline(data = vline_pandemic, 
+             aes(xintercept = Year), 
+             size = 3, colour = "grey90", alpha = 0.7) +  
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25) +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = abs_excess_pop, fill = Difference)) +
+  scale_x_continuous(
+    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
+    limits = c(1856-1, 2020+1),
+    expand = c(0, 0)) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  scale_y_continuous(labels=function(x) number(x,big.mark=",")) +
+  facet_grid(vars(Country),scales="free_y") + 
+  theme_bw() +
+  theme(
+    panel.background = element_blank(), 
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    legend.position = c(.10, .95),
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    plot.margin = margin(0.5, 0.5, 0, 0)) +
+  xlab("") + ylab("Absolute excess deaths") +
+  guides(fill = guide_legend(reverse = TRUE))
+
+rm(hline_pandemic)
+
+ggsave("paper/Figure_S1.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
+
+
+
+
+
+
+## Figure S2 
 
 ### Monthly absolute estimates of excess.  
 
