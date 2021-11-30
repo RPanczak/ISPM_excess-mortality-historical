@@ -163,20 +163,6 @@ results_month_pand <- merge_mort(bind_rows(
 #   relocate(Model, Pandemic)
 ```
 
-## Sensitivity analysis for using expected pops in 2021
-
-```{r}
-results_year_exp <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-23/Sweden_results_year_exp.Rds"),
-  read_rds("data/outputs_2021-11-24/Spain_results_year_exp.Rds"),
-  read_rds("data/outputs_2021-11-23/Switzerland_results_year_exp.Rds") 
-)) %>% 
-  filter(Model == "Age Serfling (Stan, NB)") %>% 
-  arrange(Country, Year) %>% 
-  mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
-  relocate(Model, Pandemic)
-```
-
 ## Population
 
 ```{r}
@@ -195,6 +181,7 @@ pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
 <!-- ----------------------------------------------------- -->
 
 # Paper outputs
+
 
 ## Table 1
 
@@ -315,6 +302,7 @@ table_1 %>%
                       "First six months of the year only included in the analyses."))
 ```
 
+
 ## Table 2
 
 Three measures of excess (all from main, age adjusted NB model with observed population counts) and years life lost.   
@@ -428,9 +416,10 @@ table_2 %>%
                     "Sum of life years lost until the age of 70 in thousands (95% credible interval)."))
 ```
 
+
 ## Figure 1
 
-### Yearly excess per population 
+Yearly excess per population.  
 
 **Note:** *the varying scales on Y axes of the panels!*
 
@@ -481,55 +470,6 @@ rm(hline_pandemic, vline_pandemic)
 ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
-### Relative
-
-```{r echo=FALSE}
-hline_pandemic <- results_year %>% 
-  filter(Year == 2020) %>% 
-  left_join(pops) %>%
-  group_by(Country) %>% 
-  mutate(yintercept = yearly_rel_excess_total_deaths) %>% 
-  ungroup()
-
-vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020)) 
-# vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 2020)) 
-
-results_year %>% 
-  filter(Year <= 2020) %>% 
-  left_join(pops) %>% 
-  mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Fewer than expected"),
-         abs_excess_pop=yearly_rel_excess_total_deaths) %>% 
-  ggplot(aes(x = Year)) +
-  geom_vline(data = vline_pandemic, 
-             aes(xintercept = Year), 
-             size = 3, colour = "grey90", alpha = 0.7) +  
-  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
-             colour = "#984ea3", size = 0.25) +
-  geom_hline(yintercept = 0, colour = "grey80") +
-  geom_col(aes(y = abs_excess_pop, fill = Difference)) +
-  scale_x_continuous(
-    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
-    limits = c(1856-1, 2020+1),
-    expand = c(0, 0)) +
-  scale_y_continuous(labels=scales::percent) +
-  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  facet_grid(vars(Country)) + 
-  theme_bw() +
-  theme(
-    panel.background = element_blank(), 
-    axis.line = element_line(colour = "grey40"),
-    axis.ticks = element_line(),
-    legend.position = c(.10, .95),
-    legend.background = element_blank(),
-    legend.title = element_blank(),
-    plot.margin = margin(0.5, 0.5, 0, 0)) +
-  xlab("") + ylab("Relative excess deaths") +
-  guides(fill = guide_legend(reverse = TRUE))
-
-rm(hline_pandemic)
-
-ggsave("paper/Figure_1c.png", dpi = 300, width = 190, height = 140, units = "mm")
-```
 
 ## Figure 2 
 
@@ -610,58 +550,9 @@ ggsave(plot = gg, "paper/Figure_2.png", dpi = 300, width =  190, height = 140, u
 
 ## Figure 3
 
-Age differences across major pandemics
+Age differences across major pandemics (per population).  
 
-### With %s
-
-```{r echo=FALSE}
-pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
-
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
-
-gap = .3
-
-results_age %>% 
-  filter(Year %in% pandemic_years) %>%
-  # filter(!(Year<1957 & Age_cat=="[90,120]")) %>% 
-  mutate(Age_cat2=as.numeric(Age_cat)) %>%
-  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
-                            Country=="Sweden" ~ Age_cat2,
-                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
-  left_join(deaths_yearly_age_sex) %>%
-  ggplot() +
-  geom_line(aes(x=Age_cat2,
-                y=rel_excess_grouped_deaths,
-                colour=factor(Country))) +
-  geom_pointrange(aes(x=Age_cat2,
-                      y=rel_excess_grouped_deaths,
-                      ymin=rel_excess_grouped_deaths_lower,
-                      ymax=rel_excess_grouped_deaths_upper,
-                      colour=factor(Country)),
-                  size=.25) +
-  geom_hline(yintercept=0,linetype=2) +
-  facet_wrap(~Year,nrow=1) +
-  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
-                     breaks=1:10) +
-  scale_y_continuous(labels= label_number(accuracy = 1, 
-                                          suffix = "%", 
-                                          scale = 100)) +
-  theme_bw() +
-  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
-  labs(x="Year",
-       y="Montly deaths") +
-  theme(legend.position = c(.1,.8),
-        legend.background = element_blank(),
-        axis.text.x = element_text(angle=45, hjust=1),
-        plot.margin = margin(0, 0, 0, 0)) +
-  labs(x="Age group",
-       y="Relative excess deaths",
-       colour="Country")
-
-ggsave("paper/Figure_3a.png", dpi = 300, width = 280, height = 100, units = "mm")
-```
-
-### Per population
+**Note:** *Excludes category `[90,120]` in pandemic years `1890` & `1918` due to small number of deaths in these age groups resulting in very large CrI.*  
 
 ```{r echo=FALSE}
 pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
@@ -707,93 +598,7 @@ results_age %>%
        y="Absolute excess deaths per 100,000 population",
        colour="Country")
 
-ggsave("paper/Figure_3b.png", dpi = 300, width = 280, height = 100, units = "mm")
-```
-
-
-```{r echo=FALSE}
-pandemic_years <- c(1918,2020)
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
-results_age %>% 
-  filter(Year %in% pandemic_years) %>%
-  mutate(Age_cat2=as.numeric(Age_cat)) %>%
-  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
-                            Country=="Sweden" ~ Age_cat2,
-                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
-  left_join(deaths_yearly_age_sex) %>%
-  ggplot() +
-  geom_line(aes(x=Age_cat2,
-                y=rel_excess_grouped_deaths,
-                colour=factor(Year))) +
-  geom_pointrange(aes(x=Age_cat2,
-                      y=rel_excess_grouped_deaths,
-                      ymin=rel_excess_grouped_deaths_lower,
-                      ymax=rel_excess_grouped_deaths_upper,
-                      colour=factor(Year)),
-                  size=.25) +
-  geom_hline(yintercept=0,linetype=2) +
-  facet_wrap(~Country,nrow=1) +
-  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
-                     breaks=1:10) +
-  scale_y_continuous(labels= label_number(accuracy = 1, 
-                                          suffix = "%", 
-                                          scale = 100)) +
-  theme_bw() +
-  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
-  labs(x="Year",
-       y="Montly deaths") +
-  theme(legend.position = c(.1,.8),
-        legend.background = element_blank(),
-        axis.text.x = element_text(angle=45, hjust=1),
-        plot.margin = margin(0, 0, 0, 0)) +
-  labs(x="Age group",
-       y="Relative excess deaths",
-       colour="Country")
-
-ggsave("paper/Figure_3c.png", dpi = 300, width = 280, height = 100, units = "mm")
-```
-
-
-```{r echo=FALSE}
-pandemic_years <- c(1918,2020)
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
-results_age %>% 
-  filter(Year %in% pandemic_years) %>%
-  mutate(Age_cat2=as.numeric(Age_cat)) %>%
-  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
-                            Country=="Sweden" ~ Age_cat2,
-                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
-  left_join(deaths_yearly_age_sex) %>%
-  ggplot() +
-  geom_line(aes(x=Age_cat2,
-                y=excess_grouped_deaths/Population_obs*100000,
-                colour=factor(Year))) +
-  geom_pointrange(aes(x=Age_cat2,
-                      y=excess_grouped_deaths/Population_obs*100000,
-                      ymin=excess_grouped_deaths_lower/Population_obs*100000,
-                      ymax=excess_grouped_deaths_upper/Population_obs*100000,
-                      colour=factor(Year)),
-                  size=.25) +
-  
-  geom_hline(yintercept=0, linetype=2) +
-  facet_wrap(~Country, nrow=1) +
-  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
-                     breaks=1:10) +
-  scale_y_continuous(labels=function(x) number(x, big.mark=",")) +
-  theme_bw() +
-  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
-  # coord_cartesian(ylim=c(-600, 5000)) +
-  labs(x="Year",
-       y="Montly deaths") +
-  theme(legend.position = c(.1, .8),
-        legend.background = element_blank(),
-        axis.text.x = element_text(angle=45, hjust=1),
-        plot.margin = margin(0, 0, 0, 0)) +
-  labs(x="Age group",
-       y="Absolute excess deaths per 100,000 population",
-       colour="Country")
-
-ggsave("paper/Figure_3d.png", dpi = 300, width = 280, height = 100, units = "mm")
+ggsave("paper/Figure_3.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -806,10 +611,12 @@ Comparing main estimates (`Age Serfling (Stan, NB)`) of excess from alternative 
 
 - `Global Serfling (bootstrap)`  
 - `Global Serfling (Stan, NB)`  
-- `Age Serfling with alternative time window (Stan, NB)`  
-- `Age Serfling with alternative population denominator (Stan, NB)`  
+- `Age Serfling with alternative 7 day min/max time window (Stan, NB)`  
+- `Age Serfling with alternative 7 day time window (Stan, NB)`  
 
-```{r echo=FALSE}
+FIXME: add 7 day results in place of obs pops
+
+```{r eval=FALSE}
 pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
 
 table_s1 <- 
@@ -943,7 +750,7 @@ table_s1 <-
                 ~replace(., is.na(.), "--"))) 
 ```
 
-```{r echo=FALSE}
+```{r eval=FALSE}
 table_s1 %>% 
   select(-Country) %>% 
   kbl(align = "lrrrrrrrr",
@@ -969,11 +776,12 @@ table_s1 %>%
   footnote(symbol=c("Serfling, Poisson, unadjusted for age",
                     "Serfling, NB, unadjusted for age",
                     "Serfling, NB, age adjusted, alternative time window",
-                    "Serfling, NB, age adjusted, alternative population denominator"))
+                    "Serfling, NB, age adjusted, alternative time window"))
 
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
+
 
 ## Figure S1
 
@@ -1024,9 +832,58 @@ results_year %>%
 
 rm(hline_pandemic)
 
-ggsave("paper/Figure_S1.png", dpi = 300, width = 190, height = 140, units = "mm")
+ggsave("paper/Figure_S1a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
+### Relative
+
+```{r echo=FALSE}
+hline_pandemic <- results_year %>% 
+  filter(Year == 2020) %>% 
+  left_join(pops) %>%
+  group_by(Country) %>% 
+  mutate(yintercept = yearly_rel_excess_total_deaths) %>% 
+  ungroup()
+
+vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020)) 
+# vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 2020)) 
+
+results_year %>% 
+  filter(Year <= 2020) %>% 
+  left_join(pops) %>% 
+  mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Fewer than expected"),
+         abs_excess_pop=yearly_rel_excess_total_deaths) %>% 
+  ggplot(aes(x = Year)) +
+  geom_vline(data = vline_pandemic, 
+             aes(xintercept = Year), 
+             size = 3, colour = "grey90", alpha = 0.7) +  
+  geom_hline(data = hline_pandemic, aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25) +
+  geom_hline(yintercept = 0, colour = "grey80") +
+  geom_col(aes(y = abs_excess_pop, fill = Difference)) +
+  scale_x_continuous(
+    breaks = c(1860, 1890, 1918, 1957, 1968, 1977, 2009, 2020),
+    limits = c(1856-1, 2020+1),
+    expand = c(0, 0)) +
+  scale_y_continuous(labels=scales::percent) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  facet_grid(vars(Country)) + 
+  theme_bw() +
+  theme(
+    panel.background = element_blank(), 
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    legend.position = c(.10, .95),
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    plot.margin = margin(0.5, 0.5, 0, 0)) +
+  xlab("") + ylab("Relative excess deaths") +
+  guides(fill = guide_legend(reverse = TRUE))
+
+rm(hline_pandemic)
+
+ggsave("paper/Figure_S1b.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
 
 ## Figure S2 
 
@@ -1128,9 +985,12 @@ rm(hline_pandemic)
 ggsave("paper/Figure_S2b.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
-## Figure S2
 
-Zooming to pandemics to explore % of excess
+## Figure S3
+
+Zooming to pandemics to explore excess
+
+### Percentage
 
 ```{r echo=FALSE}
 plot_years <- c(seq(1890 - 1, 1890 + 2),
@@ -1184,12 +1044,213 @@ plot_data %>%
         axis.line = element_line(colour = "grey40"),
         plot.margin = margin(0.5, 0.5, 0, 0)) 
 
-ggsave("paper/Figure_S2.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_S3a.png", dpi = 300, width = 297, height = 210, units = "mm")
 
 rm(plot_years)
 ```
 
-## Figure S3
+### Absolute
+
+```{r echo=FALSE}
+plot_years <- c(seq(1890 - 1, 1890 + 2),
+                seq(1918 - 1, 1918 + 2),
+                seq(1957 - 1, 1957 + 2),
+                seq(2020 - 1, 2020 + 2))
+
+plot_data <- results_month %>% 
+  bind_rows(
+    read_rds("data/deaths_monthly.Rds") %>% 
+      filter(Country == "Sweden" & Year == 2021 & Month < 7) %>% 
+      select(Country, Year, Month, Date, Deaths)
+  ) %>% 
+  filter(Year %in% plot_years) %>% 
+  mutate(Difference = ifelse(excess_month > 0, "More", "Less"),
+         Country = fct_relevel(factor(Country), 
+                               "Switzerland", "Sweden", "Spain")) %>% 
+  group_by(Country, Pandemic) %>% 
+  mutate(time = row_number()) %>% 
+  ungroup() %>% 
+  filter(!is.na(Pandemic))
+
+plot_data %>% 
+  mutate(xmin = as.Date(paste0(Pandemic, "-01-01")),
+         xmax = as.Date(paste0(Pandemic, "-12-31"))) %>% 
+  ggplot(aes(x = time)) +
+  geom_hline(yintercept = 0, colour = "grey60") +
+  geom_vline(xintercept = 13, colour = "grey80") +
+  geom_vline(xintercept = 24, colour = "grey80") +
+  geom_rect(aes(xmin = 13, xmax = 24,
+                ymin = -Inf, ymax = Inf),
+            fill = "grey90", alpha = 0.7, inherit.aes = FALSE) +
+  geom_col(aes(y = excess_month, fill = Difference), size = 0.5) +
+  facet_grid(vars(Country), vars(Pandemic), scales = "free") + 
+  scale_x_continuous(limits = c(min(plot_data$time)-1, max(plot_data$time)+1),
+                     breaks = c(1, 13, 24, 36, 48), 
+                     labels = c("-12m", "Start", "End", "+12m", "+24m")) +
+  xlab("") + 
+  ylab("Excess deaths per month") +
+  # ggtitle("Excess deaths per month") +
+  scale_y_continuous() +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank(), 
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(), 
+        panel.grid.minor.y = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40"),
+        plot.margin = margin(0.5, 0.5, 0, 0)) 
+
+ggsave("paper/Figure_S3b.png", dpi = 300, width = 297, height = 210, units = "mm")
+
+rm(plot_years)
+```
+
+
+## Figure S4
+
+Age differences across major pandemics - with %s
+
+```{r echo=FALSE}
+pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
+
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
+
+gap = .3
+
+results_age %>% 
+  filter(Year %in% pandemic_years) %>%
+  # filter(!(Year<1957 & Age_cat=="[90,120]")) %>% 
+  mutate(Age_cat2=as.numeric(Age_cat)) %>%
+  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
+                            Country=="Sweden" ~ Age_cat2,
+                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
+  left_join(deaths_yearly_age_sex) %>%
+  ggplot() +
+  geom_line(aes(x=Age_cat2,
+                y=rel_excess_grouped_deaths,
+                colour=factor(Country))) +
+  geom_pointrange(aes(x=Age_cat2,
+                      y=rel_excess_grouped_deaths,
+                      ymin=rel_excess_grouped_deaths_lower,
+                      ymax=rel_excess_grouped_deaths_upper,
+                      colour=factor(Country)),
+                  size=.25) +
+  geom_hline(yintercept=0,linetype=2) +
+  facet_wrap(~Year,nrow=1) +
+  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
+                     breaks=1:10) +
+  scale_y_continuous(labels= label_number(accuracy = 1, 
+                                          suffix = "%", 
+                                          scale = 100)) +
+  theme_bw() +
+  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
+  labs(x="Year",
+       y="Montly deaths") +
+  theme(legend.position = c(.1,.8),
+        legend.background = element_blank(),
+        axis.text.x = element_text(angle=45, hjust=1),
+        plot.margin = margin(0, 0, 0, 0)) +
+  labs(x="Age group",
+       y="Relative excess deaths",
+       colour="Country")
+
+ggsave("paper/Figure_S4.png", dpi = 300, width = 280, height = 100, units = "mm")
+```
+
+
+## Figure S5
+
+Different age profiles of excess deaths across two pandemics and three countries.  
+
+```{r echo=FALSE}
+pandemic_years <- c(1918,2020)
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
+
+results_age %>% 
+  filter(Year %in% pandemic_years) %>%
+  mutate(Age_cat2=as.numeric(Age_cat)) %>%
+  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
+                            Country=="Sweden" ~ Age_cat2,
+                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
+  left_join(deaths_yearly_age_sex) %>%
+  ggplot() +
+  geom_line(aes(x=Age_cat2,
+                y=rel_excess_grouped_deaths,
+                colour=factor(Year))) +
+  geom_pointrange(aes(x=Age_cat2,
+                      y=rel_excess_grouped_deaths,
+                      ymin=rel_excess_grouped_deaths_lower,
+                      ymax=rel_excess_grouped_deaths_upper,
+                      colour=factor(Year)),
+                  size=.25) +
+  geom_hline(yintercept=0,linetype=2) +
+  facet_wrap(~Country,nrow=1) +
+  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
+                     breaks=1:10) +
+  scale_y_continuous(labels= label_number(accuracy = 1, 
+                                          suffix = "%", 
+                                          scale = 100)) +
+  theme_bw() +
+  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
+  labs(x="Year",
+       y="Montly deaths") +
+  theme(legend.position = c(.1,.8),
+        legend.background = element_blank(),
+        axis.text.x = element_text(angle=45, hjust=1),
+        plot.margin = margin(0, 0, 0, 0)) +
+  labs(x="Age group",
+       y="Relative excess deaths",
+       colour="Country")
+
+ggsave("paper/Figure_S5a.png", dpi = 300, width = 280, height = 100, units = "mm")
+```
+
+
+```{r echo=FALSE}
+pandemic_years <- c(1918,2020)
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
+results_age %>% 
+  filter(Year %in% pandemic_years) %>%
+  mutate(Age_cat2=as.numeric(Age_cat)) %>%
+  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
+                            Country=="Sweden" ~ Age_cat2,
+                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
+  left_join(deaths_yearly_age_sex) %>%
+  ggplot() +
+  geom_line(aes(x=Age_cat2,
+                y=excess_grouped_deaths/Population_obs*100000,
+                colour=factor(Year))) +
+  geom_pointrange(aes(x=Age_cat2,
+                      y=excess_grouped_deaths/Population_obs*100000,
+                      ymin=excess_grouped_deaths_lower/Population_obs*100000,
+                      ymax=excess_grouped_deaths_upper/Population_obs*100000,
+                      colour=factor(Year)),
+                  size=.25) +
+  
+  geom_hline(yintercept=0, linetype=2) +
+  facet_wrap(~Country, nrow=1) +
+  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
+                     breaks=1:10) +
+  scale_y_continuous(labels=function(x) number(x, big.mark=",")) +
+  theme_bw() +
+  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
+  # coord_cartesian(ylim=c(-600, 5000)) +
+  labs(x="Year",
+       y="Montly deaths") +
+  theme(legend.position = c(.1, .8),
+        legend.background = element_blank(),
+        axis.text.x = element_text(angle=45, hjust=1),
+        plot.margin = margin(0, 0, 0, 0)) +
+  labs(x="Age group",
+       y="Absolute excess deaths per 100,000 population",
+       colour="Country")
+
+ggsave("paper/Figure_S5b.png", dpi = 300, width = 280, height = 100, units = "mm")
+```
+
+## Figure S6
 
 Impact of extremes: using 1918 pandemic as an example of impact on estimates from 1919 - 1923.  
 Estimates with extreme year (blue) and without (red).  
@@ -1236,7 +1297,7 @@ extreme_data %>%
   theme_bw() + 
   theme(plot.margin = margin(0.5, 0.5, 0, 0))
 
-ggsave("paper/Figure_S3a.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_S6a.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ### Table 1919
@@ -1312,7 +1373,7 @@ extreme_data %>%
   theme_bw() + 
   theme(plot.margin = margin(0.5, 0.5, 0, 0))
 
-ggsave("paper/Figure_S3b.png", dpi = 300, width = 297, height = 210, units = "mm")
+ggsave("paper/Figure_S6b.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
 ### Table 2021
@@ -1422,6 +1483,7 @@ ggplot(data = data_year,
   ylab("% difference in deaths to previous year")
 ```
 
+
 ## Comparing to BfS estimates
 
 Data from BfS prepared in `03`. No CI included in comparisons since different age groups are used!  
@@ -1452,6 +1514,7 @@ excess_2010_2020 %>%
   column_spec(4, color = ifelse(excess_2010_2020$Difference > 0, 
                                 "#EF8A62", "#67A9CF"))
 ```
+
 
 <!-- ----------------------------------------------------- -->
 
