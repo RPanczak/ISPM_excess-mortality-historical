@@ -314,6 +314,90 @@ table_1 %>%
                       "Data from Johns Hopkins Coronavirus Resource Center"))
 ```
 
+
+
+```{r echo=FALSE}
+table_1b <- 
+  
+  left_join(
+    
+    # population
+    pops %>% 
+      filter(Year %in% pandemic_year) %>% 
+      select(Year, Country, Population), 
+    
+    # observed deaths, aggregated from months
+    results_month %>% 
+      filter(Year %in% pandemic_year) %>% 
+      select(Year, Country, Deaths) %>% 
+      group_by(Country, Year) %>% 
+      summarise(Observed = sum(Deaths))
+    
+  ) %>% 
+  left_join(
+    
+    results_year %>% 
+      filter(Year %in% pandemic_year) %>% 
+      mutate(Expected = paste0(number(plyr::round_any(yearly_pred_total_deaths_lower,
+                                                      100),
+                                      big.mark = ","), 
+                               " to ",
+                               number(plyr::round_any(yearly_pred_total_deaths_upper,
+                                                      100),
+                                      big.mark = ","))) %>% 
+      select(Year, Country, Expected)
+  ) %>% 
+  
+  left_join(
+    results_age %>% 
+      filter(Year %in% pandemic_year,Age_cat=="[0,10)") %>%  
+      mutate(Lifeyearlost70=round(yearly_excess_grouped_lifelost70/1000,0),
+             Lifeyearlost70_CI = paste0(round(yearly_excess_grouped_lifelost70_lower/1000,0), 
+                                        " to ",
+                                        round(yearly_excess_grouped_lifelost70_upper/1000,0)))  %>% 
+      select(Year,Country,Lifeyearlost70_CI)
+    
+  ) %>% 
+  
+  left_join(
+    
+    covid_cases_deaths_jh) %>% 
+  mutate(across(Population:Observed, number, big.mark = ",")) %>% 
+  mutate(Deaths = number(Deaths, big.mark = ",")) %>% 
+  mutate(across(Observed:Deaths, 
+                ~replace(., is.na(.), "--"))) %>% 
+  arrange(Year, desc(Country))
+
+```
+
+```{r echo=FALSE}
+table_1b %>% 
+  select(-Year) %>%
+  kbl(align = "lrrrrrrr",
+      col.names = c("", "", 
+                    "Observed", "Expected$^*$","1,000 life years lost$^†$", 
+                    "Observed$^‡$")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  add_header_above(c("Country", "Population", 
+                     "All-cause deaths" = 3, "COVID-19 deaths" = 1)) %>% 
+  pack_rows("1890", 1, 2) %>%
+  pack_rows("1918", 3, 5) %>% 
+  pack_rows("1957", 6, 8) %>% 
+  pack_rows("2020", 9, 11) %>% 
+  pack_rows("2021", 12, 14) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE) %>% 
+  footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
+                      "Sum of life years lost until the age of 70 in thousands (95% credible interval).",
+                      "Data from Johns Hopkins Coronavirus Resource Center"))
+```
+
+
+
+
+
+
 ## Table 2
 
 three measures of excess (all from main, age adjusted NB model with observed population counts).  
@@ -906,6 +990,91 @@ results_age %>%
 ggsave("paper/Figure_3b.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
 
+
+```{r echo=FALSE}
+pandemic_years <- c(1918,2020)
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
+results_age %>% 
+  filter(Year %in% pandemic_years) %>%
+  mutate(Age_cat2=as.numeric(Age_cat)) %>%
+  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
+                            Country=="Sweden" ~ Age_cat2,
+                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
+  left_join(deaths_yearly_age_sex) %>%
+  ggplot() +
+  geom_line(aes(x=Age_cat2,
+                y=rel_excess_grouped_deaths,
+                colour=factor(Year))) +
+  geom_pointrange(aes(x=Age_cat2,
+                      y=rel_excess_grouped_deaths,
+                      ymin=rel_excess_grouped_deaths_lower,
+                      ymax=rel_excess_grouped_deaths_upper,
+                      colour=factor(Year)),
+                  size=.25) +
+  geom_hline(yintercept=0,linetype=2) +
+  facet_wrap(~Country,nrow=1) +
+  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
+                     breaks=1:10) +
+  scale_y_continuous(labels= label_number(accuracy = 1, 
+                                          suffix = "%", 
+                                          scale = 100)) +
+  theme_bw() +
+  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
+  labs(x="Year",
+       y="Montly deaths") +
+  theme(legend.position = c(.1,.8),
+        legend.background = element_blank(),
+        axis.text.x = element_text(angle=45, hjust=1),
+        plot.margin = margin(0, 0, 0, 0)) +
+  labs(x="Age group",
+       y="Relative excess deaths",
+       colour="Country")
+
+ggsave("paper/Figure_3c.png", dpi = 300, width = 280, height = 100, units = "mm")
+```
+
+
+```{r echo=FALSE}
+pandemic_years <- c(1918,2020)
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
+results_age %>% 
+  filter(Year %in% pandemic_years) %>%
+  mutate(Age_cat2=as.numeric(Age_cat)) %>%
+  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
+                            Country=="Sweden" ~ Age_cat2,
+                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
+  left_join(deaths_yearly_age_sex) %>%
+  ggplot() +
+  geom_line(aes(x=Age_cat2,
+                y=excess_grouped_deaths/Population_obs*100000,
+                colour=factor(Year))) +
+  geom_pointrange(aes(x=Age_cat2,
+                      y=excess_grouped_deaths/Population_obs*100000,
+                      ymin=excess_grouped_deaths_lower/Population_obs*100000,
+                      ymax=excess_grouped_deaths_upper/Population_obs*100000,
+                      colour=factor(Year)),
+                  size=.25) +
+  
+  geom_hline(yintercept=0, linetype=2) +
+  facet_wrap(~Country, nrow=1) +
+  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
+                     breaks=1:10) +
+  scale_y_continuous(labels=function(x) number(x, big.mark=",")) +
+  theme_bw() +
+  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
+  # coord_cartesian(ylim=c(-600, 5000)) +
+  labs(x="Year",
+       y="Montly deaths") +
+  theme(legend.position = c(.1, .8),
+        legend.background = element_blank(),
+        axis.text.x = element_text(angle=45, hjust=1),
+        plot.margin = margin(0, 0, 0, 0)) +
+  labs(x="Age group",
+       y="Absolute excess deaths per 100,000 population",
+       colour="Country")
+
+ggsave("paper/Figure_3d.png", dpi = 300, width = 280, height = 100, units = "mm")
+```
 
 <!-- ----------------------------------------------------- -->
 
