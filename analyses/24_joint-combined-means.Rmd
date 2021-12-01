@@ -223,7 +223,7 @@ table_1 <-
       mutate(Expected = paste0(number(plyr::round_any(yearly_pred_total_deaths_lower,
                                                       100),
                                       big.mark = ","), 
-                               "-",
+                               " to ",
                                number(plyr::round_any(yearly_pred_total_deaths_upper,
                                                       100),
                                       big.mark = ","))) %>% 
@@ -316,7 +316,7 @@ table_2 <-
   mutate(Excess = number(Excess, big.mark = ","),
          excess_cri = str_c("(", 
                             number(Excess_lci, big.mark = ","), 
-                            "; ", 
+                            " to ", 
                             number(Excess_uci, big.mark = ","), 
                             ")")) %>% 
   relocate(excess_cri, .after = Excess) %>% 
@@ -324,24 +324,25 @@ table_2 <-
   
   mutate(percent_cri = str_c("(", 
                              Percent_lci, 
-                             "; ", 
+                             " to ", 
                              Percent_uci, 
                              ")")) %>% 
   relocate(percent_cri, .after = Percent_excess) %>% 
   select(-Percent_lci, -Percent_uci) %>% 
   
-  mutate(rate_cri = str_c("(", Rate_lci, "; ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
+  mutate(rate_cri = str_c("(", Rate_lci, " to ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
   select(-Rate_lci, -Rate_uci, -Population) %>% 
   
   left_join(
     
     results_age %>% 
       filter(Year %in% pandemic_year, Age_cat=="[0,10)") %>%  
-      mutate(Lifeyearlost70 = round(yearly_excess_grouped_lifelost70/1000, 0),
-             Lifeyearlost70_CI = paste0(round(yearly_excess_grouped_lifelost70_lower/1000, 0),
+      mutate(Lifeyearlost70 = number(round(yearly_excess_grouped_lifelost70/1000),accuracy=5L,big.mark=","),
+             Lifeyearlost70_CI = paste0("(",
+                                        number(yearly_excess_grouped_lifelost70_lower/1000,accuracy=5L,big.mark=","),
                                         " to ",
-                                        round(yearly_excess_grouped_lifelost70_upper/1000,0)))  %>% 
-      select(Year,Country,Lifeyearlost70_CI)
+                                        number(yearly_excess_grouped_lifelost70_upper/1000,accuracy=5L,big.mark=","),")"))  %>% 
+      select(Year,Country,Lifeyearlost70,Lifeyearlost70_CI)
     
   ) %>% 
   arrange(Year, desc(Country))
@@ -359,6 +360,7 @@ table_2 %>%
                     "Count", "95% CrI",
                     "Per 100,000", "95% CrI", 
                     "%", "95% CrI",
+                    "Thousands",
                     "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
@@ -366,7 +368,7 @@ table_2 %>%
                      "Absolute excess deaths" = 2,
                      "Absolute excess deaths\nper population$^*$" = 2,
                      "Relative excess deaths$^†$" = 2,
-                     "1,000 life years lost$^‡$")) %>% 
+                     "Life years lost until 70$^‡$" = 2)) %>% # FIXME: dollar signs appear in the heads
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -491,9 +493,10 @@ gg = ggplot(plot_data) +
   geom_line(aes(x = Date,
                 y = Deaths/Population*100000),
             colour = "#EF8A62", size = 0.5) +
-  geom_line(aes(x = Date,
-                y = excess_month/100),
-            colour = "darkorchid", size = 0.5) +
+  geom_ribbon(aes(x = Date,
+                  ymin=0,
+                ymax = (Deaths-pred_total_deaths)/Population*100000),
+            fill = "darkorchid", size = 0, alpha=.4) +
   geom_point(data = shown_years,
              aes(x = as.Date(paste0(Year, "-01-01")),
                  y = 0),
