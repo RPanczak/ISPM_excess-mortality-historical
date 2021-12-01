@@ -22,8 +22,7 @@ options(scipen = 999)
 options(max.print = "75")
 
 library(pacman)
-p_load(tidyverse, magrittr, scales, patchwork, kableExtra, 
-       COVID19)
+p_load(tidyverse, magrittr, scales, patchwork, kableExtra, grid)
 ```
 
 ```{r knit-setup, include = FALSE}
@@ -57,7 +56,8 @@ merge_mort <- function(data){
       (Year >= 2019 & Year <= 2021) ~ 2020
     )) %>% 
     relocate(Country) %>% 
-    mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain"))
+    mutate(Country = fct_relevel(factor(Country), 
+                                 "Switzerland", "Sweden", "Spain"))
 }
 ```
 
@@ -97,7 +97,7 @@ results_age <- merge_mort(bind_rows(
   relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
-## Secondary results from unadjusted models
+## Sensitivity analysis using Bayesian NB model, unadjusted models
 
 ```{r}
 results_year_global <- merge_mort(bind_rows(
@@ -111,7 +111,7 @@ results_year_global <- merge_mort(bind_rows(
   relocate(Model, Pandemic)
 ```
 
-## Sensitivity analysis using frequentist model, unadjusted for age
+## Sensitivity analysis using frequentist Poisson model, unadjusted for age
 
 ```{r}
 results_month_boot <- read_rds("data/outputs_2021-11-18/All_results_month.Rds") %>% 
@@ -122,24 +122,33 @@ results_month_boot <- read_rds("data/outputs_2021-11-18/All_results_month.Rds") 
   relocate(Model, Country, Year, Month, Date)
 ```
 
-## Sensitivity analysis for alternative time window & min/max selection
+## Sensitivity analysis using alternative longer (7 days) time window 
 
 ```{r}
-results_year_last_7 <- merge_mort(bind_rows(
+results_year_last_7_notrim <- merge_mort(bind_rows(
+  read_rds("data/outputs_2021-11-30/Sweden_results_year_last_7_notrim.Rds"),
+  read_rds("data/outputs_2021-11-30/Spain_results_year_last_7_notrim.Rds"),
+  read_rds("data/outputs_2021-11-30/Switzerland_results_year_last_7_notrim.Rds")
+)) %>% 
+  filter(Model == "Age Serfling (Stan, NB, last 7 no trim)") %>% 
+  arrange(Country, Year) %>% 
+  mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
+  relocate(Model, Pandemic)
+```
+
+## Sensitivity analysis using alternative time window & min/max selection
+
+```{r}
+results_year_last_7_trim <- merge_mort(bind_rows(
   read_rds("data/outputs_2021-11-23/Sweden_results_year_last_7_trim.Rds"),
   read_rds("data/outputs_2021-11-24/Spain_results_year_last_7_trim.Rds"),
-  read_rds("data/outputs_2021-11-23/Switzerland_results_year_last_7_trim.Rds"),
-  tibble(Country = "Spain")
+  read_rds("data/outputs_2021-11-23/Switzerland_results_year_last_7_trim.Rds")
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB, last 7)") %>% 
   arrange(Country, Year) %>% 
   mutate(across(yearly_pred_total_deaths:yearly_excess_total_deaths_upper, round)) %>% 
   relocate(Model, Pandemic)
 ```
-
-## Sensitivity analysis for alternative time window & min/max selection
-
-FIXME
 
 ## Sensitivity analysis for including effects of pandemics
 
@@ -174,12 +183,12 @@ pops <- read_rds("data/deaths_monthly.Rds") %>%
   filter(Month == 1) %>% 
   select(Year, Country, Population_obs) %>% 
   rename(Population = Population_obs)
+```
 
-pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
-  filter(Year >= 2020) %>%
-  filter(Month == 1) %>%
-  select(Year, Country, Population_exp) %>%
-  rename(Population = Population_exp)
+## COVID-19 cases
+
+```{r}
+covid_cases_deaths_jh <- read_rds("data/covid_cases_deaths_jh.Rds")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -188,56 +197,6 @@ pops_exp <- read_rds("data/deaths_monthly.Rds") %>%
 
 
 ## Table 1
-
-### COVID-19 data
-
-Pulling data directly from [Johns Hopkins Coronavirus Resource Center](https://coronavirus.jhu.edu/about/how-to-use-our-data) [github repo](https://github.com/CSSEGISandData/COVID-19) (using [`csse_covid_19_daily_reports`](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports) with appropriate time stamps).   
-
-Sources indicated are:  
-
-- Spain - [RTVE](https://www.rtve.es/noticias/20200514/mapa-del-coronavirus-espana/2004681.shtml)
-- Sweden - [The Swedish Public Health Agency](https://experience.arcgis.com/experience/09f821667ce64bf7be6f9f87457ed9aa)
-- Switzerland 
-- [Federal Office Of Public Health](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html)
-- [Open Government Data Reported By The Swiss Cantons](https://github.com/openZH/covid_19)
-
-```{r}
-covid_cases_deaths_jh_20 <-   read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/12-31-2020.csv") %>% 
-  filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
-  group_by(Country_Region) %>% 
-  summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
-            Deaths = sum(Deaths, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  mutate(Year = 2020)
-
-covid_cases_deaths_jh <- bind_rows(
-  
-  covid_cases_deaths_jh_20,
-  
-  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/07-01-2021.csv") %>% 
-    filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
-    group_by(Country_Region) %>% 
-    summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
-              Deaths = sum(Deaths, na.rm = TRUE)) %>% 
-    ungroup() %>% 
-    left_join(covid_cases_deaths_jh_20 %>% 
-                rename (Deaths_20 = Deaths,
-                        Confirmed_20 = Confirmed)) %>% 
-    mutate(Deaths = Deaths - Deaths_20,
-           Confirmed = Confirmed - Confirmed_20) %>% 
-    select(-ends_with("_20")) %>% 
-    mutate(Year = 2021)
-) %>% 
-  rename(Country = Country_Region) %>% 
-  select(-Confirmed)
-```
-
-```{r echo=FALSE}
-covid_cases_deaths_jh 
-rm(covid_cases_deaths_jh_20)
-```
-
-### Integrated with mortality data 
 
 ```{r echo=FALSE}
 table_1 <- 
@@ -303,7 +262,7 @@ table_1 %>%
   row_spec(1, italic = FALSE) %>% 
   footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
                       "Data from Johns Hopkins Coronavirus Resource Center",
-                      "First six months of the year only included in the analyses."))
+                      "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden."))
 ```
 
 
@@ -417,7 +376,7 @@ table_2 %>%
   row_spec(1, italic = FALSE) %>% 
   footnote(symbol=c("Absolute number of excess deaths scaled by country population.",
                     "Absolute number of excess deaths scaled by the number of expected deaths.",
-                    "Sum of life years lost until the age of 70 in thousands (95% credible interval)."))
+                    "Sum of life years lost until the age of 70 in thousands."))
 ```
 
 
@@ -425,7 +384,7 @@ table_2 %>%
 
 Yearly excess per population.  
 
-**Note:** *the varying scales on Y axes of the panels!*
+**Note:** *the scales of Y axes vary by country!*
 
 ```{r echo=FALSE}
 hline_pandemic <- results_year %>% 
@@ -465,7 +424,7 @@ results_year %>%
     legend.position = c(.10, .95),
     legend.background = element_blank(),
     legend.title = element_blank(),
-    plot.margin = margin(0.5, 0.5, 0, 0)) +
+    plot.margin = margin(3, 0, -13, 0)) +
   xlab("") + ylab("Absolute excess deaths per 100,000 population") +
   guides(fill = guide_legend(reverse = TRUE))
 
@@ -485,12 +444,16 @@ FIXME: needs legend!
 focus_years <- c(1890, 1918, 1957, 2020)
 
 shown_years = NULL
+
 for(i in focus_years) {
   shown_years = bind_rows(shown_years,
-                          tibble(Year=(i-2):(i+2),
-                                 focus_year=i,
-                                 shown_years=paste0(i-2,"-",min(2020,i+2))))
+                          tibble(Year = (i-2):(i+2),
+                                 focus_year = i,
+                                 shown_years=paste0(i-2, 
+                                                    "-", 
+                                                    min(2020, i+2))))
 }
+
 shown_years %<>% filter(Year <= 2021) %>% 
   mutate(shown_years = ifelse(shown_years == "2018-2020", 
                               "2018-2021", shown_years))
@@ -509,22 +472,33 @@ gg = ggplot(plot_data) +
                 xmax = focus_year2,
                 ymin = -Inf, ymax = Inf), 
             fill = "grey90") +
-  geom_ribbon(aes(x=Date,ymin=pred_total_deaths_lower/Population*100000,ymax=pred_total_deaths_upper/Population*100000),fill="aquamarine3",alpha=.5) +
-  geom_line(aes(x=Date,y=pred_total_deaths/Population*100000),colour="aquamarine4") +
-  geom_line(aes(x=Date,y=Deaths/Population*100000),colour="#EF8A62",size=0.5) +
-  # geom_line(aes(x=Date,y=excess_month/100),colour="darkorchid",size=0.5) +
-  geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
+  geom_ribbon(aes(x = Date, 
+                  ymin = pred_total_deaths_lower/Population*100000,
+                  ymax = pred_total_deaths_upper/Population*100000),
+              fill= "aquamarine3", alpha = 0.5) +
+  geom_line(aes(x = Date,
+                y = pred_total_deaths/Population*100000),
+            colour = "aquamarine4") +
+  geom_line(aes(x = Date,
+                y = Deaths/Population*100000),
+            colour = "#EF8A62", size = 0.5) +
+  geom_line(aes(x = Date,
+                y = excess_month/100),
+            colour = "darkorchid", size = 0.5) +
+  geom_point(data = shown_years,
+             aes(x = as.Date(paste0(Year, "-01-01")),
+                 y = 0),
+             colour = "transparent") +
   facet_grid(Country ~ shown_years,scales="free", spac="free_x") +
   # scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
   # scale = 1e-3)) +
-  scale_x_date(date_breaks="2 years",date_labels = "%Y") +
+  scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
   theme_bw()+
-  theme(plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x="Year",y="Monthly deaths per 100,000 population")
+  theme(plot.margin = margin(0, 0, 0, 0))+
+  labs(x = "Year", y = "Monthly deaths per 100,000 population")
 
 # gg
 
-require(grid)
 g_data_grob = ggplotGrob(gg)
 
 # View(g_data_grob$layout)
@@ -568,39 +542,39 @@ gap = .3
 results_age %>% 
   filter(Year %in% pandemic_years) %>%
   filter(!(Year<1957 & Age_cat=="[90,120]")) %>% 
-  mutate(Age_cat2=as.numeric(Age_cat)) %>%
-  mutate(Age_cat2=case_when(Country=="Spain" ~ Age_cat2-gap,
-                            Country=="Sweden" ~ Age_cat2,
-                            Country=="Switzerland" ~ Age_cat2+gap)) %>% 
+  mutate(Age_cat2 = as.numeric(Age_cat)) %>%
+  mutate(Age_cat2 = case_when(Country == "Spain" ~ Age_cat2-gap,
+                              Country == "Sweden" ~ Age_cat2,
+                              Country == "Switzerland" ~ Age_cat2+gap)) %>% 
   left_join(deaths_yearly_age_sex) %>%
   ggplot() +
-  geom_line(aes(x=Age_cat2,
-                y=excess_grouped_deaths/Population_obs*100000,
-                colour=factor(Country))) +
-  geom_pointrange(aes(x=Age_cat2,
-                      y=excess_grouped_deaths/Population_obs*100000,
-                      ymin=excess_grouped_deaths_lower/Population_obs*100000,
-                      ymax=excess_grouped_deaths_upper/Population_obs*100000,
-                      colour=factor(Country)),
-                  size=.25) +
+  geom_line(aes(x = Age_cat2,
+                y = excess_grouped_deaths/Population_obs*100000,
+                colour = factor(Country))) +
+  geom_pointrange(aes(x = Age_cat2,
+                      y = excess_grouped_deaths/Population_obs*100000,
+                      ymin = excess_grouped_deaths_lower/Population_obs*100000,
+                      ymax = excess_grouped_deaths_upper/Population_obs*100000,
+                      colour = factor(Country)),
+                  size = .25) +
   
-  geom_hline(yintercept=0, linetype=2) +
-  facet_wrap(~Year, nrow=1) +
-  scale_x_continuous(labels=unique(as.character(results_age$Age_cat)),
-                     breaks=1:10) +
-  scale_y_continuous(labels=function(x) number(x, big.mark=",")) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  facet_wrap(~Year, nrow = 1) +
+  scale_x_continuous(labels = unique(as.character(results_age$Age_cat)),
+                     breaks = 1:10) +
+  scale_y_continuous(labels = function(x) number(x, big.mark=",")) +
   theme_bw() +
-  scale_colour_manual(values=c("darkgoldenrod1","dodgerblue","firebrick2")) +
-  coord_cartesian(ylim=c(-600, 5000)) +
-  labs(x="Year",
-       y="Montly deaths") +
+  scale_colour_manual(values = c("darkgoldenrod1", "dodgerblue", "firebrick2")) +
+  coord_cartesian(ylim = c(-600, 5000)) +
+  labs(x = "Year",
+       y = "Montly deaths") +
   theme(legend.position = c(.1, .8),
         legend.background = element_blank(),
-        axis.text.x = element_text(angle=45, hjust=1),
+        axis.text.x = element_text(angle = 45, hjust = 1),
         plot.margin = margin(0, 0, 0, 0)) +
-  labs(x="Age group",
-       y="Absolute excess deaths per 100,000 population",
-       colour="Country")
+  labs(x = "Age group",
+       y = "Absolute excess deaths per 100,000 population",
+       colour = "Country")
 
 ggsave("paper/Figure_3.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
@@ -615,12 +589,10 @@ Comparing main estimates (`Age Serfling (Stan, NB)`) of excess from alternative 
 
 - `Global Serfling (bootstrap)`  
 - `Global Serfling (Stan, NB)`  
-- `Age Serfling with alternative 7 day min/max time window (Stan, NB)`  
-- `Age Serfling with alternative 7 day time window (Stan, NB)`  
+- `Age Serfling with alternative 7 day time window and min/max trim (Stan, NB)`  
+- `Age Serfling with alternative 7 day time window and no trim (Stan, NB)`  
 
-FIXME: add 7 day results in place of obs pops
-
-```{r eval=FALSE}
+```{r}
 pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
 
 table_s1 <- 
@@ -641,21 +613,20 @@ table_s1 <-
       ungroup() %>% 
       mutate(Model = "m1"),
     
-    # Global Serfling (Stan, NB)
-    # ie. without age
+    # Global Serfling (Stan, NB) without age
     results_year_global  %>% 
       mutate(Model = "m2") %>% 
       select(Model, Country, Year,
              starts_with("yearly_excess_total_deaths")),
     
-    # Age Serfling with alternative time window (Stan, NB)
-    results_year_last_7  %>% 
+    # Age Serfling with alternative time window & min/max trim (Stan, NB)
+    results_year_last_7_notrim  %>% 
       mutate(Model = "m3") %>% 
       select(Model, Country, Year,
              starts_with("yearly_excess_total_deaths")),
     
-    # global serfling stan with age, expected pop
-    results_year_exp  %>% 
+    # Age Serfling with alternative time window (Stan, NB)
+    results_year_last_7_trim  %>% 
       mutate(Model = "m4") %>% 
       select(Model, Country, Year,
              starts_with("yearly_excess_total_deaths"))
@@ -758,7 +729,7 @@ table_s1 <-
 table_s1 %>% 
   select(-Country) %>% 
   kbl(align = "lrrrrrrrr",
-      col.names = c("Year", 
+      col.names = c("Country, Year", 
                     "Excess", "95% CrI", 
                     "Excess", 
                     "Excess", "95% CrI", 
@@ -779,8 +750,8 @@ table_s1 %>%
   pack_rows("Spain", 25, 33) %>% 
   footnote(symbol=c("Serfling, Poisson, unadjusted for age",
                     "Serfling, NB, unadjusted for age",
-                    "Serfling, NB, age adjusted, alternative time window",
-                    "Serfling, NB, age adjusted, alternative time window"))
+                    "Serfling, NB, age adjusted, alternative time window, no trim",
+                    "Serfling, NB, age adjusted, alternative time window, trim"))
 
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
@@ -830,7 +801,7 @@ results_year %>%
     legend.position = c(.10, .95),
     legend.background = element_blank(),
     legend.title = element_blank(),
-    plot.margin = margin(0.5, 0.5, 0, 0)) +
+    plot.margin = margin(3, 0, -13, 0)) +
   xlab("") + ylab("Absolute excess deaths") +
   guides(fill = guide_legend(reverse = TRUE))
 
@@ -880,7 +851,7 @@ results_year %>%
     legend.position = c(.10, .95),
     legend.background = element_blank(),
     legend.title = element_blank(),
-    plot.margin = margin(0.5, 0.5, 0, 0)) +
+    plot.margin = margin(3, 0, -13, 0)) +
   xlab("") + ylab("Relative excess deaths") +
   guides(fill = guide_legend(reverse = TRUE))
 
