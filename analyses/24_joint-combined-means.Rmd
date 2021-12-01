@@ -725,7 +725,7 @@ table_s1 <-
                 ~replace(., is.na(.), "--"))) 
 ```
 
-```{r eval=FALSE}
+```{r echo=FALSE}
 table_s1 %>% 
   select(-Country) %>% 
   kbl(align = "lrrrrrrrr",
