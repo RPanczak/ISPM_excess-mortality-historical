@@ -64,6 +64,9 @@ fn_age_serfling_nb_cmdstan = function(pred_year, monthly_data, yearly_data, pand
     # remove special year (e.g. 1918 because of the flu pandemic)
     dd %<>% dplyr::filter(!(Year %in% pandemic_years))
     ee %<>% dplyr::filter(!(Year %in% pandemic_years))
+    # arrange
+    dd %<>% dplyr::arrange(Month, Year)
+    ee %<>% dplyr::arrange(Age_cat, Year)
   }
   
   if(pred_year!=2021) {
