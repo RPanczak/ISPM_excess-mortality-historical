@@ -466,6 +466,15 @@ plot_data = shown_years %>%
          focus_year2 = as.Date(paste0(focus_year, "-12-31")),
          focus_year2 = if_else(focus_year==2020,as.Date(paste0(focus_year+1, "-06-30")),focus_year2))
 
+# plot_data %>% 
+#   filter(Year == 1890 & Month == 1 & Country == "Switzerland") %>% 
+#   mutate(plot1 = pred_total_deaths/Population*100000,
+#          plot2 = excess_month/100) %>% 
+#   select(pred_total_deaths, 
+#          Population,
+#          plot1,
+#          excess_month,
+#          plot2)
 
 gg = ggplot(plot_data) +
   geom_rect(aes(xmin = focus_year1,
