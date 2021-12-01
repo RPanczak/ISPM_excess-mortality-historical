@@ -48,6 +48,57 @@ mu <- Hmisc::markupSpecs$html
 
 <!-- ----------------------------------------------------- -->
 
+### COVID-19 data
+
+Pulling data directly from [Johns Hopkins Coronavirus Resource Center](https://coronavirus.jhu.edu/about/how-to-use-our-data) [github repo](https://github.com/CSSEGISandData/COVID-19) (using [`csse_covid_19_daily_reports`](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports) with appropriate time stamps).   
+
+Sources of data given for three analysed countries are:  
+
+- Spain - [RTVE](https://www.rtve.es/noticias/20200514/mapa-del-coronavirus-espana/2004681.shtml)
+- Sweden - [The Swedish Public Health Agency](https://experience.arcgis.com/experience/09f821667ce64bf7be6f9f87457ed9aa)
+- Switzerland 
+- [Federal Office Of Public Health](https://www.bag.admin.ch/bag/en/home/krankheiten/ausbrueche-epidemien-pandemien/aktuelle-ausbrueche-epidemien/novel-cov/situation-schweiz-und-international.html)
+- [Open Government Data Reported By The Swiss Cantons](https://github.com/openZH/covid_19)
+
+```{r}
+covid_cases_deaths_jh_20 <-   read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/12-31-2020.csv") %>% 
+  filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
+  group_by(Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
+            Deaths = sum(Deaths, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(Year = 2020)
+
+covid_cases_deaths_jh <- bind_rows(
+  
+  covid_cases_deaths_jh_20,
+  
+  read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/07-01-2021.csv") %>% 
+    filter(Country_Region %in% c("Switzerland", "Sweden", "Spain")) %>% 
+    group_by(Country_Region) %>% 
+    summarise(Confirmed = sum(Confirmed, na.rm = TRUE),
+              Deaths = sum(Deaths, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    left_join(covid_cases_deaths_jh_20 %>% 
+                rename (Deaths_20 = Deaths,
+                        Confirmed_20 = Confirmed)) %>% 
+    mutate(Deaths = Deaths - Deaths_20,
+           Confirmed = Confirmed - Confirmed_20) %>% 
+    select(-ends_with("_20")) %>% 
+    mutate(Year = 2021)
+) %>% 
+  rename(Country = Country_Region) %>% 
+  select(-Confirmed)
+
+write_rds(covid_cases_deaths_jh, "data/covid_cases_deaths_jh.Rds")
+```
+
+```{r include=FALSE}
+rm(covid_cases_deaths_jh_20)
+```
+
+<!-- ----------------------------------------------------- -->
+
 # HMD - yearly data with age & sex structure
 
 [The Human Mortality Database](https://www.mortality.org/) is the source of the data.  
