@@ -1,0 +1,160 @@
+### Columns 
+
+```{r echo=FALSE}
+focus_years <- c(1890, 1918, 1957, 2020)
+
+shown_years = NULL
+for(i in focus_years) {
+  shown_years = bind_rows(shown_years,
+                          tibble(Year=(i-2):(i+2),
+                                 focus_year=i,
+                                 shown_years=paste0(i-2,"-",min(2020,i+2))))
+}
+shown_years %<>% filter(Year <= 2021) %>% 
+  mutate(shown_years = ifelse(shown_years == "2018-2020", 
+                              "2018-2021", shown_years))
+gg = results_month %>%
+  bind_rows(
+    read_rds("data/deaths_monthly.Rds") %>% 
+      filter(Country == "Sweden" & Year == 2021 & Month < 7) %>% 
+      select(Country, Year, Month, Date, Deaths)
+  ) %>% 
+  left_join(shown_years) %>%
+  filter(!is.na(shown_years)) %>%
+  mutate(Country = fct_relevel(factor(Country), 
+                               "Switzerland", "Sweden", "Spain"), 
+         Difference = ifelse(Deaths > pred_total_deaths, "More than expected", "Fewer than expected")) %>% 
+  filter(!is.na(Difference)) %>%
+  mutate(focus_year1 = as.Date(paste0(focus_year, "-01-01")),
+         focus_year2 = as.Date(paste0(focus_year, "-12-31")),
+         focus_year2 = if_else(focus_year==2020,as.Date(paste0(focus_year+1, "-06-30")),focus_year2)) %>%
+  
+  ggplot() +
+  geom_rect(aes(xmin = focus_year1,
+                xmax = focus_year2,
+                ymin = -Inf, ymax = Inf), 
+            fill = "grey90") +
+  geom_col(aes(x=Date,y=Deaths,fill=Difference,color=Difference)) +
+  geom_ribbon(aes(x=Date,ymin=pred_total_deaths_lower,ymax=pred_total_deaths_upper),fill="aquamarine3",alpha=.5) +
+  geom_line(aes(x=Date,y=pred_total_deaths),colour="aquamarine4") +
+  geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
+  facet_grid(Country ~ shown_years,scales="free", spac="free_x") +
+  scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
+                                           scale = 1e-3)) +
+  scale_x_date(date_breaks="2 years",date_labels = "%Y") +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62"),
+                    name = "Monthly deaths") +  
+  scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
+  theme_bw()+
+  theme(plot.margin = margin(0.5, 0.5, 0, 0),
+        legend.position = c(.08, .12))+
+  labs(x="Year",y="Monthly deaths")
+
+# gg
+
+require(grid)
+g_data_grob = ggplotGrob(gg)
+
+# View(g_data_grob$layout)
+# gtable::gtable_show_layout(ggplotGrob(gg)) 
+
+## remove unused facets
+idx <- which(g_data_grob$layout$name %in% c("panel-3-1"))
+for (i in idx) g_data_grob$grobs[[i]] <- nullGrob()
+
+## move y axis right
+# axis-l-1 needs to move 1 column to the right
+idx <- which(g_data_grob$layout$name %in% c("axis-l-3"))
+g_data_grob$layout[idx, c("l", "r")] <- g_data_grob$layout[idx, c("l", "r")] + 2
+
+## move x axis up
+# axis-b-1 needs to move 1 column up
+idx <- which(g_data_grob$layout$name %in% c("axis-b-1"))
+g_data_grob$layout[idx, c("t")] <- g_data_grob$layout[idx, c("t")] - 2
+
+grid.newpage()
+grid.draw(g_data_grob)
+
+gg = ggplotify::as.ggplot(g_data_grob)
+
+ggsave(plot = gg, "paper/Figure_2.png", dpi = 300, width =  190, height = 140, units = "mm")
+```
+
+### Line
+
+FIXME: needs legend!
+
+```{r echo=FALSE}
+focus_years <- c(1890, 1918, 1957, 2020)
+
+shown_years = NULL
+for(i in focus_years) {
+  shown_years = bind_rows(shown_years,
+                          tibble(Year=(i-2):(i+2),
+                                 focus_year=i,
+                                 shown_years=paste0(i-2,"-",min(2020,i+2))))
+}
+shown_years %<>% filter(Year <= 2021) %>% 
+  mutate(shown_years = ifelse(shown_years == "2018-2020", 
+                              "2018-2021", shown_years))
+
+gg = results_month %>%
+  bind_rows(
+    read_rds("data/deaths_monthly.Rds") %>% 
+      filter(Country == "Sweden" & Year == 2021 & Month < 7) %>% 
+      select(Country, Year, Month, Date, Deaths)
+  ) %>% 
+  left_join(shown_years) %>%
+  filter(!is.na(shown_years)) %>%
+  mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain")) %>% 
+  filter(!(Country=="Sweden" & Year==2021)) %>%
+  mutate(focus_year1 = as.Date(paste0(focus_year, "-01-01")),
+         focus_year2 = as.Date(paste0(focus_year, "-12-31")),
+         focus_year2 = if_else(focus_year==2020,as.Date(paste0(focus_year+1, "-06-30")),focus_year2)) %>%
+  ggplot() +
+  geom_rect(aes(xmin = focus_year1,
+                xmax = focus_year2,
+                ymin = -Inf, ymax = Inf), 
+            fill = "grey90") +
+  geom_ribbon(aes(x=Date,ymin=pred_total_deaths_lower,ymax=pred_total_deaths_upper),fill="aquamarine3",alpha=.5) +
+  geom_line(aes(x=Date,y=pred_total_deaths),colour="aquamarine4") +
+  geom_line(aes(x=Date,y=Deaths),colour="#EF8A62",size=0.5) +
+  geom_point(data=shown_years,aes(x=as.Date(paste0(Year, "-01-01")),y=0),colour="transparent") +
+  facet_grid(Country ~ shown_years,scales="free", spac="free_x") +
+  scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", 
+                                           scale = 1e-3)) +
+  scale_x_date(date_breaks="2 years",date_labels = "%Y") +
+  theme_bw()+
+  theme(plot.margin = margin(0.5, 0.5, 0, 0))+
+  labs(x="Year",y="Monthly deaths")
+
+# gg
+
+require(grid)
+g_data_grob = ggplotGrob(gg)
+
+# View(g_data_grob$layout)
+# gtable::gtable_show_layout(ggplotGrob(gg)) 
+
+## remove unused facets
+idx <- which(g_data_grob$layout$name %in% c("panel-3-1"))
+for (i in idx) g_data_grob$grobs[[i]] <- nullGrob()
+
+## move y axis right
+# axis-l-1 needs to move 1 column to the right
+idx <- which(g_data_grob$layout$name %in% c("axis-l-3"))
+g_data_grob$layout[idx, c("l", "r")] <- g_data_grob$layout[idx, c("l", "r")] + 2
+
+## move x axis up
+# axis-b-1 needs to move 1 column up
+idx <- which(g_data_grob$layout$name %in% c("axis-b-1"))
+g_data_grob$layout[idx, c("t")] <- g_data_grob$layout[idx, c("t")] - 2
+
+grid.newpage()
+grid.draw(g_data_grob)
+
+gg = ggplotify::as.ggplot(g_data_grob)
+
+ggsave(plot = gg, "paper/Figure_2b.png", dpi = 300, width =  190, height = 140, units = "mm")
+```
+
