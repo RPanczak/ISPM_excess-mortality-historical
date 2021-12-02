@@ -34,7 +34,7 @@ knitr::opts_chunk$set(cache = FALSE,
                       comment = NA,
                       message = FALSE,
                       warning = FALSE)
-knitr::opts_knit$set(width = 75)
+knitr::opts_knit$set(width = 125)
 
 mu <- Hmisc::markupSpecs$html
 ```
@@ -495,8 +495,8 @@ gg = ggplot(plot_data) +
             colour = "#EF8A62", size = 0.5) +
   geom_ribbon(aes(x = Date,
                   ymin=0,
-                ymax = (Deaths-pred_total_deaths)/Population*100000),
-            fill = "darkorchid", size = 0, alpha=.4) +
+                  ymax = (Deaths-pred_total_deaths)/Population*100000),
+              fill = "darkorchid", size = 0, alpha=.4) +
   geom_point(data = shown_years,
              aes(x = as.Date(paste0(Year, "-01-01")),
                  y = 0),
@@ -595,7 +595,7 @@ ggsave("paper/Figure_3.png", dpi = 300, width = 280, height = 100, units = "mm")
 
 # Appendix 
 
-## Table S1
+## Table S1 
 
 Comparing main estimates (`Age Serfling (Stan, NB)`) of excess from alternative methods: 
 
@@ -611,13 +611,15 @@ table_s1 <-
   
   bind_rows(
     
+    # baseline, ie. reported in paper `Age Serfling (Stan, NB)`
     results_year  %>% 
       mutate(Model = "m0") %>% 
       select(Model, Country, Year,
              starts_with("yearly_excess_total_deaths")),
     
     # Global Serfling (bootstrap)
-    # !without CrI for yearly!
+    # simply summed from monthly values to obtain year
+    # !without CI for yearly!
     results_month_boot %>% 
       mutate(excess = Deaths - pred) %>% 
       group_by(Model, Country, Year) %>% 
@@ -767,6 +769,127 @@ table_s1 %>%
 
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
+```
+
+
+```{r include=FALSE}
+plot_data <- 
+  
+  bind_rows(
+    
+    results_year  %>% 
+      mutate(Model = "m0") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths")),
+    
+    # Global Serfling (bootstrap)
+    # !without CrI for yearly!
+    results_month_boot %>% 
+      mutate(excess = Deaths - pred) %>% 
+      group_by(Model, Country, Year) %>% 
+      summarise(yearly_excess_total_deaths = sum(excess)) %>% 
+      ungroup() %>% 
+      mutate(Model = "m1"),
+    
+    # Global Serfling (Stan, NB) without age
+    results_year_global  %>% 
+      mutate(Model = "m2") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths")),
+    
+    # Age Serfling with alternative time window & min/max trim (Stan, NB)
+    results_year_last_7_notrim  %>% 
+      mutate(Model = "m3") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths")),
+    
+    # Age Serfling with alternative time window (Stan, NB)
+    results_year_last_7_trim  %>% 
+      mutate(Model = "m4") %>% 
+      select(Model, Country, Year,
+             starts_with("yearly_excess_total_deaths"))
+    
+  ) %>% 
+  arrange(desc(Country), Year, Model) %>% 
+  pivot_wider(names_from = Model, 
+              values_from = starts_with("yearly_excess"),
+              names_sort = FALSE) %>% 
+  select(-contains("lower"), -contains("upper")) %>% 
+  relocate(Country, Year,
+           yearly_excess_total_deaths_m0, 
+           yearly_excess_total_deaths_m1, 
+           yearly_excess_total_deaths_m2, 
+           yearly_excess_total_deaths_m3, 
+           yearly_excess_total_deaths_m4 
+  ) %>% 
+  
+  mutate(pdiff_m1 = (yearly_excess_total_deaths_m1 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0,
+         pdiff_m2 = (yearly_excess_total_deaths_m2 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0,
+         pdiff_m3 = (yearly_excess_total_deaths_m3 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0,
+         pdiff_m4 = (yearly_excess_total_deaths_m4 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0
+  ) %>% 
+  
+  mutate(diff_m1 = (yearly_excess_total_deaths_m1 - yearly_excess_total_deaths_m0) ,
+         diff_m2 = (yearly_excess_total_deaths_m2 - yearly_excess_total_deaths_m0) ,
+         diff_m3 = (yearly_excess_total_deaths_m3 - yearly_excess_total_deaths_m0) ,
+         diff_m4 = (yearly_excess_total_deaths_m4 - yearly_excess_total_deaths_m0) 
+  ) %>% 
+  
+  select(-starts_with("yearly")) %>% 
+  pivot_longer(contains("diff"),
+               names_to = "Model", values_to = "Difference")
+```
+
+### Absolute differences
+
+```{r echo=FALSE}
+plot_data %>% 
+  filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
+  filter(str_detect(Model, "pdiff", negate = TRUE)) %>% 
+  ggplot() + 
+  geom_col(aes(x = factor(Year), y = Difference, fill = Model), position = "dodge2") +  
+  facet_grid(vars(Country), scales = "free_y") + 
+  scale_y_continuous(labels = comma) +
+  xlab("Year") + ylab("Absolute difference") + 
+  theme_bw()
+```
+
+### Relative differences
+
+```{r echo=FALSE}
+plot_data %>% 
+   filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
+ filter(str_detect(Model, "pdiff")) %>% 
+  ggplot() + 
+  geom_col(aes(x = factor(Year), y = Difference, fill = Model), position = "dodge2") +  
+  facet_grid(vars(Country)) + 
+  scale_y_continuous(labels = percent) +
+  xlab("Year") + ylab("% difference") + 
+  theme_bw()
+```
+
+### Absolute differences - all times
+
+```{r echo=FALSE}
+plot_data %>% 
+  filter(str_detect(Model, "pdiff", negate = TRUE)) %>% 
+  ggplot() + 
+  geom_line(aes(x = Year, y = Difference, color = Model)) +  
+  facet_grid(vars(Country), scales = "free_y") + 
+  scale_y_continuous(labels = comma) +
+  theme_bw()
+```
+
+### Relative differences - all times
+
+```{r echo=FALSE}
+plot_data %>% 
+  filter(str_detect(Model, "pdiff", negate = TRUE)) %>% 
+  ggplot() + 
+  geom_line(aes(x = Year, y = Difference, color = Model)) +  
+  facet_grid(vars(Country), scales = "free_y") + 
+  scale_y_continuous(labels = percent) +
+  theme_bw()
 ```
 
 
