@@ -126,9 +126,9 @@ results_month_boot <- read_rds("data/outputs_2021-11-18/All_results_month.Rds") 
 
 ```{r}
 results_year_last_7_notrim <- merge_mort(bind_rows(
-  read_rds("data/outputs_2021-11-30/Sweden_results_year_last_7_notrim.Rds"),
-  read_rds("data/outputs_2021-11-30/Spain_results_year_last_7_notrim.Rds"),
-  read_rds("data/outputs_2021-11-30/Switzerland_results_year_last_7_notrim.Rds")
+  read_rds("data/outputs_2021-12-01/Sweden_results_year_last_7_notrim.Rds"),
+  read_rds("data/outputs_2021-12-01/Spain_results_year_last_7_notrim.Rds"),
+  read_rds("data/outputs_2021-12-01/Switzerland_results_year_last_7_notrim.Rds")
 )) %>% 
   filter(Model == "Age Serfling (Stan, NB, last 7 no trim)") %>% 
   arrange(Country, Year) %>% 
