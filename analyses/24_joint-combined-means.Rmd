@@ -354,6 +354,7 @@ openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx",
 ```{r echo=FALSE}
 table_2 %>% 
   filter(!(Country == "Sweden" & Year == 2021)) %>% 
+  mutate(percent_cri = if_else(Year==2020,paste0(percent_cri,"$^§$"),percent_cri)) %>% 
   select(-Year) %>% 
   kbl(align = "lrrrrrrrr",
       col.names = c("Country", 
@@ -378,7 +379,8 @@ table_2 %>%
   row_spec(1, italic = FALSE) %>% 
   footnote(symbol=c("Absolute number of excess deaths scaled by country population.",
                     "Absolute number of excess deaths scaled by the number of expected deaths.",
-                    "Sum of life years lost until the age of 70 in thousands."))
+                    "Sum of life years lost until the age of 70 in thousands.",
+                    "Based on 8,000 posterior samples, the probability that the relative excess deaths in 2020 is larger than in 1957 is 100%, 94.3% and 99.9% in Switzerland, Sweden and Spain, respectively."))
 ```
 
 
