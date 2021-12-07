@@ -37,6 +37,7 @@ secrets/
 
 # project specific
 misc/
+other/
 data-raw/Kaspar
 data-raw/SNC
 stan/*.rds

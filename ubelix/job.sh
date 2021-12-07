@@ -5,4 +5,4 @@
 #SBATCH --time=96:00:00
 
 module load R nodejs
-Rscript analyses/20_joint-model-all.R
+Rscript analyses/04_joint-model-boot.R
