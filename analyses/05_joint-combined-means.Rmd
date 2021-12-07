@@ -164,16 +164,6 @@ results_month_pand <- merge_mort(bind_rows(
   arrange(Country, Year, Month) %>% 
   mutate(across(pred_total_deaths:excess_month_upper, round)) %>% 
   relocate(Model, Pandemic, Country, Year, Month, Date)
-
-# results_year_pand <- merge_mort(bind_rows(
-#   read_rds("data/outputs_2021-11-23/Sweden_results_year_pand.Rds"),
-#   read_rds("data/outputs_2021-11-24/Spain_results_year_pand.Rds"),
-#   read_rds("data/outputs_2021-11-23/Switzerland_results_year_pand.Rds") 
-# )) %>% 
-#   filter(Model == "Age Serfling (Stan, NB, pandemic)") %>%
-#   arrange(Country, Year) %>% 
-#   mutate(across(excess_year:excess_year_upper, round)) %>% 
-#   relocate(Model, Pandemic)
 ```
 
 ## Population
@@ -189,6 +179,12 @@ pops <- read_rds("data/deaths_monthly.Rds") %>%
 
 ```{r}
 covid_cases_deaths_jh <- read_rds("data/covid_cases_deaths_jh.Rds")
+```
+
+## Yearly deaths by age
+
+```{r}
+deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
 ```
 
 <!-- ----------------------------------------------------- -->
@@ -262,9 +258,32 @@ table_1 %>%
   row_spec(1, italic = FALSE) %>% 
   footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
                       "Data from Johns Hopkins Coronavirus Resource Center",
-                      "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden."))
+                      "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden.")) 
 ```
 
+```{r eval=FALSE, include=FALSE}
+table_1 %>% 
+  select(-Year) %>%
+  kbl(align = "lrrrrr",
+      col.names = c("", "", 
+                    "Count", "Expected*", 
+                    "Count†")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  add_header_above(c("Country", "Population", 
+                     "All-cause deaths" = 2, "COVID-19 deaths" = 1)) %>% 
+  pack_rows("1890", 1, 2) %>%
+  pack_rows("1918", 3, 5) %>% 
+  pack_rows("1957", 6, 8) %>% 
+  pack_rows("2020", 9, 11) %>% 
+  pack_rows("2021‡", 12, 14) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE) %>% 
+  footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
+                      "Data from Johns Hopkins Coronavirus Resource Center",
+                      "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden.")) %>% 
+  as_image(file = "paper/Table_1.png")
+```
 
 ## Table 2
 
@@ -383,6 +402,38 @@ table_2 %>%
                     "Based on 8,000 posterior samples, the probability that the relative excess deaths in 2020 is larger than in 1957 is 100%, 94.3% and 99.9% in Switzerland, Sweden and Spain, respectively."))
 ```
 
+```{r eval=FALSE, include=FALSE}
+table_2 %>% 
+  filter(!(Country == "Sweden" & Year == 2021)) %>% 
+  mutate(percent_cri = if_else(Year==2020,paste0(percent_cri,"§"),percent_cri)) %>% 
+  select(-Year) %>% 
+  kbl(align = "lrrrrrrrr",
+      col.names = c("Country", 
+                    "Count", "95% CrI",
+                    "Per 100,000", "95% CrI", 
+                    "%", "95% CrI",
+                    "Thousands",
+                    "95% CrI")) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  add_header_above(c(" " = 1, 
+                     "Absolute excess deaths" = 2,
+                     "Absolute excess deaths\nper population*" = 2,
+                     "Relative excess deaths†" = 2,
+                     "Life years lost until 70‡" = 2)) %>% # FIXME: dollar signs appear in the heads
+  pack_rows("1890", 1, 2) %>%
+  pack_rows("1918", 3, 5) %>% 
+  pack_rows("1957", 6, 8) %>% 
+  pack_rows("2020", 9, 11) %>% 
+  pack_rows("2021", 12, 13) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE) %>% 
+  footnote(symbol=c("Absolute number of excess deaths scaled by country population.",
+                    "Absolute number of excess deaths scaled by the number of expected deaths.",
+                    "Sum of life years lost until the age of 70 in thousands.",
+                    "Based on 8,000 posterior samples, the probability that the relative excess deaths in 2020 is larger than in 1957 is 100%, 94.3% and 99.9% in Switzerland, Sweden and Spain, respectively.")) %>% 
+  as_image(file = "paper/Table_2.png")
+```
 
 ## Figure 1
 
@@ -465,20 +516,10 @@ shown_years %<>% filter(Year <= 2021) %>%
 plot_data = shown_years %>%
   left_join(results_month) %>% 
   mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain")) %>% 
-  filter(!(Country=="Sweden" & Year==2021)) %>%
+  filter(!(Country == "Sweden" & Year == 2021)) %>%
   mutate(focus_year1 = as.Date(paste0(focus_year, "-01-01")),
          focus_year2 = as.Date(paste0(focus_year, "-12-31")),
-         focus_year2 = if_else(focus_year==2020,as.Date(paste0(focus_year+1, "-06-30")),focus_year2))
-
-# plot_data %>% 
-#   filter(Year == 1890 & Month == 1 & Country == "Switzerland") %>% 
-#   mutate(plot1 = pred_total_deaths/Population*100000,
-#          plot2 = excess_month/100) %>% 
-#   select(pred_total_deaths, 
-#          Population,
-#          plot1,
-#          excess_month,
-#          plot2)
+         focus_year2 = if_else(focus_year==2020, as.Date(paste0(focus_year+1, "-06-30")), focus_year2))
 
 gg = ggplot(plot_data) +
   geom_rect(aes(xmin = focus_year1,
@@ -548,8 +589,6 @@ Age differences across major pandemics (per population).
 
 ```{r echo=FALSE}
 pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
-
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
 
 gap = .3
 
@@ -739,6 +778,9 @@ table_s1 <-
   
   mutate(across(yearly_excess_total_deaths_m0:yearly_excess_total_deaths_m4_cri, 
                 ~replace(., is.na(.), "--"))) 
+
+openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
+                     row.names = FALSE, overwrite = TRUE)
 ```
 
 ```{r echo=FALSE}
@@ -756,7 +798,7 @@ table_s1 %>%
                      "Sensitivity 1$^*$" = 1, 
                      "Sensitivity 2$^†$" = 2, 
                      "Sensitivity 3$^‡$" = 2,  
-                     "Sensitivity 4$§$" = 2)) %>%   
+                     "Sensitivity 4$^§$" = 2)) %>%   
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   column_spec(1, italic = TRUE) %>%
@@ -768,130 +810,36 @@ table_s1 %>%
                     "Serfling, NB, unadjusted for age",
                     "Serfling, NB, age adjusted, alternative time window, no trim",
                     "Serfling, NB, age adjusted, alternative time window, trim"))
-
-openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
-                     row.names = FALSE, overwrite = TRUE)
 ```
 
-
-```{r include=FALSE}
-plot_data <- 
-  
-  bind_rows(
-    
-    results_year  %>% 
-      mutate(Model = "m0") %>% 
-      select(Model, Country, Year,
-             starts_with("yearly_excess_total_deaths")),
-    
-    # Global Serfling (bootstrap)
-    # !without CrI for yearly!
-    results_month_boot %>% 
-      mutate(excess = Deaths - pred) %>% 
-      group_by(Model, Country, Year) %>% 
-      summarise(yearly_excess_total_deaths = sum(excess)) %>% 
-      ungroup() %>% 
-      mutate(Model = "m1"),
-    
-    # Global Serfling (Stan, NB) without age
-    results_year_global  %>% 
-      mutate(Model = "m2") %>% 
-      select(Model, Country, Year,
-             starts_with("yearly_excess_total_deaths")),
-    
-    # Age Serfling with alternative time window & min/max trim (Stan, NB)
-    results_year_last_7_notrim  %>% 
-      mutate(Model = "m3") %>% 
-      select(Model, Country, Year,
-             starts_with("yearly_excess_total_deaths")),
-    
-    # Age Serfling with alternative time window (Stan, NB)
-    results_year_last_7_trim  %>% 
-      mutate(Model = "m4") %>% 
-      select(Model, Country, Year,
-             starts_with("yearly_excess_total_deaths"))
-    
-  ) %>% 
-  arrange(desc(Country), Year, Model) %>% 
-  pivot_wider(names_from = Model, 
-              values_from = starts_with("yearly_excess"),
-              names_sort = FALSE) %>% 
-  select(-contains("lower"), -contains("upper")) %>% 
-  relocate(Country, Year,
-           yearly_excess_total_deaths_m0, 
-           yearly_excess_total_deaths_m1, 
-           yearly_excess_total_deaths_m2, 
-           yearly_excess_total_deaths_m3, 
-           yearly_excess_total_deaths_m4 
-  ) %>% 
-  
-  mutate(pdiff_m1 = (yearly_excess_total_deaths_m1 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0,
-         pdiff_m2 = (yearly_excess_total_deaths_m2 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0,
-         pdiff_m3 = (yearly_excess_total_deaths_m3 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0,
-         pdiff_m4 = (yearly_excess_total_deaths_m4 - yearly_excess_total_deaths_m0) / yearly_excess_total_deaths_m0
-  ) %>% 
-  
-  mutate(diff_m1 = (yearly_excess_total_deaths_m1 - yearly_excess_total_deaths_m0) ,
-         diff_m2 = (yearly_excess_total_deaths_m2 - yearly_excess_total_deaths_m0) ,
-         diff_m3 = (yearly_excess_total_deaths_m3 - yearly_excess_total_deaths_m0) ,
-         diff_m4 = (yearly_excess_total_deaths_m4 - yearly_excess_total_deaths_m0) 
-  ) %>% 
-  
-  select(-starts_with("yearly")) %>% 
-  pivot_longer(contains("diff"),
-               names_to = "Model", values_to = "Difference")
-```
-
-### Absolute differences
-
-```{r echo=FALSE}
-plot_data %>% 
-  filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
-  filter(str_detect(Model, "pdiff", negate = TRUE)) %>% 
-  ggplot() + 
-  geom_col(aes(x = factor(Year), y = Difference, fill = Model), position = "dodge2") +  
-  facet_grid(vars(Country), scales = "free_y") + 
-  scale_y_continuous(labels = comma) +
-  xlab("Year") + ylab("Absolute difference") + 
-  theme_bw()
-```
-
-### Relative differences
-
-```{r echo=FALSE}
-plot_data %>% 
-   filter(Year %in% c(pandemic_years, pandemic_years - 1, pandemic_years + 1)) %>% 
- filter(str_detect(Model, "pdiff")) %>% 
-  ggplot() + 
-  geom_col(aes(x = factor(Year), y = Difference, fill = Model), position = "dodge2") +  
-  facet_grid(vars(Country)) + 
-  scale_y_continuous(labels = percent) +
-  xlab("Year") + ylab("% difference") + 
-  theme_bw()
-```
-
-### Absolute differences - all times
-
-```{r echo=FALSE}
-plot_data %>% 
-  filter(str_detect(Model, "pdiff", negate = TRUE)) %>% 
-  ggplot() + 
-  geom_line(aes(x = Year, y = Difference, color = Model)) +  
-  facet_grid(vars(Country), scales = "free_y") + 
-  scale_y_continuous(labels = comma) +
-  theme_bw()
-```
-
-### Relative differences - all times
-
-```{r echo=FALSE}
-plot_data %>% 
-  filter(str_detect(Model, "pdiff", negate = TRUE)) %>% 
-  ggplot() + 
-  geom_line(aes(x = Year, y = Difference, color = Model)) +  
-  facet_grid(vars(Country), scales = "free_y") + 
-  scale_y_continuous(labels = percent) +
-  theme_bw()
+```{r eval=FALSE, include=FALSE}
+table_s1 %>% 
+  select(-Country) %>% 
+  kbl(align = "lrrrrrrrr",
+      col.names = c("Country, Year", 
+                    "Excess", "95% CrI", 
+                    "Excess", 
+                    "Excess", "95% CrI", 
+                    "Excess", "95% CrI", 
+                    "Excess", "95% CrI")) %>% 
+  add_header_above(c(" " = 1, 
+                     "Baseline" = 2, 
+                     "Sensitivity 1*" = 1, 
+                     "Sensitivity 2†" = 2, 
+                     "Sensitivity 3‡" = 2,  
+                     "Sensitivity 4§" = 2)) %>%   
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>% 
+  column_spec(1, italic = TRUE) %>%
+  row_spec(1, italic = FALSE) %>% 
+  pack_rows("Switzerland", 1, 12) %>%
+  pack_rows("Sweden", 13, 24) %>% 
+  pack_rows("Spain", 25, 33) %>% 
+  footnote(symbol=c("Serfling, Poisson, unadjusted for age",
+                    "Serfling, NB, unadjusted for age",
+                    "Serfling, NB, age adjusted, alternative time window, no trim",
+                    "Serfling, NB, age adjusted, alternative time window, trim")) %>% 
+  as_image(file = "paper/Table_S1.png")
 ```
 
 
@@ -996,6 +944,7 @@ rm(hline_pandemic)
 
 ggsave("paper/Figure_S1b.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
+
 
 ## Figure S2 
 
@@ -1278,7 +1227,6 @@ Different age profiles of excess deaths across two pandemics and three countries
 
 ```{r echo=FALSE}
 pandemic_years <- c(1918,2020)
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
 
 results_age %>% 
   filter(Year %in% pandemic_years) %>%
@@ -1322,7 +1270,7 @@ ggsave("paper/Figure_S5a.png", dpi = 300, width = 280, height = 100, units = "mm
 
 ```{r echo=FALSE}
 pandemic_years <- c(1918,2020)
-deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
+
 results_age %>% 
   filter(Year %in% pandemic_years) %>%
   mutate(Age_cat2=as.numeric(Age_cat)) %>%
