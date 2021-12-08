@@ -1,6 +1,6 @@
 library(tidyverse)
 
-t = readxl::read_xlsx("paper/Table_S1_mean.xlsx")
+t = readxl::read_xlsx("paper/Table_S1.xlsx")
 
 ft = function(a,b,c) {
   return(paste0(a,))

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  30 AUG 2021 14:15
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  8 DEC 2021 15:05
 entering extended mode
 **./supplementary.tex
 (supplementary.tex
@@ -771,76 +771,82 @@ File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
 [2
 
 ]
-<../Figure_S1.png, id=129, 540.5796pt x 398.2077pt>
-File: ../Figure_S1.png Graphic file (type png)
-<use ../Figure_S1.png>
-Package pdftex.def Info: ../Figure_S1.png  used on input line 151.
-(pdftex.def)             Requested size: 483.69684pt x 356.31165pt.
+<../Table_S1.png, id=134, 208.3785pt x 281.3712pt>
+File: ../Table_S1.png Graphic file (type png)
+<use ../Table_S1.png>
+Package pdftex.def Info: ../Table_S1.png  used on input line 151.
+(pdftex.def)             Requested size: 483.69684pt x 653.138pt.
  [3]
-<../Figure_S2.png, id=151, 844.8363pt x 597.432pt>
-File: ../Figure_S2.png Graphic file (type png)
-<use ../Figure_S2.png>
-Package pdftex.def Info: ../Figure_S2.png  used on input line 158.
-(pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
- [4pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
- has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  
-l.161 
-       <../Figure_S1.png>]
-<../Figure_S3a.png, id=158, 844.8363pt x 597.432pt>
-File: ../Figure_S3a.png Graphic file (type png)
-<use ../Figure_S3a.png>
-Package pdftex.def Info: ../Figure_S3a.png  used on input line 165.
-(pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
- [5pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
- has been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  
-l.168 	
-        <../Figure_S2.png>]
-<../Figure_S3b.png, id=165, 844.8363pt x 597.432pt>
+<../Figure_S2b.png, id=157, 540.5796pt x 398.2077pt>
+File: ../Figure_S2b.png Graphic file (type png)
+<use ../Figure_S2b.png>
+Package pdftex.def Info: ../Figure_S2b.png  used on input line 160.
+(pdftex.def)             Requested size: 483.69684pt x 356.31165pt.
+ [4 <../Table_S1.png>]
+<../Figure_S3b.png, id=163, 844.8363pt x 597.432pt>
 File: ../Figure_S3b.png Graphic file (type png)
 <use ../Figure_S3b.png>
-Package pdftex.def Info: ../Figure_S3b.png  used on input line 171.
+Package pdftex.def Info: ../Figure_S3b.png  used on input line 167.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
- [6pdfTeX warning (ext4): destination with the same identifier (name{figure.3})
+ [5pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.174 
-       <../Figure_S3a.png>]
-<../plot_appendix_week_month.pdf, id=172, 722.7pt x 722.7pt>
+l.170 
+       <../Figure_S2b.png (PNG copy)>]
+<../Figure_S6a.png, id=169, 844.8363pt x 597.432pt>
+File: ../Figure_S6a.png Graphic file (type png)
+<use ../Figure_S6a.png>
+Package pdftex.def Info: ../Figure_S6a.png  used on input line 174.
+(pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
+ [6pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
+ has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.177 	
+        <../Figure_S3b.png>]
+<../Figure_S6b.png, id=176, 844.8363pt x 597.432pt>
+File: ../Figure_S6b.png Graphic file (type png)
+<use ../Figure_S6b.png>
+Package pdftex.def Info: ../Figure_S6b.png  used on input line 180.
+(pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
+ [7pdfTeX warning (ext4): destination with the same identifier (name{figure.3})
+ has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.183 
+       <../Figure_S6a.png>]
+<../plot_appendix_week_month.pdf, id=184, 722.7pt x 722.7pt>
 File: ../plot_appendix_week_month.pdf Graphic file (type pdf)
 <use ../plot_appendix_week_month.pdf>
-Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 17
-7.
+Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 18
+6.
 (pdftex.def)             Requested size: 338.5863pt x 338.58835pt.
- [7pdfTeX warning (ext4): destination with the same identifier (name{figure.4})
+ [8pdfTeX warning (ext4): destination with the same identifier (name{figure.4})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.180 
-       <../Figure_S3b.png>] [8pdfTeX warning (ext4): destination with the same 
+l.189 
+       <../Figure_S6b.png>] [9pdfTeX warning (ext4): destination with the same 
 identifier (name{figure.5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.184 	\clearpage
+l.193 	\clearpage
                   <../plot_appendix_week_month.pdf>] (supplementary.bbl)
-[9
+[10
 
 ] (supplementary.aux)
 Package rerunfilecheck Info: File `supplementary.out' has not changed.
-(rerunfilecheck)             Checksum: 82A469E500644C88AC2ABD7C8903A44A;564.
+(rerunfilecheck)             Checksum: 7E79273060B12444648CEE0A0A727E87;618.
  ) 
 Here is how much of TeX's memory you used:
- 17706 strings out of 479618
- 331133 string characters out of 2872950
- 624567 words of memory out of 3000000
- 34431 multiletter control sequences out of 15000+200000
+ 17715 strings out of 479618
+ 331278 string characters out of 2872950
+ 624538 words of memory out of 3000000
+ 34437 multiletter control sequences out of 15000+200000
  418611 words of font info for 63 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 113i,10n,116p,951b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 113i,10n,116p,957b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
 pdfTeX warning (dest): name{Hfootnote.5} has been referenced but does not exi
 st, replaced by a fixed one
 
@@ -882,9 +888,9 @@ mmi7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb>
 m Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/
 MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/panczak/AppData/R
 oaming/MiKTeX/2.9/fonts/type1/public/doublestroke/dsrom10.pfb>
-Output written on supplementary.pdf (9 pages, 575903 bytes).
+Output written on supplementary.pdf (10 pages, 674659 bytes).
 PDF statistics:
- 755 PDF objects out of 1000 (max. 8388607)
- 60 named destinations out of 1000 (max. 500000)
- 102 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 770 PDF objects out of 1000 (max. 8388607)
+ 62 named destinations out of 1000 (max. 500000)
+ 115 words of extra memory for PDF output out of 10000 (max. 10000000)
 
