@@ -14,6 +14,12 @@ knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs") })
 ---
 
+<style type="text/css">
+div.page-inner {
+  max-width: 10000px !important;
+}
+</style>
+
 <!-- ----------------------------------------------------- -->
 
 ```{r setup, include = FALSE}
