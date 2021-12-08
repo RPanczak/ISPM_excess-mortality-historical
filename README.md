@@ -25,7 +25,7 @@ Archived on [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5206521.svg)](ht
 
 ### Online documentation
 
-Full details of the data sources, data preparation and main as well as supplementary analyses are available [on the project pages](https://rpanczak.github.io/ISPM_excess-mortality/). 
+Details of the data sources, data preparation and main as well as supplementary analyses are available [on the project pages](https://rpanczak.github.io/ISPM_excess-mortality/). 
 
 Visual summary of repo content [here](https://octo-repo-visualization.vercel.app/?repo=RPanczak%2FISPM_excess-mortality). 
 
