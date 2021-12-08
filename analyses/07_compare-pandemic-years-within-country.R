@@ -66,7 +66,7 @@ S_age_2020 = m_age_2020$samples$draws("yearly_rel_excess_total_deaths") %>%
   pull(yearly_rel_excess_total_deaths)
 
 prob_2020_1957_CH = mean(S_age_2020 > S_age_1957)
-
+round(prob_2020_1957_CH, digits = 4)
 
 
 # ##################################################
@@ -109,7 +109,7 @@ S_age_2020 = m_age_2020$samples$draws("yearly_rel_excess_total_deaths") %>%
   pull(yearly_rel_excess_total_deaths)
 
 prob_2020_1957_ES = mean(S_age_2020 > S_age_1957)
-
+round(prob_2020_1957_ES, digits = 4)
 
 
 # ##################################################
@@ -154,3 +154,4 @@ S_age_2020 = m_age_2020$samples$draws("yearly_rel_excess_total_deaths") %>%
   pull(yearly_rel_excess_total_deaths)
 
 prob_2020_1957_SE = mean(S_age_2020 > S_age_1957)
+round(prob_2020_1957_SE, digits = 4)
