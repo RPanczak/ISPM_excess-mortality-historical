@@ -734,7 +734,7 @@ table_s1 <-
     yearly_excess_total_deaths_m0_cri = str_c("(",
                                               number(yearly_excess_total_deaths_lower_m0,
                                                      accuracy = 5L, big.mark = ","), 
-                                              "; ",
+                                              " to ",
                                               number(yearly_excess_total_deaths_upper_m0,
                                                      accuracy = 5L, big.mark = ","), 
                                               ")")
@@ -748,7 +748,7 @@ table_s1 <-
     yearly_excess_total_deaths_m2_cri = str_c("(",
                                               number(yearly_excess_total_deaths_lower_m2,
                                                      accuracy = 5L, big.mark = ","), 
-                                              "; ",
+                                              " to ",
                                               number(yearly_excess_total_deaths_upper_m2,
                                                      accuracy = 5L, big.mark = ","), 
                                               ")")
@@ -762,7 +762,7 @@ table_s1 <-
     yearly_excess_total_deaths_m3_cri = str_c("(",
                                               number(yearly_excess_total_deaths_lower_m3,
                                                      accuracy = 5L, big.mark = ","), 
-                                              "; ",
+                                              " to ",
                                               number(yearly_excess_total_deaths_upper_m3,
                                                      accuracy = 5L, big.mark = ","), 
                                               ")")
@@ -774,7 +774,7 @@ table_s1 <-
     yearly_excess_total_deaths_m4_cri = str_c("(", 
                                               number(yearly_excess_total_deaths_lower_m4,
                                                      accuracy = 5L, big.mark = ","), 
-                                              "; ",
+                                              " to ",
                                               number(yearly_excess_total_deaths_upper_m4,
                                                      accuracy = 5L, big.mark = ","), 
                                               ")")
@@ -792,7 +792,7 @@ openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx",
 ```{r echo=FALSE}
 table_s1 %>% 
   select(-Country) %>% 
-  kbl(align = "lrrrrrrrr",
+  kbl(align = "lrrrrrrrrr",
       col.names = c("Country, Year", 
                     "Excess", "95% CrI", 
                     "Excess", 
@@ -849,9 +849,11 @@ table_s1 %>%
 ```
 
 
-## Figure S1
+## Figure S1 {.tabset}
 
-### Absolute numbers of excess yearly.  
+Yearly estimates of excess
+
+### Absolute 
 
 ```{r echo=FALSE}
 hline_pandemic <- results_year %>% 
@@ -901,7 +903,7 @@ rm(hline_pandemic)
 ggsave("paper/Figure_S1a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
-### Relative numbers of excess yearly.  
+### Percentage   
 
 ```{r echo=FALSE}
 hline_pandemic <- results_year %>% 
@@ -952,9 +954,11 @@ ggsave("paper/Figure_S1b.png", dpi = 300, width = 190, height = 140, units = "mm
 ```
 
 
-## Figure S2 
+## Figure S2 {.tabset}
 
-### Monthly absolute estimates of excess
+Monthly estimates of excess
+
+### Absolute 
 
 ```{r echo=FALSE}
 hline_pandemic <- results_month %>% 
@@ -1003,7 +1007,7 @@ rm(hline_pandemic)
 ggsave("paper/Figure_S2a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
-### Monthly relative estimates of excess 
+### Percentage 
 
 ```{r echo=FALSE}
 hline_pandemic <- results_month %>% 
@@ -1053,9 +1057,67 @@ ggsave("paper/Figure_S2b.png", dpi = 300, width = 190, height = 140, units = "mm
 ```
 
 
-## Figure S3
+## Figure S3 {.tabset}
 
 Zooming to pandemics to explore excess
+
+### Absolute
+
+```{r echo=FALSE}
+plot_years <- c(seq(1890 - 1, 1890 + 2),
+                seq(1918 - 1, 1918 + 2),
+                seq(1957 - 1, 1957 + 2),
+                seq(2020 - 1, 2020 + 2))
+
+plot_data <- results_month %>% 
+  bind_rows(
+    read_rds("data/deaths_monthly.Rds") %>% 
+      filter(Country == "Sweden" & Year == 2021 & Month < 7) %>% 
+      select(Country, Year, Month, Date, Deaths)
+  ) %>% 
+  filter(Year %in% plot_years) %>% 
+  mutate(Difference = ifelse(excess_month > 0, "More", "Less"),
+         Country = fct_relevel(factor(Country), 
+                               "Switzerland", "Sweden", "Spain")) %>% 
+  group_by(Country, Pandemic) %>% 
+  mutate(time = row_number()) %>% 
+  ungroup() %>% 
+  filter(!is.na(Pandemic))
+
+plot_data %>% 
+  mutate(xmin = as.Date(paste0(Pandemic, "-01-01")),
+         xmax = as.Date(paste0(Pandemic, "-12-31"))) %>% 
+  ggplot(aes(x = time)) +
+  geom_hline(yintercept = 0, colour = "grey60") +
+  geom_vline(xintercept = 13, colour = "grey80") +
+  geom_vline(xintercept = 24, colour = "grey80") +
+  geom_rect(aes(xmin = 13, xmax = 24,
+                ymin = -Inf, ymax = Inf),
+            fill = "grey90", alpha = 0.7, inherit.aes = FALSE) +
+  geom_col(aes(y = excess_month, fill = Difference), size = 0.5) +
+  facet_grid(vars(Country), vars(Pandemic), scales = "free") + 
+  scale_x_continuous(limits = c(min(plot_data$time)-1, max(plot_data$time)+1),
+                     breaks = c(1, 13, 24, 36, 48), 
+                     labels = c("-12m", "Start", "End", "+12m", "+24m")) +
+  xlab("") + 
+  ylab("Excess deaths per month") +
+  # ggtitle("Excess deaths per month") +
+  scale_y_continuous() +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank(), 
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(), 
+        panel.grid.minor.y = element_blank(),
+        panel.background = element_blank(), 
+        axis.line = element_line(colour = "grey40"),
+        plot.margin = margin(0.5, 0.5, 0, 0)) 
+
+ggsave("paper/Figure_S3a.png", dpi = 300, width = 297, height = 210, units = "mm")
+
+rm(plot_years)
+```
 
 ### Percentage
 
@@ -1111,69 +1173,10 @@ plot_data %>%
         axis.line = element_line(colour = "grey40"),
         plot.margin = margin(0.5, 0.5, 0, 0)) 
 
-ggsave("paper/Figure_S3a.png", dpi = 300, width = 297, height = 210, units = "mm")
-
-rm(plot_years)
-```
-
-### Absolute
-
-```{r echo=FALSE}
-plot_years <- c(seq(1890 - 1, 1890 + 2),
-                seq(1918 - 1, 1918 + 2),
-                seq(1957 - 1, 1957 + 2),
-                seq(2020 - 1, 2020 + 2))
-
-plot_data <- results_month %>% 
-  bind_rows(
-    read_rds("data/deaths_monthly.Rds") %>% 
-      filter(Country == "Sweden" & Year == 2021 & Month < 7) %>% 
-      select(Country, Year, Month, Date, Deaths)
-  ) %>% 
-  filter(Year %in% plot_years) %>% 
-  mutate(Difference = ifelse(excess_month > 0, "More", "Less"),
-         Country = fct_relevel(factor(Country), 
-                               "Switzerland", "Sweden", "Spain")) %>% 
-  group_by(Country, Pandemic) %>% 
-  mutate(time = row_number()) %>% 
-  ungroup() %>% 
-  filter(!is.na(Pandemic))
-
-plot_data %>% 
-  mutate(xmin = as.Date(paste0(Pandemic, "-01-01")),
-         xmax = as.Date(paste0(Pandemic, "-12-31"))) %>% 
-  ggplot(aes(x = time)) +
-  geom_hline(yintercept = 0, colour = "grey60") +
-  geom_vline(xintercept = 13, colour = "grey80") +
-  geom_vline(xintercept = 24, colour = "grey80") +
-  geom_rect(aes(xmin = 13, xmax = 24,
-                ymin = -Inf, ymax = Inf),
-            fill = "grey90", alpha = 0.7, inherit.aes = FALSE) +
-  geom_col(aes(y = excess_month, fill = Difference), size = 0.5) +
-  facet_grid(vars(Country), vars(Pandemic), scales = "free") + 
-  scale_x_continuous(limits = c(min(plot_data$time)-1, max(plot_data$time)+1),
-                     breaks = c(1, 13, 24, 36, 48), 
-                     labels = c("-12m", "Start", "End", "+12m", "+24m")) +
-  xlab("") + 
-  ylab("Excess deaths per month") +
-  # ggtitle("Excess deaths per month") +
-  scale_y_continuous() +
-  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  guides(fill = guide_legend(reverse = TRUE)) +
-  theme_bw() +
-  theme(panel.grid.major.x = element_blank(), 
-        panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(), 
-        panel.grid.minor.y = element_blank(),
-        panel.background = element_blank(), 
-        axis.line = element_line(colour = "grey40"),
-        plot.margin = margin(0.5, 0.5, 0, 0)) 
-
 ggsave("paper/Figure_S3b.png", dpi = 300, width = 297, height = 210, units = "mm")
 
 rm(plot_years)
 ```
-
 
 ## Figure S4
 
@@ -1227,12 +1230,16 @@ ggsave("paper/Figure_S4.png", dpi = 300, width = 280, height = 100, units = "mm"
 ```
 
 
-## Figure S5
+## Figure S5 {.tabset}
 
 Different age profiles of excess deaths across two pandemics and three countries.  
 
+### Percentage
+
 ```{r echo=FALSE}
-pandemic_years <- c(1918,2020)
+pandemic_years <- c(1918, 2020)
+
+gap = .3
 
 results_age %>% 
   filter(Year %in% pandemic_years) %>%
@@ -1273,6 +1280,7 @@ results_age %>%
 ggsave("paper/Figure_S5a.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
 
+### Per population 
 
 ```{r echo=FALSE}
 pandemic_years <- c(1918,2020)
