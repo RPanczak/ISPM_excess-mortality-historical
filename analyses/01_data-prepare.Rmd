@@ -344,7 +344,12 @@ ch_deaths_month <- read.px("data-raw/BfS/px-x-0102020206_111.px") %>%
 BfS delivered custom data to supplement first six months of `2021`. Merged to dataset covering period until `2020`.  
 
 ```{r}
-ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
+ch_deaths_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", 
+                           col_types = cols(TodJahr = col_integer(),
+                                            TodMonat = col_integer(),
+                                            Alter = col_integer(), 
+                                            COUNT = col_integer()),
+                           trim_ws = TRUE) %>% 
   rename(Year = TodJahr, Month = TodMonat, Deaths = COUNT) %>% 
   filter(Year == as.integer(2021)) %>% 
   group_by(Year, Month) %>% 
@@ -381,7 +386,12 @@ ggplot(data = ch_deaths_month,
 BfS delivered data to supplement missing six months of `2021`.  
 
 ```{r}
-ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", col_types = cols(TodJahr = col_integer(), TodMonat = col_integer(), Alter = col_integer(), COUNT = col_integer()), trim_ws = TRUE) %>% 
+ch_deaths_age_sex_2021 <- read_csv("data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN_Update04NOV21.csv", 
+                                   col_types = cols(TodJahr = col_integer(), 
+                                                    TodMonat = col_integer(), 
+                                                    Alter = col_integer(), 
+                                                    COUNT = col_integer()), 
+                                   trim_ws = TRUE) %>% 
   rename(Year = TodJahr, Age = Alter, Sex = Geschlecht, Deaths = COUNT) %>% 
   select(-TodMonat) %>% 
   group_by(Year, Age) %>% 
@@ -645,7 +655,8 @@ download.file(url = "https://www.scb.se/hitta-statistik/statistik-efter-amne/bef
 ```
 
 ```{r}
-se_deaths_month_2021 <- read_excel("data-raw/SCB/2021-11-01-preliminar_statistik_over_doda_inkl_eng.xlsx", sheet = "Tabell 10", skip = 10) %>% 
+se_deaths_month_2021 <- read_excel("data-raw/SCB/2021-11-01-preliminar_statistik_over_doda_inkl_eng.xlsx",
+                                   sheet = "Tabell 10", skip = 10) %>% 
   filter(Region == "Hela riket" & Period == "2021 antal") %>% 
   select(Januari:Oktober) %>% 
   pivot_longer(Januari:Oktober) %>% 
