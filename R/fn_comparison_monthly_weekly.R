@@ -1,4 +1,5 @@
 fn_comparison_monthly_weekly <- function(Country.data) {
+  
   if(Country.data=="Switzerland"){
     stmf_month <- readRDS("data/mortality_org/expected_death_Switzerland_Month_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
