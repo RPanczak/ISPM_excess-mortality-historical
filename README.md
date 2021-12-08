@@ -8,7 +8,7 @@ Data & code to reproduce paper:
 
 > ADD CITATION
 
-Code version [2.1]()
+Code version [2.1]().
 
 Archived on [![DOI](https://zenodo.org/badge/341273510.svg)](https://zenodo.org/badge/latestdoi/341273510)  
 
@@ -19,7 +19,7 @@ Earlier version of preprint:
 > Staub K*, Panczak R*, Matthes KL, Floris J, Berlin C, Junker C, Weitkunat R, Mamelund SE, Egger M, Zwahlen M*, Riou J* (2021) Pandemic excess mortality in Spain, Sweden, and Switzerland during the COVID-19 pandemic in 2020 was at its highest since 1918. *medRxiv* 2021.08.12.21261825. doi: https://doi.org/10.1101/2021.08.12.21261825  
 > <sub>* Equal contribution.</sub>
 
-Code version [1.0](https://github.com/RPanczak/ISPM_excess-mortality/releases/tag/v1.0)
+Code version [1.0](https://github.com/RPanczak/ISPM_excess-mortality/releases/tag/v1.0).
 
 Archived on [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5206521.svg)](https://doi.org/10.5281/zenodo.5206521)  
 
