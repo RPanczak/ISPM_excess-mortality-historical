@@ -89,7 +89,7 @@ This folder stores example OpenPBS scripts that can be used to submit the `analy
 
 ## Computing environemtn
 
-Details on the vaersion of R software and packages used are presented at the bottom of the output documents stored in `docs` folder. Script `03_joint-model-cmdstan.R` was run on HPC clustrer using R version 4.1.0 with packages versions cmdstanr 0.4.0 & cmdstan 2.27.0.  
+Details on the version of R software and packages used are presented at the bottom of the output documents stored in `docs` folder. Script `03_joint-model-cmdstan.R` was run on HPC cluster using `R` version *4.1.0* with packages versions `cmdstanr` *0.4.0* & `cmdstan` *2.27.0*.  
 
 ## Visual summary of main results
 
