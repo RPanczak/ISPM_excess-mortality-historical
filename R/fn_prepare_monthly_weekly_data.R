@@ -18,36 +18,27 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
   year_reg <- year_from + year_smooth
   year_max <- 2020
   
+  pop_data <- read_rds("data/deaths_monthly.Rds") %>%
+    select(Country, Year,Population_obs)
+  
   # load population data
   if(Country.data=="Switzerland") {
-    pop_year <- read_rds("data/BfS/ch_pop_year.Rds") %>% 
+    pop_year <-  pop_data %>% 
+      filter(Country == Country.data) %>%
       filter(Year >= 2000) %>% 
-      mutate(Population = round((pop_jan + pop_dec) / 2)) %>% 
-      select(-pop_jan, -pop_dec)
-    
-    pop_2020 <- read.px("data-raw/BfS/px-x-0102020000_202.px") %>% 
-      as_tibble() %>% remove_empty() %>% clean_names() %>% 
-      filter(demografische_komponente %in% c("Bestand am 1. Januar", "Bestand am 31. Dezember")) %>% 
-      filter(alter == "Alter - Total") %>% 
-      filter(geschlecht == "Geschlecht - Total") %>% 
-      filter(kanton == "Schweiz") %>% 
-      filter(staatsangehorigkeit_kategorie == "Staatsangehörigkeit (Kategorie) - Total") %>% 
-      select(demografische_komponente, value) %>% 
-      summarise(Population = round(mean(value))) %>% 
-      mutate(Year = 2020) %>% relocate(Year)
-    
-    pop_year <- pop_year %>%
-      bind_rows(pop_2020)
-    
-    rm(pop_2020)
+      distinct(Year, .keep_all = TRUE)
   }
   if(Country.data=="Spain") {
-    pop_year<- read_rds("data/INE/es_pop_year.Rds") %>% 
-      filter(Year >= 2000)
+    pop_year <-  pop_data %>% 
+      filter(Country == Country.data) %>%
+      filter(Year >= 2000) %>% 
+      distinct(Year, .keep_all = TRUE)
   }
   if(Country.data=="Sweden") {
-    pop_year<- read_rds("data/SCB/se_pop_year.Rds") %>% 
-      filter(Year >= 2000)
+    pop_year <-  pop_data %>% 
+      filter(Country == Country.data) %>%
+      filter(Year >= 2000) %>% 
+      distinct(Year, .keep_all = TRUE)
    
   }
   
@@ -61,7 +52,7 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
              co_one = cos(2*pi*Week/(365.25/7)),
              co_two = cos(2*pi*Week/(365.25/2/7)),
              Deaths = as.integer(round(Deaths)),
-             Population = as.integer(round(Population)))
+             Population = as.integer(round(Population_obs)))
   }
   else{
     deaths_data %<>% 
@@ -71,7 +62,7 @@ fn_prepare_monthly_weekly_data <- function(Country.data, data.timespan){
              co_one = cos(2*pi*Month/12),
              co_two = cos(4*pi*Month/12)) %>% 
       mutate(Deaths = as.integer(round(Deaths))) %>% 
-      mutate(Population = as.integer(round(Population)))
+      mutate(Population = as.integer(round(Population_obs)))
   }
   
   rm(pop_year)

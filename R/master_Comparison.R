@@ -36,6 +36,7 @@ source("R/plot_appendix_month_weeks.R")
 function_plot_appendix_month_weeks()
 
 # render 
-setwd("./analyses")
-render("19_Comparison_week_month.Rmd")
-setwd(rprojroot::find_rstudio_root_file())
+# setwd("./analyses")
+render("analyses/06_Comparison_week_month.Rmd")
+# setwd(rprojroot::find_rstudio_root_file())
+

@@ -1,20 +1,23 @@
 fn_comparison_monthly_weekly <- function(Country.data) {
+  
   if(Country.data=="Switzerland"){
     stmf_month <- readRDS("data/mortality_org/expected_death_Switzerland_Month_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
       filter(Year > 2004) %>%
-      group_by(Year) %>%
-      summarise(EM_month=round(sum(fit),0),
+      mutate(Year = as.factor(Year))%>%
+      dplyr::group_by(Year) %>%
+      dplyr::summarise(EM_month=round(sum(fit),0),
                 Deaths_month=sum(Deaths))
     
     stmf_week <- readRDS("data/mortality_org/expected_death_Switzerland_Week_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
       filter(Year > 2004) %>%
-      group_by(Year) %>%
-      summarise(EM_week=round(sum(fit),0),
+      mutate(Year = as.factor(Year))%>%
+      dplyr::group_by(Year) %>%
+      dplyr::summarise(EM_week=round(sum(fit),0),
                 Deaths_week=sum(Deaths)) 
     
-    stmf_both <- stmf_month%>%
+    stmf_both <- stmf_month %>%
       left_join(stmf_week) %>%
       mutate(Excess_death_month = Deaths_month - EM_month,
              Excess_death_week = Deaths_week - EM_week,
@@ -34,16 +37,18 @@ fn_comparison_monthly_weekly <- function(Country.data) {
     stmf_month <- readRDS("data/mortality_org/expected_death_Spain_Month_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
       filter(Year > 2004) %>%
-      group_by(Year) %>%
-      summarise(EM_month=round(sum(fit),0),
-                Deaths_month=sum(Deaths))
+      mutate(Year = as.factor(Year))%>%
+      dplyr::group_by(Year) %>%
+      dplyr::summarise(EM_month=round(sum(fit),0),
+                       Deaths_month=sum(Deaths))
     
     stmf_week <- readRDS("data/mortality_org/expected_death_Spain_Week_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
       filter(Year > 2004) %>%
-      group_by(Year) %>%
-      summarise(EM_week=round(sum(fit),0),
-                Deaths_week=sum(Deaths)) 
+      mutate(Year = as.factor(Year))%>%
+      dplyr::group_by(Year) %>%
+      dplyr::summarise(EM_week=round(sum(fit),0),
+                       Deaths_week=sum(Deaths)) 
     
     stmf_both <- stmf_month%>%
       left_join(stmf_week) %>%
@@ -65,16 +70,18 @@ fn_comparison_monthly_weekly <- function(Country.data) {
     stmf_month <- readRDS("data/mortality_org/expected_death_Sweden_Month_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
       filter(Year > 2004) %>%
-      group_by(Year) %>%
-      summarise(EM_month=round(sum(fit),0),
-                Deaths_month=sum(Deaths))
+      mutate(Year = as.factor(Year))%>%
+      dplyr::group_by(Year) %>%
+      dplyr::summarise(EM_month=round(sum(fit),0),
+                       Deaths_month=sum(Deaths))
     
     stmf_week <- readRDS("data/mortality_org/expected_death_Sweden_Week_stmf.Rds") %>%
       select(Year, Deaths, fit) %>%
       filter(Year > 2004) %>%
-      group_by(Year) %>%
-      summarise(EM_week=round(sum(fit),0),
-                Deaths_week=sum(Deaths)) 
+      mutate(Year = as.factor(Year))%>%
+      dplyr::group_by(Year) %>%
+      dplyr::summarise(EM_week=round(sum(fit),0),
+                       Deaths_week=sum(Deaths)) 
     
     stmf_both <- stmf_month%>%
       left_join(stmf_week) %>%

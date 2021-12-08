@@ -1,5 +1,0 @@
-git lfs track --filename "Data on laboratory findings and deaths.csv"
-
-git add .gitattributes
-
-git add data-raw/BAG/Data\ on\ laboratory\ findings\ and\ deaths.csv
