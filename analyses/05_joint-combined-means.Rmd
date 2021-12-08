@@ -267,6 +267,7 @@ table_1 %>%
                       "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden.")) 
 ```
 
+
 ```{r eval=FALSE, include=FALSE}
 table_1 %>% 
   select(-Year) %>%
@@ -967,7 +968,8 @@ results_month %>%
   geom_col(aes(y = excess_month, fill = Difference, colour = Difference), width = 1) +
   geom_hline(yintercept = 0, linetype = 2, size = 0.25) +
   scale_x_date(date_labels = "%Y",
-               breaks = seq(as.Date("1880-01-01"), as.Date("2020-12-31"), "10 years"),
+               breaks = seq(as.Date("1880-01-01"),
+                            as.Date("2020-12-31"), "10 years"),
                limits = c(as.Date("1879-12-31"), 
                           as.Date("2021-07-01")), 
                expand = c(0.01, 0)) +
@@ -986,6 +988,59 @@ rm(hline_pandemic)
 
 ggsave("paper/Figure_S2a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
+
+### Relative 
+
+```{r echo=FALSE}
+hline_pandemic <- results_month %>% 
+  filter(Year >= 2020) %>% 
+  group_by(Country) %>% 
+  summarise(yintercept = max(excess_month/Population*100000)) %>% 
+  ungroup() 
+
+vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
+                                as.Date("1918-01-01"),
+                                as.Date("1957-01-01"),
+                                as.Date("1968-01-01"),
+                                as.Date("1977-01-01"),
+                                as.Date("2009-01-01"),
+                                as.Date("2020-01-01"))) 
+
+results_month %>% 
+  filter(Year >= 1880) %>% 
+  mutate(Difference = ifelse(excess_month > 0, "More than expected", "Fewer than expected")) %>% 
+  ggplot(aes(x = Date)) +
+  geom_vline(data = vline_pandemic, 
+             aes(xintercept = Date+365/2), 
+             size = 2, colour = "grey90") +
+  geom_hline(data = hline_pandemic, 
+             aes(yintercept = yintercept), 
+             colour = "#984ea3", size = 0.25) +
+  geom_col(aes(y = excess_month/Population*100000, 
+               fill = Difference, colour = Difference), width = 1) +
+  geom_hline(yintercept = 0, linetype = 2, size = 0.25) +
+  scale_x_date(date_labels = "%Y",
+               breaks = seq(as.Date("1880-01-01"),
+                            as.Date("2020-12-31"), "10 years"),
+               limits = c(as.Date("1879-12-31"), 
+                          as.Date("2021-07-01")), 
+               expand = c(0.01, 0)) +
+  scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
+  scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
+  facet_grid(Country~., scales = "free_y") + 
+  # scale_y_continuous() +
+  theme_bw() +
+  theme(legend.position = c(.12, .95),
+        legend.background = element_blank(),
+        plot.margin = margin(0.5, 0.5, 0, 0))+
+  labs(x = "Year",y = "Monthly excess deaths per 100,000 population", fill = NULL) +
+  guides(fill = guide_legend(reverse = TRUE)) 
+
+rm(hline_pandemic)
+
+ggsave("paper/Figure_S2b.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
+
 
 ### Percentage 
 
@@ -1017,7 +1072,8 @@ results_month %>%
   geom_col(aes(y = rel_excess_month, fill = Difference, colour = Difference), width = 1) +
   geom_hline(yintercept = 0, linetype = 2, size = 0.25) +
   scale_x_date(date_labels = "%Y",
-               breaks = seq(as.Date("1880-01-01"), as.Date("2020-12-31"), "10 years"),
+               breaks = seq(as.Date("1880-01-01"),
+                            as.Date("2020-12-31"), "10 years"),
                limits = c(as.Date("1879-12-31"), 
                           as.Date("2021-07-01")), 
                expand = c(0.01, 0)) +
@@ -1034,7 +1090,7 @@ results_month %>%
 
 rm(hline_pandemic)
 
-ggsave("paper/Figure_S2b.png", dpi = 300, width = 190, height = 140, units = "mm")
+ggsave("paper/Figure_S2c.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
 
