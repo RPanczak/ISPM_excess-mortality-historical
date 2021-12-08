@@ -1,11 +1,14 @@
 # slurm
 *.out
 
-# compiled stan files
+# compiled stan files - unix
 stan/age_serfling_nb
 stan/age_serfling_nb_21
 stan/global_serfling_nb
 stan/global_serfling_nb_21
+
+# compiled stan files - windows
+*.exe
 
 # History files
 .Rhistory
@@ -36,8 +39,8 @@ secrets/
 .Renviron
 
 # project specific
-misc/
-other/
+misc
+other
 data-raw/Kaspar
 data-raw/SNC
 stan/*.rds
@@ -51,5 +54,3 @@ Stata-rp
 /data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv
 /data/BfS/ch_deaths_age_sex_2021.Rds
 
-# compiled models are machine specific (i think)
-*.exe
