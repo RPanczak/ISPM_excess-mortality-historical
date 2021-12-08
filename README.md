@@ -87,28 +87,29 @@ Scripts from `R` script above make calls to Stan programs stored in this directo
 
 This folder stores example OpenPBS scripts that can be used to submit the `analyses` scripts to HPC cluster.  
 
+## Computing environemtn
+
+Details on the vaersion of R software and packages used are presented at the bottom of the output documents stored in `docs` folder. Script `03_joint-model-cmdstan.R` was run on HPC clustrer using R version 4.1.0 with packages versions cmdstanr 0.4.0 & cmdstan 2.27.0.  
+
 ## Visual summary of main results
 
 ### Estimates of excess
 
-Monthly differences
-
-![Monthly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_1.png)
-
 Yearly differences
 
-![Yearly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S1.png)
+![Yearly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_1.png)
 
-### Four pandemics
+Monthly differences
 
-Absolute excess deaths
+![Monthly differences](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S2b.png)
 
-![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2b.png)
+Four pandemics
 
-![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2c.png)
+![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_2.png)
 
-Relative excess deaths
+![Four pandemics - percent](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S3b.png)
 
-![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_S2.png)
+Age effects
 
+![Four pandemics](https://github.com/RPanczak/ISPM_excess-mortality/blob/main/paper/Figure_3.png)
  
