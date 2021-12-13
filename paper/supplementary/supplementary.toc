@@ -1,9 +1,6 @@
 \contentsline {section}{\numberline {1}Material and methods}{2}{section.1}%
-\contentsline {subsection}{\numberline {1.1}Historical background of excess mortality studies}{2}{subsection.1.1}%
-\contentsline {subsection}{\numberline {1.2}Data sources and availability }{2}{subsection.1.2}%
-\contentsline {subsection}{\numberline {1.3}Data preparation}{2}{subsection.1.3}%
-\contentsline {subsection}{\numberline {1.4}Statistical model}{2}{subsection.1.4}%
-\contentsline {subsection}{\numberline {1.5}Estimating excess deaths}{3}{subsection.1.5}%
-\contentsline {subsection}{\numberline {1.6}Monthly vs. weekly data}{3}{subsection.1.6}%
+\contentsline {subsection}{\numberline {1.1}Statistical model}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Estimating excess deaths}{2}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Monthly vs. weekly data}{3}{subsection.1.3}%
 \contentsline {section}{\numberline {2}Supplementary table}{4}{section.2}%
 \contentsline {section}{\numberline {3}Supplementary figures}{5}{section.3}%

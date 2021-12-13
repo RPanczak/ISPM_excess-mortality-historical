@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  8 DEC 2021 15:05
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.12) (preloaded format=pdflatex 2021.1.13)  13 DEC 2021 18:17
 entering extended mode
 **./supplementary.tex
 (supplementary.tex
@@ -762,8 +762,8 @@ File: t1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 [1
 
 {C:/Users/panczak/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
-LaTeX Font Info:    Trying to load font information for U+dsrom on input line 1
-10.
+LaTeX Font Info:    Trying to load font information for U+dsrom on input line 9
+1.
 
 (C:\Users\panczak\AppData\Roaming\MiKTeX\2.9\tex/latex/doublestroke\udsrom.fd
 File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
@@ -771,126 +771,112 @@ File: Udsrom.fd 1995/08/01 v0.1 Double stroke roman font definitions
 [2
 
 ]
-<../Table_S1.png, id=134, 208.3785pt x 281.3712pt>
+<../Table_S1.png, id=88, 208.3785pt x 281.3712pt>
 File: ../Table_S1.png Graphic file (type png)
 <use ../Table_S1.png>
-Package pdftex.def Info: ../Table_S1.png  used on input line 151.
+Package pdftex.def Info: ../Table_S1.png  used on input line 134.
 (pdftex.def)             Requested size: 483.69684pt x 653.138pt.
  [3]
-<../Figure_S2b.png, id=157, 540.5796pt x 398.2077pt>
+<../Figure_S2b.png, id=97, 540.5796pt x 398.2077pt>
 File: ../Figure_S2b.png Graphic file (type png)
 <use ../Figure_S2b.png>
-Package pdftex.def Info: ../Figure_S2b.png  used on input line 160.
+Package pdftex.def Info: ../Figure_S2b.png  used on input line 143.
 (pdftex.def)             Requested size: 483.69684pt x 356.31165pt.
  [4 <../Table_S1.png>]
-<../Figure_S3b.png, id=163, 844.8363pt x 597.432pt>
+<../Figure_S3b.png, id=103, 844.8363pt x 597.432pt>
 File: ../Figure_S3b.png Graphic file (type png)
 <use ../Figure_S3b.png>
-Package pdftex.def Info: ../Figure_S3b.png  used on input line 167.
+Package pdftex.def Info: ../Figure_S3b.png  used on input line 150.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [5pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.170 
+l.153 
        <../Figure_S2b.png (PNG copy)>]
-<../Figure_S6a.png, id=169, 844.8363pt x 597.432pt>
+<../Figure_S6a.png, id=109, 844.8363pt x 597.432pt>
 File: ../Figure_S6a.png Graphic file (type png)
 <use ../Figure_S6a.png>
-Package pdftex.def Info: ../Figure_S6a.png  used on input line 174.
+Package pdftex.def Info: ../Figure_S6a.png  used on input line 157.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [6pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.177 	
+l.160 	
         <../Figure_S3b.png>]
-<../Figure_S6b.png, id=176, 844.8363pt x 597.432pt>
+<../Figure_S6b.png, id=116, 844.8363pt x 597.432pt>
 File: ../Figure_S6b.png Graphic file (type png)
 <use ../Figure_S6b.png>
-Package pdftex.def Info: ../Figure_S6b.png  used on input line 180.
+Package pdftex.def Info: ../Figure_S6b.png  used on input line 163.
 (pdftex.def)             Requested size: 483.69684pt x 342.05304pt.
  [7pdfTeX warning (ext4): destination with the same identifier (name{figure.3})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.183 
+l.166 
        <../Figure_S6a.png>]
-<../plot_appendix_week_month.pdf, id=184, 722.7pt x 722.7pt>
+<../plot_appendix_week_month.pdf, id=124, 722.7pt x 722.7pt>
 File: ../plot_appendix_week_month.pdf Graphic file (type pdf)
 <use ../plot_appendix_week_month.pdf>
-Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 18
-6.
+Package pdftex.def Info: ../plot_appendix_week_month.pdf  used on input line 16
+9.
 (pdftex.def)             Requested size: 338.5863pt x 338.58835pt.
  [8pdfTeX warning (ext4): destination with the same identifier (name{figure.4})
  has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.189 
+l.172 
        <../Figure_S6b.png>] [9pdfTeX warning (ext4): destination with the same 
 identifier (name{figure.5}) has been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   
-l.193 	\clearpage
+l.176 	\clearpage
                   <../plot_appendix_week_month.pdf>] (supplementary.bbl)
 [10
 
 ] (supplementary.aux)
 Package rerunfilecheck Info: File `supplementary.out' has not changed.
-(rerunfilecheck)             Checksum: 7E79273060B12444648CEE0A0A727E87;618.
+(rerunfilecheck)             Checksum: 893C1A90A7122A0E4D968D3479763CBF;376.
  ) 
 Here is how much of TeX's memory you used:
- 17715 strings out of 479618
- 331278 string characters out of 2872950
- 624538 words of memory out of 3000000
- 34437 multiletter control sequences out of 15000+200000
+ 17674 strings out of 479618
+ 330693 string characters out of 2872950
+ 625066 words of memory out of 3000000
+ 34417 multiletter control sequences out of 15000+200000
  418611 words of font info for 63 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  113i,10n,116p,957b,339s stack positions out of 5000i,500n,10000p,200000b,50000s
-pdfTeX warning (dest): name{Hfootnote.5} has been referenced but does not exi
+pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exi
 st, replaced by a fixed one
 
-pdfTeX warning (dest): name{Hfootnote.4} has been referenced but does not exist
-, replaced by a fixed one
-
-pdfTeX warning (dest): name{Hfootnote.3} has been referenced but does not exist
-, replaced by a fixed one
-
-pdfTeX warning (dest): name{Hfootnote.2} has been referenced but does not exist
-, replaced by a fixed one
-
-pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exist
-, replaced by a fixed one
-
  <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\
-ectt1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappe
-n/ec/dpi600\ecrm0600.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/lj
-four/jknappen/ec/dpi600\ectt0800.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9
-\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm0600.pk> <C:\Users\panczak\AppData\Loca
-l\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0700.pk> <C:\Users\panczak\
-AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm0700.pk> <C:\Us
-ers\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx120
+ectt0800.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappe
+n/ec/dpi600\tcrm0600.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/lj
+four/jknappen/ec/dpi600\tcrm0700.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9
+\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1000.pk> <C:\Users\panczak\AppData\Loca
+l\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\panczak\
+AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Us
+ers\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx100
 0.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dp
-i600\ecrm1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jk
-nappen/ec/dpi600\ecbx1000.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/
-pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\panczak\AppData\Local\MiKTe
-X\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ectt0900.pk> <C:\Users\panczak\AppData
-\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\pan
-czak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0800.pk> <
+i600\ecbx1440.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jk
+nappen/ec/dpi600\ectt0900.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/
+pk/ljfour/jknappen/ec/dpi600\ecrm0900.pk> <C:\Users\panczak\AppData\Local\MiKTe
+X\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0800.pk> <C:\Users\panczak\AppData
+\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\pan
+czak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <
 C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\ec
-rm1200.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/
-ec/dpi600\ecrm1440.pk> <C:\Users\panczak\AppData\Local\MiKTeX\2.9\fonts/pk/ljfo
-ur/jknappen/ec/dpi600\ecrm1728.pk><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
-ic/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfo
-nts/cm/cmmi10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
-mmi7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb>
-<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Progra
-m Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/
-MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/panczak/AppData/R
-oaming/MiKTeX/2.9/fonts/type1/public/doublestroke/dsrom10.pfb>
-Output written on supplementary.pdf (10 pages, 674659 bytes).
+rm1728.pk><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pf
+b><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Pr
+ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Program Fil
+es/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX
+ 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts
+/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
+ublic/amsfonts/cm/cmsy8.pfb><C:/Users/panczak/AppData/Roaming/MiKTeX/2.9/fonts/
+type1/public/doublestroke/dsrom10.pfb>
+Output written on supplementary.pdf (10 pages, 622565 bytes).
 PDF statistics:
- 770 PDF objects out of 1000 (max. 8388607)
- 62 named destinations out of 1000 (max. 500000)
- 115 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 588 PDF objects out of 1000 (max. 8388607)
+ 41 named destinations out of 1000 (max. 500000)
+ 91 words of extra memory for PDF output out of 10000 (max. 10000000)
 
