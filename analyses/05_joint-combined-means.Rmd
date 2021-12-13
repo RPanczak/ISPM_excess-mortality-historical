@@ -103,6 +103,12 @@ results_age <- merge_mort(bind_rows(
   relocate(Model, Pandemic, Country, Year, Age_cat, Deaths)
 ```
 
+```{r include=FALSE}
+write_rds(results_month, "data/results_month.Rds")
+write_rds(results_year, "data/results_year.Rds")
+write_rds(results_age, "data/results_age.Rds")
+```
+
 ## Sensitivity analysis using Bayesian NB model, unadjusted models
 
 ```{r}
