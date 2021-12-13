@@ -60,7 +60,7 @@ This folder contains set of literate programming R scripts written either in R o
 
 ### `data-raw` & `data` folders
 
-Raw, unprocessed data are stored and accessed from the `data-raw` folder; prepared data are stored in `data`.  Both of these folders contain subdirectories with names of the data source, for instance `mortality_org` folder stores data from the HMD whereas `BfS` folder stores data from Swiss Federal Statistical Office [Bundesamt für Statistik (BfS)]. `outputs_YYYY-MM-DD` folders in `data` directory hold results of the analyses runs and can be reused in order to save the computational time.    
+Raw, unprocessed data are stored and accessed from the `data-raw` folder; prepared data are stored in `data`.  Both of these folders contain subdirectories with names of the data source, for instance `mortality_org` folder stores data from the HMD whereas `BfS` folder stores data from Swiss Federal Statistical Office [Bundesamt für Statistik (BfS)]. `outputs_YYYY-MM-DD` folders in `data` directory hold results of the analyses runs and can be reused in order to save the computational time. Three files in `data` directory with names starting with `results_` store outputs of the main models that were used for reporting in main figurres and tables of the manuscript.      
 
 ### `docs` folder
 
