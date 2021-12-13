@@ -73,18 +73,6 @@
 	
 	\section{Material and methods}
 	
-	\subsection{Data sources and availability }
-
-	Monthly all-cause death numbers for Switzerland (1877-2021) and Sweden (1851-2021) were provided by the Swiss Federal Statistical Office (SFSO)\footnote{Swiss Federal Statistical Office, Todesfälle nach Monat und Sterblichkeit seit 1803 (2021), (available at \url{https://www.bfs.admin.ch/bfs/de/home/statistiken/kataloge-datenbanken/daten.assetdetail.14387168.html}).} and Statistics Sweden (SCB)\footnote{Statistics Sweden (SCB), Births and deaths per month by sex. Year 1851-2020 (2021), (available at \url{https://www.statistikdatabasen.scb.se/pxweb/en/ssd/START__BE__BE0101__BE0101G/ManadFoddDod/}).}, they are freely available. Data covering first six months of 2021 in Switzerland were provided directly by SFSO. 
-	
-	For Spain, the monthly death figures 1941-2021 were accessible through the Spanish Statistical Office, the years 1908-1940 had to be transcribed from historical reports provided on their webpage \footnote{Instituto Nacional de Estadistica (INE), Anuarios Estadísticos (2021), (available at \url{https://www.ine.es/inebaseweb/libros.do?tntp=25687}).}. Data for first six months of 2021 were compiled from experimental weekly data. It should be noted that all statistical authorities still consider the 2020 figures as provisional. 
-	
-	The annual population numbers as well as annual deaths by age group (in 1-year bands) were obtained from the Human Mortality Database (HMD, www.mortality.org). Most recent annual death counts (2019-2021 for Spain; 2020-2021 for Sweden and Switzerland) and population structure (2020-2021 for Spain) unavailable in HMD were obtained from provisional publicly accessible data repositories of the national statistics services of the three countries. All raw and prepared data as well as R code used in this analysis are provided in the study's GitHub repository \footnote{\url{https://GitHub.com/RPanczak/ISPM_excess-mortality/}}.
-	
-	\subsection{Data preparation}
-	
-	Monthly time series for each country until 2020 (Switzerland and Sweden) or 2019 (Spain) were combined with the provisional estimates from each country in most recent years. Yearly deaths by 1-year age groups were groupped into 10-year age bands and combined with relevant population denominator for each country X year X age group stratum.  
-	
 	\subsection{Statistical model}
 	
 	We built a model where the linear predictor of deaths count in year $i$, month $j$ and age group $k$ $D_{i,j,k}$ depended on (1) an intercept by age group $\alpha_k$, (2) a yearly linear trend $\beta_1$, (3) a periodic component $\beta_{2,\ldots,5}$ based on four cosine and sine functions to account for temporal trends and seasonal variability in mortality, and (4) the total population in the age group $P_{i,k}$ included as an offset: 
@@ -124,12 +112,14 @@
 	\subsection{Estimating excess deaths}
 	
 	The procedure to obtain excess deaths for year $i$ (by month or by age group) was as follows:
+	
 	\begin{enumerate}
 		\item We fitted the model to the five previous years $\{i-5,\ldots,i-1\}$ and obtained posterior samples for all parameters.
 		\item From these posterior samples, we computed expected values of $D_{i,j,k}$ for year $i$ using equation 1.
 		\item We then summed these quantities by month or age group (equations 2 or 4), and drew values from the corresponding probability distributions (equations 3 or 6), obtaining a set of expected values of death counts for year $i$ by month or by age group. 
 		\item We then subtracted the observed number of deaths on year $i$, and summarized the samples by their mean and 2.5\% and 97.5\% quantiles, obtaining point estimates and 95\% credible intervals of excess deaths for year $i$ by month or by age group. 
 	\end{enumerate} 
+	
 	This Bayesian approach ensured a full propagation of uncertainty from the data into the expected values and thus the estimates of excess deaths.
 	Since five years of data is needed to calculate expected counts the estimates of excess deaths are available five years after the start of data collection in each country. We first calculated expected deaths excluding data from pandemic years of 1890, 1918 and 1957, and then also calculated expected deaths using all available data (shown by the example of 1918 in Supplementary Figure S3).
 
