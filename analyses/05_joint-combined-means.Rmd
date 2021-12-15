@@ -502,7 +502,7 @@ Zooming to pandemics to explore absolute excess with CrI.
 FIXME: needs legend!
 
 ```{r echo=FALSE}
-focus_years <- c(1890, 1918, 1957, 2020)
+focus_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
 
 shown_years = NULL
 
@@ -600,7 +600,7 @@ Age differences across major pandemics (per population).
 **Note:** *Excludes category `[90,120]` in pandemic years `1890` & `1918` due to small number of deaths in these age groups resulting in very large CrI.*  
 
 ```{r echo=FALSE}
-pandemic_years <- c(1890, 1918, 1957, 2020, 2021)
+pandemic_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020,2021)
 
 gap = .3
 
