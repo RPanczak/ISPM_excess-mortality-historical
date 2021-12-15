@@ -525,9 +525,14 @@ plot_data = shown_years %>%
   filter(!(Country == "Sweden" & Year == 2021)) %>%
   mutate(focus_year1 = as.Date(paste0(focus_year, "-01-01")),
          focus_year2 = as.Date(paste0(focus_year, "-12-31")),
-         focus_year2 = if_else(focus_year==2020, as.Date(paste0(focus_year+1, "-06-30")), focus_year2))
+         focus_year2 = if_else(focus_year==2020, as.Date(paste0(focus_year+1, "-06-30")), focus_year2)) %>% 
+  mutate(customlim=case_when(Country=="Switzerland" ~ 330,
+                             Country=="Sweden" ~ 330,
+                             Country=="Spain" ~ 900))
+
 
 gg = ggplot(plot_data) +
+  geom_point(aes(x=Date,y=customlim),size=.1,colour="transparent") +
   geom_rect(aes(xmin = focus_year1,
                 xmax = focus_year2,
                 ymin = -Inf, ymax = Inf), 
@@ -542,10 +547,11 @@ gg = ggplot(plot_data) +
   geom_line(aes(x = Date,
                 y = Deaths/Population*100000),
             colour = "#EF8A62", size = 0.5) +
+  # geom_hline(aes(yintercept=0),colour="black",alpha=.4,linetype=2) +
   geom_ribbon(aes(x = Date,
                   ymin=0,
                   ymax = (Deaths-pred_total_deaths)/Population*100000),
-              fill = "darkorchid", size = 0, alpha=.4) +
+              fill = "cornflowerblue", size = 0, alpha=.4) +
   geom_point(data = shown_years,
              aes(x = as.Date(paste0(Year, "-01-01")),
                  y = 0),
