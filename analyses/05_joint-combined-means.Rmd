@@ -455,12 +455,12 @@ Yearly excess per population.
 **Note:** *the scales of Y axes vary by country!*
 
 ```{r echo=FALSE}
-vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020)) 
+vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020,2021)) 
 # vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 2020)) 
 
 results_year %>% 
   filter(Year >= 1880) %>% 
-  filter(Year <= 2020) %>% 
+  filter(Year <= 2021) %>% 
   left_join(pops) %>% 
   mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain")) %>% 
   mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Fewer than expected"),
@@ -473,7 +473,7 @@ results_year %>%
   geom_col(aes(y = abs_excess_pop, fill = Difference)) +
   scale_x_continuous(
     breaks = c(1890, 1918, 1957, 1968, 1977, 2009, 2020),
-    limits = c(1880-1, 2020+1),
+    limits = c(1880-1, 2022+1),
     expand = c(0, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   facet_grid(vars(Country), scales = "free_y") + 
