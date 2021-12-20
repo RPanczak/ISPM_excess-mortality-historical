@@ -16,7 +16,7 @@ knit: (function(inputFile, encoding) {
 
 <style type="text/css">
 div.page-inner {
-  max-width: 10000px !important;
+max-width: 10000px !important;
 }
 </style>
 
@@ -362,19 +362,26 @@ table_2 <-
   relocate(percent_cri, .after = Percent_excess) %>% 
   select(-Percent_lci, -Percent_uci) %>% 
   
-  mutate(rate_cri = str_c("(", Rate_lci, " to ", Rate_uci, ")")) %>%   relocate(rate_cri, .after = Rate_excess) %>% 
+  mutate(rate_cri = str_c("(", Rate_lci, " to ", Rate_uci, ")")) %>%   
+  relocate(rate_cri, .after = Rate_excess) %>% 
   select(-Rate_lci, -Rate_uci, -Population) %>% 
   
   left_join(
     
     results_age %>% 
       filter(Year %in% pandemic_year, Age_cat=="[0,10)") %>%  
-      mutate(Lifeyearlost70 = number(round(yearly_excess_grouped_lifelost70/1000),accuracy=5L,big.mark=","),
+      mutate(Lifeyearlost70 = number((yearly_excess_grouped_lifelost70/Population) * 100000, 
+                                     accuracy = 5L, big.mark = ","),
              Lifeyearlost70_CI = paste0("(",
-                                        number(yearly_excess_grouped_lifelost70_lower/1000,accuracy=5L,big.mark=","),
+                                        number(yearly_excess_grouped_lifelost70_lower/Population * 100000,
+                                               accuracy = 5L, big.mark = ","),
                                         " to ",
-                                        number(yearly_excess_grouped_lifelost70_upper/1000,accuracy=5L,big.mark=","),")"))  %>% 
-      select(Year,Country,Lifeyearlost70,Lifeyearlost70_CI)
+                                        number(yearly_excess_grouped_lifelost70_upper/Population * 100000,
+                                               accuracy = 5L, big.mark = ","),
+                                        ")"
+             )
+      )  %>% 
+      select(Year, Country, Lifeyearlost70, Lifeyearlost70_CI)
     
   ) %>% 
   arrange(Year, desc(Country))
@@ -393,7 +400,7 @@ table_2 %>%
                     "Count", "95% CrI",
                     "Per 100,000", "95% CrI", 
                     "%", "95% CrI",
-                    "Thousands",
+                    "Per 100,000",
                     "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
@@ -425,7 +432,7 @@ table_2 %>%
                     "Count", "95% CrI",
                     "Per 100,000", "95% CrI", 
                     "%", "95% CrI",
-                    "Thousands",
+                    "Per 100,000",
                     "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
