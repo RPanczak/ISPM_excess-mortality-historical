@@ -636,7 +636,7 @@ results_age %>%
                   size = .25) +
   
   geom_hline(yintercept = 0, linetype = 2) +
-  facet_wrap(~Year, nrow = 1) +
+  facet_wrap(~Year, nrow = 2) +
   scale_x_continuous(labels = unique(as.character(results_age$Age_cat)),
                      breaks = 1:10) +
   scale_y_continuous(labels = function(x) number(x, big.mark=",")) +
@@ -645,7 +645,7 @@ results_age %>%
   coord_cartesian(ylim = c(-600, 5000)) +
   labs(x = "Year",
        y = "Montly deaths") +
-  theme(legend.position = c(.1, .8),
+  theme(legend.position = c(.85, .2),
         legend.background = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
         plot.margin = margin(0, 0, 0, 0)) +
@@ -655,7 +655,7 @@ results_age %>%
 ```
 
 ```{r echo=FALSE}
-ggsave("paper/Figure_3.png", dpi = 300, width = 280, height = 100, units = "mm")
+ggsave("paper/Figure_3.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
 <!-- ----------------------------------------------------- -->
