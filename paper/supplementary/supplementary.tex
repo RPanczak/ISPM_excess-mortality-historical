@@ -46,7 +46,6 @@
 \author[d]{Christoph Junker}
 \author[d]{Rolf Weitkunat}
 \author[e]{Svenn-Erik Mamelund}
-\author[b,f,g]{Matthias Egger}
 \author[b,$\ddagger$]{Marcel Zwahlen}
 \author[b,$\ddagger$]{Julien Riou}
 
@@ -55,8 +54,7 @@
 \affil[c]{{\small Department of History, University of Zurich, Switzerland}}
 \affil[d]{{\small Federal Statistical Office, Neuchâtel, Switzerland}}
 \affil[e]{{\small Centre for Research on Pandemics \& Society, Oslo Metropolitan University, Norway}}
-\affil[f]{{\small Population Health Sciences, Bristol Medical School, University of Bristol, UK}}
-\affil[g]{{\small Centre for Infectious Disease Epidemiology and Research, University of Cape Town, Cape Town, South Africa}}
+
 \affil[$\dagger$] {{\small contributed equally}}
 \affil[$\ddagger$] {{\small contributed equally}}
 \affil[*] {{\small Corresponding  author (\texttt{kaspar.staub@iem.uzh.ch})}}
@@ -72,6 +70,8 @@
 	\clearpage
 	
 	\section{Material and methods}
+	
+	The data and the statistical code are available at \url{https://github.com/RPanczak/ISPM_excess-mortality/}.
 	
 	\subsection{Statistical model}
 	
@@ -121,11 +121,11 @@
 	\end{enumerate} 
 	
 	This Bayesian approach ensured a full propagation of uncertainty from the data into the expected values and thus the estimates of excess deaths.
-	Since five years of data is needed to calculate expected counts the estimates of excess deaths are available five years after the start of data collection in each country. We first calculated expected deaths excluding data from pandemic years of 1890, 1918 and 1957, and then also calculated expected deaths using all available data (shown by the example of 1918 in Supplementary Figure S3).
+	Since five years of data is needed to calculate expected counts the estimates of excess deaths are available five years after the start of data collection in each country. We first calculated expected deaths excluding data from pandemic years of 1890, 1918, 1957 and 2020, and then also calculated expected deaths using all available data (shown by the examples of 1918 and 2020 in Supplementary Figures S3 and S4).
 
 	\subsection{Monthly vs. weekly data}
 	
-	A comparison with the same seasonality adjustments between weekly\footnote{Short-term Mortality Fluctuations (STMF) data series, (available at \url{https://www.mortality.org/}).} and monthly aggregated calculation of excess mortality (unadjusted for age) for Switzerland, Spain, and Sweden showed small differences in the expected number of deaths (between -0.4\% and +0.9\%) for the full calendar years where the data was available between 2005 and 2020 (Supplementary Figure S4).	
+	A comparison with the same seasonality adjustments between weekly\footnote{Short-term Mortality Fluctuations (STMF) data series, (available at \url{https://www.mortality.org/}).} and monthly aggregated calculation of excess mortality (unadjusted for age) for Switzerland, Spain, and Sweden showed small differences in the expected number of deaths (between -0.4\% and +0.9\%) for the full calendar years where the data was available between 2005 and 2020.	
 
 	\section{Supplementary table}
 	
@@ -164,11 +164,7 @@
 		\caption{Exemplary visualization based on 2020, how big the difference in the calculated expected number of deaths is for the first six months of the year 2021, if the year 2020 is included in the calculations (blue line and confidence interval) or not (red line and confidence interval) (Black line: observed deaths). }
 	\end{figure}
 
-	\begin{figure}[H]
-	\centering	
-	\includegraphics[width=.7\linewidth]{../plot_appendix_week_month}
-	\caption{Comparison of weekly (STMF data from Human Mortality Database) vs. monthly (data as described and used in the main analyses) aggregated calculation of excess mortality for Switzerland, Spain, and Sweden and entire calendar years between 2005 and 2020. The differences between weekly and monthly calculated percentages of excess mortality range from -0.4\% to 0.9\%. }
-\end{figure}
+
 
 %\section{Supplementary table }
 
