@@ -277,31 +277,6 @@ table_1 %>%
 ```
 
 
-```{r eval=FALSE, include=FALSE}
-table_1 %>% 
-  select(-Year) %>%
-  kbl(align = "lrrrrr",
-      col.names = c("", "", 
-                    "Count", "Expected*", 
-                    "Count†")) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE) %>% 
-  add_header_above(c("Country", "Population", 
-                     "All-cause deaths" = 2, 
-                     "COVID-19 deaths" = 1)) %>% 
-  pack_rows("1890", 1, 2) %>%
-  pack_rows("1918", 3, 5) %>% 
-  pack_rows("1957", 6, 8) %>% 
-  pack_rows("2020", 9, 11) %>% 
-  pack_rows("2021‡", 12, 14) %>% 
-  column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE) %>% 
-  footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
-                      "Data from Johns Hopkins Coronavirus Resource Center",
-                      "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden.")) %>% 
-  as_image(file = "paper/Table_1.png")
-```
-
 ## Table 2
 
 Three measures of excess (all from main, age adjusted NB model with observed population counts) and years life lost.   
@@ -428,38 +403,6 @@ table_2 %>%
                     "Based on 8,000 posterior samples, the probability that the relative excess deaths in 2020 is larger than in 1957 is 100%, 94.3% and 99.9% in Switzerland, Sweden and Spain, respectively."))
 ```
 
-```{r eval=FALSE, include=FALSE}
-table_2 %>% 
-  filter(!(Country == "Sweden" & Year == 2021)) %>% 
-  mutate(percent_cri = if_else(Year==2020,paste0(percent_cri,"§"),percent_cri)) %>% 
-  select(-Year) %>% 
-  kbl(align = "lrrrrrrrr",
-      col.names = c("Country", 
-                    "Count", "95% CrI",
-                    "Per 100,000", "95% CrI", 
-                    "%", "95% CrI",
-                    "Per 100,000",
-                    "95% CrI")) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE) %>% 
-  add_header_above(c(" " = 1, 
-                     "Absolute excess deaths" = 2,
-                     "Absolute excess deaths\nper population*" = 2,
-                     "Relative excess deaths†" = 2,
-                     "Life years lost until 70‡" = 2)) %>% # FIXME: dollar signs appear in the heads
-  pack_rows("1890", 1, 2) %>%
-  pack_rows("1918", 3, 5) %>% 
-  pack_rows("1957", 6, 8) %>% 
-  pack_rows("2020", 9, 11) %>% 
-  pack_rows("2021", 12, 13) %>% 
-  column_spec(1, italic = TRUE) %>%
-  row_spec(1, italic = FALSE) %>% 
-  footnote(symbol=c("Absolute number of excess deaths scaled by country population.",
-                    "Absolute number of excess deaths scaled by the number of expected deaths.",
-                    "Sum of life years lost until the age of 70 in thousands.",
-                    "Based on 8,000 posterior samples, the probability that the relative excess deaths in 2020 is larger than in 1957 is 100%, 94.3% and 99.9% in Switzerland, Sweden and Spain, respectively.")) %>% 
-  as_image(file = "paper/Table_2.png")
-```
 
 ## Figure 1
 
