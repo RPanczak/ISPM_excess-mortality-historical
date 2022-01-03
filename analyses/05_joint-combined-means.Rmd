@@ -245,7 +245,9 @@ table_1 <-
   mutate(across(Observed:Deaths, 
                 ~replace(., is.na(.), "--"))) %>% 
   arrange(Year, desc(Country))
+```
 
+```{r include=FALSE}
 openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
@@ -260,7 +262,8 @@ table_1 %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c("Country", "Population", 
-                     "All-cause deaths" = 2, "COVID-19 deaths" = 1)) %>% 
+                     "All-cause deaths" = 2, 
+                     "COVID-19 deaths" = 1)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -284,7 +287,8 @@ table_1 %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
   add_header_above(c("Country", "Population", 
-                     "All-cause deaths" = 2, "COVID-19 deaths" = 1)) %>% 
+                     "All-cause deaths" = 2, 
+                     "COVID-19 deaths" = 1)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -385,7 +389,9 @@ table_2 <-
     
   ) %>% 
   arrange(Year, desc(Country))
+```
 
+```{r include=FALSE}
 openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
@@ -497,7 +503,9 @@ results_year %>%
   guides(fill = guide_legend(reverse = TRUE))
 
 rm(vline_pandemic)
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
@@ -599,7 +607,7 @@ grid.draw(g_data_grob)
 gg = ggplotify::as.ggplot(g_data_grob)
 ```
 
-```{r echo=FALSE}
+```{r include=FALSE}
 ggsave(plot = gg, "paper/Figure_2.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
@@ -654,7 +662,7 @@ results_age %>%
        colour = "Country")
 ```
 
-```{r echo=FALSE}
+```{r include=FALSE}
 ggsave("paper/Figure_3.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
@@ -803,8 +811,10 @@ table_s1 <-
   select(-yearly_excess_total_deaths_lower_m4, -yearly_excess_total_deaths_upper_m4) %>% 
   
   mutate(across(yearly_excess_total_deaths_m0:yearly_excess_total_deaths_m4_cri, 
-                ~replace(., is.na(.), "--"))) 
+                ~replace(., is.na(.), "--")))
+```
 
+```{r include=FALSE}
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
                      row.names = FALSE, overwrite = TRUE)
 ```
@@ -877,7 +887,7 @@ focus_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
 ```{r echo=FALSE, ref.label=I('figure2')}
 ```
 
-```{r echo=FALSE}
+```{r include=FALSE}
 ggsave(plot = gg, "paper/Figure_2_alt.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
@@ -886,7 +896,7 @@ ggsave(plot = gg, "paper/Figure_2_alt.png", dpi = 300, width =  190, height = 14
 ```{r echo=FALSE, ref.label=I('figure3')}
 ```
 
-```{r echo=FALSE}
+```{r include=FALSE}
 ggsave(plot = gg, "paper/Figure_3_alt.png", dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
@@ -933,7 +943,9 @@ results_year %>%
   guides(fill = guide_legend(reverse = TRUE))
 
 rm(vline_pandemic)
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S1a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
@@ -976,10 +988,11 @@ results_year %>%
   guides(fill = guide_legend(reverse = TRUE))
 
 rm(vline_pandemic)
-
-ggsave("paper/Figure_S1b.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
+```{r include=FALSE}
+ggsave("paper/Figure_S1b.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
 
 ## Figure S2 {.tabset}
 
@@ -1032,7 +1045,9 @@ results_month %>%
   guides(fill = guide_legend(reverse = TRUE)) 
 
 rm(hline_pandemic)
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S2a.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
@@ -1084,10 +1099,11 @@ results_month %>%
   guides(fill = guide_legend(reverse = TRUE)) 
 
 rm(hline_pandemic)
-
-ggsave("paper/Figure_S2b.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
+```{r include=FALSE}
+ggsave("paper/Figure_S2b.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
 
 ### Percentage 
 
@@ -1136,10 +1152,11 @@ results_month %>%
   guides(fill = guide_legend(reverse = TRUE)) 
 
 rm(hline_pandemic)
-
-ggsave("paper/Figure_S2c.png", dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
+```{r include=FALSE}
+ggsave("paper/Figure_S2c.png", dpi = 300, width = 190, height = 140, units = "mm")
+```
 
 ## Figure S3 {.tabset}
 
@@ -1196,8 +1213,10 @@ plot_data %>%
         panel.grid.minor.y = element_blank(),
         panel.background = element_blank(), 
         axis.line = element_line(colour = "grey40"),
-        plot.margin = margin(0.5, 0.5, 0, 0)) 
+        plot.margin = margin(0.5, 0.5, 0, 0))
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S3a.png", dpi = 300, width = 297, height = 210, units = "mm")
 
 rm(plot_years)
@@ -1255,8 +1274,10 @@ plot_data %>%
         panel.grid.minor.y = element_blank(),
         panel.background = element_blank(), 
         axis.line = element_line(colour = "grey40"),
-        plot.margin = margin(0.5, 0.5, 0, 0)) 
+        plot.margin = margin(0.5, 0.5, 0, 0))
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S3b.png", dpi = 300, width = 297, height = 210, units = "mm")
 
 rm(plot_years)
@@ -1309,10 +1330,11 @@ results_age %>%
   labs(x="Age group",
        y="Relative excess deaths",
        colour="Country")
-
-ggsave("paper/Figure_S4.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
 
+```{r include=FALSE}
+ggsave("paper/Figure_S4.png", dpi = 300, width = 280, height = 100, units = "mm")
+```
 
 ## Figure S5 {.tabset}
 
@@ -1360,7 +1382,9 @@ results_age %>%
   labs(x="Age group",
        y="Relative excess deaths",
        colour="Country")
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S5a.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
 
@@ -1404,7 +1428,9 @@ results_age %>%
   labs(x="Age group",
        y="Absolute excess deaths per 100,000 population",
        colour="Country")
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S5b.png", dpi = 300, width = 280, height = 100, units = "mm")
 ```
 
@@ -1454,7 +1480,9 @@ extreme_data %>%
   facet_grid(vars(Country), scales = "free_y") + 
   theme_bw() + 
   theme(plot.margin = margin(0.5, 0.5, 0, 0))
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S6a.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
@@ -1530,7 +1558,9 @@ extreme_data %>%
   facet_grid(vars(Country), scales = "free_y") + 
   theme_bw() + 
   theme(plot.margin = margin(0.5, 0.5, 0, 0))
+```
 
+```{r include=FALSE}
 ggsave("paper/Figure_S6b.png", dpi = 300, width = 297, height = 210, units = "mm")
 ```
 
