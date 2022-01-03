@@ -10,6 +10,9 @@ stan/global_serfling_nb_21
 # compiled stan files - windows
 *.exe
 
+# mac
+.DS_Store
+
 # History files
 .Rhistory
 .Rapp.history
