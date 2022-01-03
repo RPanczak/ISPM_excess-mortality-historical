@@ -1,4 +1,4 @@
-# Tracking excess mortality in Switzerland :switzerland:, Sweden :sweden: & Spain :spain:.  
+# Tracking excess mortality in Switzerland :switzerland:, Sweden :sweden: & Spain :es:.  
 
 ## Citations and links
 
