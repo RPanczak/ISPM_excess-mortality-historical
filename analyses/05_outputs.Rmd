@@ -370,7 +370,7 @@ table_2 %>%
                      "Absolute Excess Deaths per\n100 000 Persons " = 2,
                      "Absolute excess deaths\nper population$^*$" = 2,
                      "Relative Excess Deaths$^†$" = 2
-                     )) %>% 
+  )) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -392,8 +392,7 @@ Yearly excess per population.
 **Note:** *the scales of Y axes vary by country!*
 
 ```{r echo=FALSE}
-vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020,2021)) 
-# vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 2020)) 
+vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020, 2021)) 
 
 results_year %>% 
   filter(Year >= 1880) %>% 
@@ -401,7 +400,7 @@ results_year %>%
   left_join(pops) %>% 
   mutate(Country = fct_relevel(factor(Country), "Switzerland", "Sweden", "Spain")) %>% 
   mutate(Difference = ifelse(yearly_excess_total_deaths > 0, "More than expected", "Fewer than expected"),
-         abs_excess_pop=yearly_excess_total_deaths/Population*100000) %>% 
+         abs_excess_pop = yearly_excess_total_deaths / Population*100000) %>% 
   ggplot(aes(x = Year)) +
   geom_vline(data = vline_pandemic, 
              aes(xintercept = Year), 
@@ -419,12 +418,17 @@ results_year %>%
     panel.background = element_blank(), 
     axis.line = element_line(colour = "grey40"),
     axis.ticks = element_line(),
-    legend.position = c(.11, .95),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
     legend.background = element_blank(),
     legend.title = element_blank(),
-    plot.margin = margin(3, 0, -13, 0)) +
-  xlab("") + ylab("Absolute excess deaths per 100,000 population") +
-  guides(fill = guide_legend(reverse = TRUE))
+    legend.margin = margin(0,0,0,0),
+    legend.box.margin = margin(-25, -10, -10, -10),
+    legend.key.size = unit(0.25, "cm"),
+    plot.margin = margin(3, 0, 10, 0)) +
+  xlab("") + ylab("Absolute Excess Deaths per 100 000 Persons, n") +
+  guides(fill = guide_legend(reverse = TRUE, nrow = 1))
 
 rm(vline_pandemic)
 ```
