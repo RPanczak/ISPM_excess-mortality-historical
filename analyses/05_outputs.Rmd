@@ -394,6 +394,8 @@ Yearly excess per population.
 ```{r echo=FALSE}
 vline_pandemic <- tibble(Year=c(1890, 1918, 1957, 1968, 1977, 2009, 2020, 2021)) 
 
+source("R/theme_border.R")
+
 results_year %>% 
   filter(Year >= 1880) %>% 
   filter(Year <= 2021) %>% 
@@ -404,7 +406,7 @@ results_year %>%
   ggplot(aes(x = Year)) +
   geom_vline(data = vline_pandemic, 
              aes(xintercept = Year), 
-             size = 3, colour = "grey90", alpha = 0.7) +  
+             size = 2, colour = "grey90", alpha = 0.7) +  
   geom_hline(yintercept = 0, colour = "grey80") +
   geom_col(aes(y = abs_excess_pop, fill = Difference)) +
   scale_x_continuous(
@@ -412,10 +414,17 @@ results_year %>%
     limits = c(1880-1, 2022+1),
     expand = c(0, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
-  facet_grid(vars(Country), scales = "free_y") + 
+  facet_wrap(facets = vars(Country), 
+             nrow = 3,
+             scales = "free_y",
+             strip.position = "top") + 
+  # theme_classic() +
   theme_bw() +
   theme(
+    strip.background = element_blank(),
+    strip.text.x = element_text(margin = margin(0, 0, 0, 0)),
     panel.background = element_blank(), 
+    panel.border = theme_border(type = c("bottom", "left")),
     axis.line = element_line(colour = "grey40"),
     axis.ticks = element_line(),
     panel.grid.major = element_blank(), 
@@ -423,8 +432,8 @@ results_year %>%
     legend.position = "bottom",
     legend.background = element_blank(),
     legend.title = element_blank(),
-    legend.margin = margin(0,0,0,0),
-    legend.box.margin = margin(-25, -10, -10, -10),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.box.margin = margin(-20, -10, -10, -10),
     legend.key.size = unit(0.25, "cm"),
     plot.margin = margin(3, 0, 10, 0)) +
   xlab("") + ylab("Absolute Excess Deaths per 100 000 Persons, n") +
@@ -434,14 +443,13 @@ rm(vline_pandemic)
 ```
 
 ```{r include=FALSE}
-ggsave("paper/Figure_1.png", dpi = 300, width = 190, height = 140, units = "mm")
+ggsave("paper/Figure_1.png", 
+       dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
 ## Figure 2 
 
 Zooming to pandemics to explore absolute excess with CrI.  
-
-FIXME: needs legend!
 
 ```{r include=FALSE}
 focus_years <- c(1890, 1918, 1957, 2020)
@@ -505,7 +513,9 @@ gg = ggplot(plot_data) +
   # scale = 1e-3)) +
   scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
   theme_bw()+
-  theme(plot.margin = margin(0, 0, 0, 0))+
+  theme(plot.margin = margin(0, 0, 0, 0),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())+
   labs(x = "Year", y = "Monthly deaths per 100,000 population")
 
 # gg
