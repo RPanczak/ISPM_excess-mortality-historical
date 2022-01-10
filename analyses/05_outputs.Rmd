@@ -206,6 +206,8 @@ deaths_yearly_age_sex <- read_rds("data/deaths_yearly_age_sex.Rds")
 
 ## Table 1
 
+Characteristics of the 4 Deadliest Pandemics of the Past 140 Years in Switzerland, Sweden, and Spain, by Calendar Year.  
+
 ```{r echo=FALSE}
 table_1 <- 
   
@@ -230,18 +232,18 @@ table_1 <-
       filter(Year %in% pandemic_year) %>% 
       mutate(Expected = paste0(number(plyr::round_any(yearly_pred_total_deaths_lower,
                                                       100),
-                                      big.mark = ","), 
+                                      big.mark = " "), 
                                " to ",
                                number(plyr::round_any(yearly_pred_total_deaths_upper,
                                                       100),
-                                      big.mark = ","))) %>% 
+                                      big.mark = " "))) %>% 
       select(Year, Country, Expected)
   ) %>% 
   left_join(
     
     covid_cases_deaths_jh) %>% 
-  mutate(across(Population:Observed, number, big.mark = ",")) %>% 
-  mutate(Deaths = number(Deaths, big.mark = ",")) %>% 
+  mutate(across(Population:Observed, number, big.mark = " ")) %>% 
+  mutate(Deaths = number(Deaths, big.mark = " ")) %>% 
   mutate(across(Observed:Deaths, 
                 ~replace(., is.na(.), "--"))) %>% 
   arrange(Year, desc(Country))
@@ -249,7 +251,7 @@ table_1 <-
 
 ```{r include=FALSE}
 openxlsx::write.xlsx(table_1, "paper/Table_1.xlsx", 
-                     row.names = FALSE, overwrite = TRUE)
+                     rowNames = FALSE, overwrite = TRUE)
 ```
 
 ```{r echo=FALSE}
@@ -257,13 +259,13 @@ table_1 %>%
   select(-Year) %>%
   kbl(align = "lrrrrr",
       col.names = c("", "", 
-                    "Count", "Expected$^*$", 
+                    "Count", "Expected", 
                     "Count$^†$")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
-  add_header_above(c("Country", "Population", 
-                     "All-cause deaths" = 2, 
-                     "COVID-19 deaths" = 1)) %>% 
+  add_header_above(c("Calendar Year and Country", "Population, n", 
+                     "Deaths From All Causes, n" = 2, 
+                     "COVID-19 Deaths, n$^*$" = 1)) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -271,9 +273,9 @@ table_1 %>%
   pack_rows("2021$^‡$", 12, 14) %>% 
   column_spec(1, italic = TRUE) %>%
   row_spec(1, italic = FALSE) %>% 
-  footnote(symbol = c("Model-predicted number of all-cause deaths from the five preceding years (95% credible interval, rounded to the next 100).",
-                      "Data from Johns Hopkins Coronavirus Resource Center",
-                      "First six months of the year only included in the analyses. No age specific data available for this time period for Sweden.")) 
+  footnote(symbol = c("Data are from the Johns Hopkins Coronavirus Resource Center",
+                      "Model-predicted number of deaths due to all causes from the 5 preceding years (95% credible interval, rounded to the next 100).",
+                      "Only the first 6 months of the year were included in the analyses. No age-specific data were available from Sweden for this period.")) 
 ```
 
 
