@@ -826,30 +826,6 @@ table_s1 %>%
   as_image(file = "paper/Table_S1.png")
 ```
 
-## Alternative Figure 2
-
-```{r include=FALSE}
-focus_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
-```
-
-```{r echo=FALSE, ref.label=I('figure2')}
-```
-
-```{r include=FALSE}
-ggsave(plot = gg, "paper/Figure_2_alt.png", 
-       dpi = 300, width =  190, height = 140, units = "mm")
-```
-
-## Alternative Figure 3
-
-```{r echo=FALSE, ref.label=I('figure3')}
-```
-
-```{r include=FALSE}
-ggsave(plot = gg, "paper/Figure_3_alt.png", 
-       dpi = 300, width =  190, height = 140, units = "mm")
-```
-
 ## Figure S1 {.tabset}
 
 Yearly estimates of excess
