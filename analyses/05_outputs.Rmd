@@ -695,24 +695,24 @@ table_s1 <-
   
   mutate(
     yearly_excess_total_deaths_m0 = number(yearly_excess_total_deaths_m0, 
-                                           accuracy = 5L, big.mark = ","), 
+                                           accuracy = 5L, big.mark = " "), 
     yearly_excess_total_deaths_m1 = number(yearly_excess_total_deaths_m1, 
-                                           accuracy = 5L, big.mark = ","),
+                                           accuracy = 5L, big.mark = " "),
     yearly_excess_total_deaths_m2 = number(yearly_excess_total_deaths_m2, 
-                                           accuracy = 5L, big.mark = ","),
+                                           accuracy = 5L, big.mark = " "),
     yearly_excess_total_deaths_m3 = number(yearly_excess_total_deaths_m3, 
-                                           accuracy = 5L, big.mark = ","),
+                                           accuracy = 5L, big.mark = " "),
     yearly_excess_total_deaths_m4 = number(yearly_excess_total_deaths_m4, 
-                                           accuracy = 5L, big.mark = ",")
+                                           accuracy = 5L, big.mark = " ")
   ) %>% 
   
   mutate(
     yearly_excess_total_deaths_m0_cri = str_c("(",
                                               number(yearly_excess_total_deaths_lower_m0,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               " to ",
                                               number(yearly_excess_total_deaths_upper_m0,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               ")")
   ) %>% 
   relocate(yearly_excess_total_deaths_m0_cri, 
@@ -723,10 +723,10 @@ table_s1 <-
   mutate(
     yearly_excess_total_deaths_m2_cri = str_c("(",
                                               number(yearly_excess_total_deaths_lower_m2,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               " to ",
                                               number(yearly_excess_total_deaths_upper_m2,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               ")")
   ) %>% 
   relocate(yearly_excess_total_deaths_m2_cri, 
@@ -737,10 +737,10 @@ table_s1 <-
   mutate(
     yearly_excess_total_deaths_m3_cri = str_c("(",
                                               number(yearly_excess_total_deaths_lower_m3,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               " to ",
                                               number(yearly_excess_total_deaths_upper_m3,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               ")")
   ) %>% 
   relocate(yearly_excess_total_deaths_m3_cri, .after = yearly_excess_total_deaths_m3) %>% 
@@ -749,10 +749,10 @@ table_s1 <-
   mutate(
     yearly_excess_total_deaths_m4_cri = str_c("(", 
                                               number(yearly_excess_total_deaths_lower_m4,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               " to ",
                                               number(yearly_excess_total_deaths_upper_m4,
-                                                     accuracy = 5L, big.mark = ","), 
+                                                     accuracy = 5L, big.mark = " "), 
                                               ")")
   ) %>% 
   relocate(yearly_excess_total_deaths_m4_cri, .after = yearly_excess_total_deaths_m4) %>% 
@@ -764,7 +764,7 @@ table_s1 <-
 
 ```{r include=FALSE}
 openxlsx::write.xlsx(table_s1, "paper/Table_S1.xlsx", 
-                     row.names = FALSE, overwrite = TRUE)
+                     rowNames = FALSE, overwrite = TRUE)
 ```
 
 ```{r echo=FALSE}
