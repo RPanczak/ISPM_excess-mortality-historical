@@ -513,10 +513,14 @@ gg = ggplot(plot_data) +
   # scale = 1e-3)) +
   scale_x_date(date_breaks = "2 years", date_labels = "%Y") +
   theme_bw()+
-  theme(plot.margin = margin(0, 0, 0, 0),
+  theme(strip.background = element_blank(),
+        strip.text.x = element_text(margin = margin(0, 0, 2, 0)),
+        strip.text.y = element_text(margin = margin(0, 0, 2, 0)),
+        plot.margin = margin(0, 0, -10, 0),
+        panel.border = theme_border(type = c("bottom", "left")),
         panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank())+
-  labs(x = "Year", y = "Monthly deaths per 100,000 population")
+        panel.grid.minor = element_blank()) +
+  labs(x = "", y = "Monthly Deaths per 100,000 Persons, n")
 
 # gg
 
@@ -546,7 +550,8 @@ gg = ggplotify::as.ggplot(g_data_grob)
 ```
 
 ```{r include=FALSE}
-ggsave(plot = gg, "paper/Figure_2.png", dpi = 300, width =  190, height = 140, units = "mm")
+ggsave(plot = gg, "paper/Figure_2.png", 
+       dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
 ## Figure 3
