@@ -586,7 +586,7 @@ results_age %>%
                       colour = factor(Country)),
                   size = .25) +
   
-  geom_hline(yintercept = 0, linetype = 2) +
+  geom_hline(yintercept = 0, linetype = 2, colour = "grey90") +
   facet_wrap(~Year, nrow = 2) +
   scale_x_continuous(labels = unique(as.character(results_age$Age_cat)),
                      breaks = 1:10) +
@@ -598,15 +598,21 @@ results_age %>%
        y = "Montly deaths") +
   theme(legend.position = c(.85, .2),
         legend.background = element_blank(),
+        strip.background = element_blank(),
+        strip.text.x = element_text(margin = margin(0, 0, 2, 0)),
         axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.border = theme_border(type = c("bottom", "left")),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
         plot.margin = margin(0, 0, 0, 0)) +
-  labs(x = "Age group",
-       y = "Absolute excess deaths per 100,000 population",
+  labs(x = "Age group, y",
+       y = "Absolute Excess Deaths per\n100,000 Persons, n",
        colour = "Country")
 ```
 
 ```{r include=FALSE}
-ggsave("paper/Figure_3.png", dpi = 300, width = 190, height = 140, units = "mm")
+ggsave("paper/Figure_3.png", 
+       dpi = 300, width = 190, height = 140, units = "mm")
 ```
 
 <!-- ----------------------------------------------------- -->
