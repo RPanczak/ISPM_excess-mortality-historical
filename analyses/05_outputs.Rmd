@@ -418,7 +418,6 @@ results_year %>%
              nrow = 3,
              scales = "free_y",
              strip.position = "top") + 
-  # theme_classic() +
   theme_bw() +
   theme(
     strip.background = element_blank(),
@@ -837,7 +836,8 @@ focus_years <- c(1890, 1918, 1957, 1968, 1977, 2009, 2020)
 ```
 
 ```{r include=FALSE}
-ggsave(plot = gg, "paper/Figure_2_alt.png", dpi = 300, width =  190, height = 140, units = "mm")
+ggsave(plot = gg, "paper/Figure_2_alt.png", 
+       dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
 ## Alternative Figure 3
@@ -846,7 +846,8 @@ ggsave(plot = gg, "paper/Figure_2_alt.png", dpi = 300, width =  190, height = 14
 ```
 
 ```{r include=FALSE}
-ggsave(plot = gg, "paper/Figure_3_alt.png", dpi = 300, width =  190, height = 140, units = "mm")
+ggsave(plot = gg, "paper/Figure_3_alt.png", 
+       dpi = 300, width =  190, height = 140, units = "mm")
 ```
 
 ## Figure S1 {.tabset}
@@ -949,20 +950,23 @@ Monthly estimates of excess
 
 ### Absolute 
 
-```{r echo=FALSE}
-hline_pandemic <- results_month %>% 
-  filter(Year >= 2020) %>% 
-  group_by(Country) %>% 
-  summarise(yintercept = max(excess_month)) %>% 
-  ungroup() 
-
+```{r include=FALSE}
 vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
                                 as.Date("1918-01-01"),
                                 as.Date("1957-01-01"),
                                 as.Date("1968-01-01"),
                                 as.Date("1977-01-01"),
                                 as.Date("2009-01-01"),
-                                as.Date("2020-01-01"))) 
+                                as.Date("2020-01-01")))
+
+```
+
+```{r echo=FALSE}
+hline_pandemic <- results_month %>% 
+  filter(Year >= 2020) %>% 
+  group_by(Country) %>% 
+  summarise(yintercept = max(excess_month)) %>% 
+  ungroup() 
 
 results_month %>% 
   filter(Year >= 1880) %>% 
@@ -986,14 +990,30 @@ results_month %>%
   scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
   facet_grid(Country~., scales = "free_y") + 
   scale_y_continuous(labels = label_number(accuracy = 1, suffix = "K", scale = 1e-3)) +
+  facet_wrap(facets = vars(Country), 
+             nrow = 3,
+             scales = "free_y",
+             strip.position = "top") + 
+  ylab("Monthly Excess Deaths, n") + 
   theme_bw() +
-  theme(legend.position = c(.12, .95),
-        legend.background = element_blank(),
-        plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x = "Year",y = "Monthly excess deaths", fill = NULL) +
-  guides(fill = guide_legend(reverse = TRUE)) 
-
-rm(hline_pandemic)
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_text(margin = margin(0, 0, 0, 0)),
+    panel.background = element_blank(), 
+    panel.border = theme_border(type = c("bottom", "left")),
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.box.margin = margin(-20, -10, -10, -10),
+    legend.key.size = unit(0.25, "cm"),
+    plot.margin = margin(3, 0, 10, 0)) +
+  xlab("") +
+  guides(fill = guide_legend(reverse = TRUE, nrow = 1))
 ```
 
 ```{r include=FALSE}
@@ -1008,14 +1028,6 @@ hline_pandemic <- results_month %>%
   group_by(Country) %>% 
   summarise(yintercept = max(excess_month/Population*100000)) %>% 
   ungroup() 
-
-vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
-                                as.Date("1918-01-01"),
-                                as.Date("1957-01-01"),
-                                as.Date("1968-01-01"),
-                                as.Date("1977-01-01"),
-                                as.Date("2009-01-01"),
-                                as.Date("2020-01-01"))) 
 
 results_month %>% 
   filter(Year >= 1880) %>% 
@@ -1038,14 +1050,30 @@ results_month %>%
                expand = c(0.01, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
-  facet_grid(Country~., scales = "free_y") + 
-  # scale_y_continuous() +
+  facet_wrap(facets = vars(Country), 
+             nrow = 3,
+             scales = "free_y",
+             strip.position = "top") + 
+  ylab("Monthly Excess Deaths per 100 000 Persons, n") + 
   theme_bw() +
-  theme(legend.position = c(.12, .95),
-        legend.background = element_blank(),
-        plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x = "Year",y = "Monthly excess deaths per 100,000 population", fill = NULL) +
-  guides(fill = guide_legend(reverse = TRUE)) 
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_text(margin = margin(0, 0, 0, 0)),
+    panel.background = element_blank(), 
+    panel.border = theme_border(type = c("bottom", "left")),
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.box.margin = margin(-20, -10, -10, -10),
+    legend.key.size = unit(0.25, "cm"),
+    plot.margin = margin(3, 0, 10, 0)) +
+  xlab("") +
+  guides(fill = guide_legend(reverse = TRUE, nrow = 1))
 
 rm(hline_pandemic)
 ```
@@ -1062,14 +1090,6 @@ hline_pandemic <- results_month %>%
   group_by(Country) %>% 
   summarise(yintercept = max(rel_excess_month)) %>% 
   ungroup() 
-
-vline_pandemic <- tibble(Date=c(as.Date("1890-01-01"),
-                                as.Date("1918-01-01"),
-                                as.Date("1957-01-01"),
-                                as.Date("1968-01-01"),
-                                as.Date("1977-01-01"),
-                                as.Date("2009-01-01"),
-                                as.Date("2020-01-01"))) 
 
 results_month %>% 
   filter(Year >= 1880) %>% 
@@ -1091,14 +1111,31 @@ results_month %>%
                expand = c(0.01, 0)) +
   scale_fill_manual(values = c("#67A9CF", "#EF8A62")) +  
   scale_color_manual(values = c("#67A9CF", "#EF8A62"), guide = "none") +
-  facet_grid(Country~., scales = "free_y") + 
   scale_y_continuous(labels = percent) +
+  facet_wrap(facets = vars(Country), 
+             nrow = 3,
+             scales = "free_y",
+             strip.position = "top") + 
+  ylab("Monthly Excess Deaths, %") + 
   theme_bw() +
-  theme(legend.position = c(.12, .95),
-        legend.background = element_blank(),
-        plot.margin = margin(0.5, 0.5, 0, 0))+
-  labs(x = "Year",y = "Monthly % excess deaths", fill = NULL) +
-  guides(fill = guide_legend(reverse = TRUE)) 
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_text(margin = margin(0, 0, 0, 0)),
+    panel.background = element_blank(), 
+    panel.border = theme_border(type = c("bottom", "left")),
+    axis.line = element_line(colour = "grey40"),
+    axis.ticks = element_line(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    legend.background = element_blank(),
+    legend.title = element_blank(),
+    legend.margin = margin(0, 0, 0, 0),
+    legend.box.margin = margin(-20, -10, -10, -10),
+    legend.key.size = unit(0.25, "cm"),
+    plot.margin = margin(3, 0, 10, 0)) +
+  xlab("") +
+  guides(fill = guide_legend(reverse = TRUE, nrow = 1))
 
 rm(hline_pandemic)
 ```
