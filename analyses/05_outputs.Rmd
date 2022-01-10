@@ -281,7 +281,7 @@ table_1 %>%
 
 ## Table 2
 
-Three measures of excess (all from main, age adjusted NB model with observed population counts) and years life lost.   
+Model-Based Estimates of Absolute Excess Deaths, Absolute Excess Deaths Scaled by Population, Relative Excess Deaths (Compared With Expected Number of Deaths), and Number of Life-Years Lost Until Age 70 Years.    
 
 ```{r echo=FALSE}
 table_2 <- 
@@ -303,34 +303,34 @@ table_2 <-
   
   mutate(
     Percent_excess = 
-      percent(yearly_rel_excess_total_deaths, accuracy = 0.1),
+      number(yearly_rel_excess_total_deaths*100, accuracy = 0.1),
     Percent_lci = 
-      percent(yearly_rel_excess_total_deaths_lower, accuracy = 0.1),
+      number(yearly_rel_excess_total_deaths_lower*100, accuracy = 0.1),
     Percent_uci = 
-      percent(yearly_rel_excess_total_deaths_upper, accuracy = 0.1)
+      number(yearly_rel_excess_total_deaths_upper*100, accuracy = 0.1)
   ) %>% 
   
   mutate(
     Rate_excess = 
       number((Excess / Population) * 100000, 
-             accuracy = 5L, big.mark = ","),
+             accuracy = 5L, big.mark = " "),
     Rate_lci = 
       number((Excess_lci / Population) * 100000, 
-             accuracy = 5L, big.mark = ","),
+             accuracy = 5L, big.mark = " "),
     Rate_uci = 
       number((Excess_uci / Population) * 100000, 
-             accuracy = 5L, big.mark = ",")
+             accuracy = 5L, big.mark = " ")
   ) %>% 
   relocate(Year, Country, 
            starts_with("Excess"), 
            starts_with("Rate"), 
            starts_with("Percent")) %>% 
   
-  mutate(Excess = number(Excess, big.mark = ","),
+  mutate(Excess = number(Excess, big.mark = " "),
          excess_cri = str_c("(", 
-                            number(Excess_lci, big.mark = ","), 
+                            number(Excess_lci, big.mark = " "), 
                             " to ", 
-                            number(Excess_uci, big.mark = ","), 
+                            number(Excess_uci, big.mark = " "), 
                             ")")) %>% 
   relocate(excess_cri, .after = Excess) %>% 
   select(-Excess_lci, -Excess_uci, -starts_with("yearly")) %>% 
@@ -346,31 +346,12 @@ table_2 <-
   mutate(rate_cri = str_c("(", Rate_lci, " to ", Rate_uci, ")")) %>%   
   relocate(rate_cri, .after = Rate_excess) %>% 
   select(-Rate_lci, -Rate_uci, -Population) %>% 
-  
-  left_join(
-    
-    results_age %>% 
-      filter(Year %in% pandemic_year, Age_cat=="[0,10)") %>%  
-      mutate(Lifeyearlost70 = number((yearly_excess_grouped_lifelost70/Population) * 100000, 
-                                     accuracy = 5L, big.mark = ","),
-             Lifeyearlost70_CI = paste0("(",
-                                        number(yearly_excess_grouped_lifelost70_lower/Population * 100000,
-                                               accuracy = 5L, big.mark = ","),
-                                        " to ",
-                                        number(yearly_excess_grouped_lifelost70_upper/Population * 100000,
-                                               accuracy = 5L, big.mark = ","),
-                                        ")"
-             )
-      )  %>% 
-      select(Year, Country, Lifeyearlost70, Lifeyearlost70_CI)
-    
-  ) %>% 
   arrange(Year, desc(Country))
 ```
 
 ```{r include=FALSE}
 openxlsx::write.xlsx(table_2, "paper/Table_2.xlsx", 
-                     row.names = FALSE, overwrite = TRUE)
+                     rowNames = FALSE, overwrite = TRUE)
 ```
 
 ```{r echo=FALSE}
@@ -378,20 +359,18 @@ table_2 %>%
   filter(!(Country == "Sweden" & Year == 2021)) %>% 
   mutate(percent_cri = if_else(Year==2020,paste0(percent_cri,"$^§$"),percent_cri)) %>% 
   select(-Year) %>% 
-  kbl(align = "lrrrrrrrr",
-      col.names = c("Country", 
-                    "Count", "95% CrI",
-                    "Per 100,000", "95% CrI", 
-                    "%", "95% CrI",
-                    "Per 100,000",
-                    "95% CrI")) %>% 
+  kbl(align = "lrrrrrr",
+      col.names = c("", 
+                    "n", "95% CrI",
+                    "n", "95% CrI", 
+                    "%", "95% CrI")) %>% 
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
                 full_width = FALSE) %>% 
-  add_header_above(c(" " = 1, 
-                     "Absolute excess deaths" = 2,
+  add_header_above(c("Calendar Year and Country" = 1, 
+                     "Absolute Excess Deaths per\n100 000 Persons " = 2,
                      "Absolute excess deaths\nper population$^*$" = 2,
-                     "Relative excess deaths$^†$" = 2,
-                     "Life years lost until 70$^‡$" = 2)) %>% # FIXME: dollar signs appear in the heads
+                     "Relative Excess Deaths$^†$" = 2
+                     )) %>% 
   pack_rows("1890", 1, 2) %>%
   pack_rows("1918", 3, 5) %>% 
   pack_rows("1957", 6, 8) %>% 
@@ -402,7 +381,7 @@ table_2 %>%
   footnote(symbol=c("Absolute number of excess deaths scaled by country population.",
                     "Absolute number of excess deaths scaled by the number of expected deaths.",
                     "Sum of life years lost until the age of 70 in thousands.",
-                    "Based on 8,000 posterior samples, the probability that the relative excess deaths in 2020 is larger than in 1957 is 100%, 94.3% and 99.9% in Switzerland, Sweden and Spain, respectively."))
+                    "Based on 8000 posterior samples, the probability that the relative number of deaths in 2020 was larger than in 1957 is 100% for Switzerland, 94.3% for Sweden, and 99.9% for Spain."))
 ```
 
 
