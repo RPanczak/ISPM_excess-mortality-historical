@@ -28,7 +28,10 @@ stan/global_serfling_nb_21
 
 # OAuth2 token, passwords
 .httr-oauth
-secrets/
+secrets/*
+
+# but keep the folder
+!secrets/.keep
 
 # knitr and R markdown default cache directories
 *_cache/
@@ -48,10 +51,11 @@ data-raw/Kaspar
 data-raw/SNC
 stan/*.rds
 paper/manus/*.docx
+paper/proofs
 ubelix/mgmt.txt
 Stata-rp
 
-# not publicaly available
+# not publicly available
 /data-raw/BfS/STATPOP_2010_2020_detailliert.csv
 
 /data-raw/BfS/Lieferung_Staub_2021_MonatsdatenJANbisJUN.csv
