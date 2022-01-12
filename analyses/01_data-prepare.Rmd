@@ -114,11 +114,12 @@ p_load(HMDHFDplus)
 
 # text file with password or modify password in calls below
 password <- readr::read_file("secrets/HMD.txt")
+username <- readr::read_file("secrets/username.txt")
 
 # CH
 # pop
 hmd_ch_pop_raw <- readHMDweb(CNTRY = "CHE", item ="Population" , 
-                             username = "r.panczak@gmail.com", password = password,
+                             username = username, password = password,
                              fixup = FALSE) %>% 
   as_tibble()
 
@@ -126,7 +127,7 @@ write_rds(hmd_ch_pop_raw, "data-raw/mortality_org/hmd_ch_pop_raw.Rds")
 
 # deaths
 hmd_ch_deaths_raw <- readHMDweb(CNTRY = "CHE", item = "Deaths_1x1",
-                                username = "r.panczak@gmail.com", password = password,
+                                username = username, password = password,
                                 fixup = FALSE) %>% 
   as_tibble()
 
@@ -136,7 +137,7 @@ write_rds(hmd_ch_deaths_raw, "data-raw/mortality_org/hmd_ch_deaths_raw.Rds")
 # pop
 # 1975 problem resolved in issue #45
 hmd_es_pop_raw <- readHMDweb(CNTRY = "ESP", item ="Population" , 
-                             username = "r.panczak@gmail.com", password = password,
+                             username = username, password = password,
                              fixup = FALSE) %>% 
   as_tibble() %>% 
   mutate(Year = ifelse(Year == "1975+", 1975, Year)) %>% 

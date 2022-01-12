@@ -88,7 +88,11 @@ Scripts from `R` script above make calls to Stan programs stored in this directo
 
 This folder stores example OpenPBS scripts that can be used to submit the `analyses` scripts to HPC cluster.  
 
-## Computing environemtn
+### `secrets` folder
+
+This folder should store username & password for accessing Human Mortality Database in plain text files named `username.txt` & `password.txt`.  
+
+## Computing environment
 
 Details on the version of R software and packages used are presented at the bottom of the output documents stored in `docs` folder. Script `03_joint-model-cmdstan.R` was run on HPC cluster using `R` version *4.1.0* with packages versions `cmdstanr` *0.4.0* & `cmdstan` *2.27.0*.  
 
