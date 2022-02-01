@@ -6,7 +6,7 @@
 
 Data & code to reproduce paper:  
 
-> Staub K*, Panczak R*, Matthes KL, Floris J, Berlin C, Junker C, Weitkunat R, Mamelund SE, Zwahlen M*, Riou J* (2021) Historically high excess mortality during the COVID-19 pandemic in Switzerland, Sweden and Spain. *Annals of Internal Medicine*.   
+> Staub K*, Panczak R*, Matthes KL, Floris J, Berlin C, Junker C, Weitkunat R, Mamelund SE, Zwahlen M*, Riou J* (2021) Historically high excess mortality during the COVID-19 pandemic in Switzerland, Sweden and Spain. *Annals of Internal Medicine*. [Epub ahead of print 1 February 2022]. doi:[10.7326/M21-3824](https://doi.org/10.7326/M21-3824)   
 > <sub>* Equal contribution.</sub>
 
 Code version [2.1](https://github.com/RPanczak/ISPM_excess-mortality/releases/tag/v2.1).
